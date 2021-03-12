@@ -5,10 +5,10 @@ repos:
       - id: mypy
         args: [--show-error-codes]
         name: mypy
-        files: ensemble_building
+        files: shared/.*
   - repo: https://gitlab.com/pycqa/flake8
     rev: 3.8.3
     hooks:
       - id: flake8
         name: flake8
-        files: ensemble_building/.*
+        files: shared/.*
