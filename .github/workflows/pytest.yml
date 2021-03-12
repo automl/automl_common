@@ -65,7 +65,7 @@ jobs:
         export OMP_NUM_THREADS=1
         export MKL_NUM_THREADS=1
         if [ ${{ matrix.code-cov }} ]; then codecov='--cov --cov-report=xml'; fi
-        pytest --durations=20 --timeout=300 --timeout-method=thread -v $codecov test
+        python -m pytest --durations=20 --timeout=300 --timeout-method=thread -v $codecov test
     - name: Check for files left behind by test
       if: ${{ always() }}
       run: |
@@ -78,7 +78,8 @@ jobs:
             exit 1
         fi
     - name: Upload coverage
-      if: matrix.code-cov && always()
+      # Enable this after enabling coverage token
+      if: matrix.code-cov && always() && false
       uses: codecov/codecov-action@v1
       with:
         fail_ci_if_error: true
