@@ -15,7 +15,7 @@ jobs:
             code-cov: true
           - python-version: 3.7
             use-conda: false
-      fail-fast:  false
+      fail-fast: false
 
     steps:
     - uses: actions/checkout@v2
@@ -29,7 +29,7 @@ jobs:
         # Miniconda is available in $CONDA env var
         $CONDA/bin/conda create -n testenv --yes pip wheel gxx_linux-64 gcc_linux-64 swig python=${{ matrix.python-version }}
         $CONDA/envs/testenv/bin/python3 -m pip install --upgrade pip
-        $CONDA/envs/testenv/bin/pip3 install -e .[test]
+        $CONDA/envs/testenv/bin/pip3 install -r requirements.txt
     - name: Install test dependencies
       if: matrix.use-conda == false
       run: |
@@ -38,7 +38,7 @@ jobs:
           # Numpy 1.20 dropped suppert for Python3.6
           pip install "numpy<=1.19"
         fi
-        pip install -e .[test]
+        pip install -r requirements.txt
         sudo apt-get update
         sudo apt-get remove swig
         sudo apt-get install swig3.0
