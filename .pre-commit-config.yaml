@@ -3,7 +3,8 @@ repos:
     rev: v0.761
     hooks:
       - id: mypy
-        args: [--show-error-codes,--ignore-missing-imports,--disallow-any-unimported,--disallow-any-expr,--disallow-any-decorated,--disallow-any-explicit,--disallow-any-generics]
+        args: [--show-error-codes,--ignore-missing-imports]
+        files: common/.*
   - repo: https://gitlab.com/pycqa/flake8
     rev: 3.8.3
     hooks:

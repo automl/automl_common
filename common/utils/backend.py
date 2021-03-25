@@ -17,11 +17,14 @@ from .logging_ import PicklableClientLogger, get_named_client_logger
 from ..ensemble_building.abstract_ensemble import AbstractEnsemble
 
 
-DatamanagerT = TypeVar('Datamanager')
+T = TypeVar('T')
 
 __all__ = [
     'Backend'
 ]
+
+
+IDENTIFIER_T = Tuple[int, int, float]
 
 
 def create(
@@ -139,11 +142,10 @@ class BackendContext(object):
                     print("Could not delete output dir: %s" % self.output_directory)
 
         if self.delete_tmp_folder_after_terminate or force:
-            if self._tmp_dir_created is False :
-                raise ValueError("Failed to delete tmp dir: %"
+            if self._tmp_dir_created is False:
+                raise ValueError(f"Failed to delete tmp dir {self.temporary_directory}."
                                  "Please make sure that the specified tmp dir does not "
-                                 "previously exists."
-                                 % self.temporary_directory)
+                                 "previously exists.")
             try:
                 shutil.rmtree(self.temporary_directory)
             except Exception:
@@ -298,7 +300,7 @@ class Backend(object):
     def _get_datamanager_pickle_filename(self) -> str:
         return os.path.join(self.internals_directory, 'datamanager.pkl')
 
-    def save_datamanager(self, datamanager: DatamanagerT) -> str:
+    def save_datamanager(self, datamanager: T) -> str:
         self._make_internals_directory()
         filepath = self._get_datamanager_pickle_filename()
 
@@ -310,7 +312,7 @@ class Backend(object):
 
         return filepath
 
-    def load_datamanager(self) -> DatamanagerT:
+    def load_datamanager(self) -> T:
         filepath = self._get_datamanager_pickle_filename()
         with open(filepath, 'rb') as fh:
             return pickle.load(fh)
@@ -334,8 +336,8 @@ class Backend(object):
         )
         return model_files
 
-    def load_models_by_identifiers(self, identifiers: List[Tuple[int, int, float]]
-                                   ) -> Dict:
+    def load_models_by_identifiers(self, identifiers: List[IDENTIFIER_T]
+                                   ) -> Dict[IDENTIFIER_T, Pipeline]:
         models = dict()
 
         for identifier in identifiers:
@@ -356,8 +358,8 @@ class Backend(object):
         with open(model_file_path, 'rb') as fh:
             return pickle.load(fh)
 
-    def load_cv_models_by_identifiers(self, identifiers: List[Tuple[int, int, float]]
-                                      ) -> Dict:
+    def load_cv_models_by_identifiers(self, identifiers: List[IDENTIFIER_T]
+                                      ) -> Dict[IDENTIFIER_T, Pipeline]:
         models = dict()
 
         for identifier in identifiers:

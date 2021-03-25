@@ -6,3 +6,5 @@ mypy
 pytest-timeout
 pre-commit
 pytest-cov
+dask
+distributed
