@@ -5,7 +5,7 @@ on: [push, pull_request]
 jobs:
   ubuntu:
 
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: [3.6, 3.7, 3.8, 3.9]
@@ -27,7 +27,7 @@ jobs:
       if: matrix.use-conda == true
       run: |
         # Miniconda is available in $CONDA env var
-        $CONDA/bin/conda create -n testenv --yes pip wheel gxx_linux-64 gcc_linux-64 swig python=${{ matrix.python-version }}
+        $CONDA/bin/conda create -n testenv --yes pip wheel python=${{ matrix.python-version }}
         $CONDA/envs/testenv/bin/python3 -m pip install --upgrade pip
         $CONDA/envs/testenv/bin/pip3 install -r requirements.txt
     - name: Install test dependencies
@@ -39,10 +39,6 @@ jobs:
           pip install "numpy<=1.19"
         fi
         pip install -r requirements.txt
-        sudo apt-get update
-        sudo apt-get remove swig
-        sudo apt-get install swig3.0
-        sudo ln -s /usr/bin/swig3.0 /usr/bin/swig
     - name: Store repository status
       id: status-before
       run: |
