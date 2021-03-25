@@ -9,7 +9,7 @@ import time
 import unittest
 import unittest.mock
 
-from autosklearn.util.stopwatch import StopWatch
+from common.utils.stopwatch import StopWatch
 
 
 class Test(unittest.TestCase):
