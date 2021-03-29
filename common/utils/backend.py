@@ -17,32 +17,36 @@ from .logging_ import PicklableClientLogger, get_named_client_logger
 from ..ensemble_building.abstract_ensemble import AbstractEnsemble
 
 
-T = TypeVar('T')
-
 __all__ = [
     'Backend'
 ]
 
 
-IDENTIFIER_T = Tuple[int, int, float]
+DATAMANAGER_TYPE = TypeVar('DATAMANAGER_TYPE')
+PIPELINE_IDENTIFIER_TYPE = Tuple[int, int, float]
 
 
 def create(
     temporary_directory: str,
     output_directory: Optional[str],
+    preffix: str,
     delete_tmp_folder_after_terminate: bool = True,
     delete_output_folder_after_terminate: bool = True,
 ) -> 'Backend':
     context = BackendContext(temporary_directory, output_directory,
                              delete_tmp_folder_after_terminate,
                              delete_output_folder_after_terminate,
+                             preffix=preffix,
                              )
-    backend = Backend(context)
+    backend = Backend(context, preffix)
 
     return backend
 
 
-def get_randomized_directory_name(temporary_directory: Optional[str] = None) -> str:
+def get_randomized_directory_name(
+    preffix: str,
+    temporary_directory: Optional[str] = None,
+) -> str:
     uuid_str = str(uuid.uuid1(clock_seq=os.getpid()))
 
     temporary_directory = (
@@ -50,7 +54,8 @@ def get_randomized_directory_name(temporary_directory: Optional[str] = None) -> 
         if temporary_directory
         else os.path.join(
             tempfile.gettempdir(),
-            "automl_tmp_{}".format(
+            "{}_tmp_{}".format(
+                preffix,
                 uuid_str,
             ),
         )
@@ -66,6 +71,7 @@ class BackendContext(object):
                  output_directory: Optional[str],
                  delete_tmp_folder_after_terminate: bool,
                  delete_output_folder_after_terminate: bool,
+                 preffix: str,
                  ):
 
         # Check that the names of tmp_dir and output_dir is not the same.
@@ -78,10 +84,12 @@ class BackendContext(object):
         # attributes to check that directories were properly created
         self._tmp_dir_created = False
         self._output_dir_created = False
+        self._preffix = preffix
 
         self._temporary_directory = (
             get_randomized_directory_name(
                 temporary_directory=temporary_directory,
+                preffix=self._preffix,
             )
         )
         self._output_directory = output_directory
@@ -126,8 +134,8 @@ class BackendContext(object):
         if self.output_directory and (self.delete_output_folder_after_terminate or force):
             if self._output_dir_created is False:
                 raise ValueError("Failed to delete output dir: %s"
-                                 "Please make sure that the specified output dir does "
-                                 "previously exists."
+                                 "Please make sure that the specified output dir did not "
+                                 "previously exist."
                                  % self.output_directory)
             try:
                 shutil.rmtree(self.output_directory)
@@ -144,8 +152,8 @@ class BackendContext(object):
         if self.delete_tmp_folder_after_terminate or force:
             if self._tmp_dir_created is False:
                 raise ValueError(f"Failed to delete tmp dir {self.temporary_directory}."
-                                 "Please make sure that the specified tmp dir does not "
-                                 "previously exists.")
+                                 "Please make sure that the specified tmp dir did not "
+                                 "previously exist.")
             try:
                 shutil.rmtree(self.temporary_directory)
             except Exception:
@@ -167,12 +175,13 @@ class Backend(object):
     * true targets of the ensemble
     """
 
-    def __init__(self, context: BackendContext, dirname='.automl'):
+    def __init__(self, context: BackendContext, preffix):
         # When the backend is created, this port is not available
         # When the port is available in the main process, we
         # call the setup_logger with this port and update self.logger
         self.logger = None  # type: Optional[PicklableClientLogger]
         self.context = context
+        self.preffix = preffix
 
         # Create the temporary directory if it does not yet exist
         try:
@@ -184,7 +193,7 @@ class Backend(object):
             if not os.path.exists(self.output_directory):
                 raise ValueError("Output directory %s does not exist." % self.output_directory)
 
-        self.internals_directory = os.path.join(self.temporary_directory, dirname)
+        self.internals_directory = os.path.join(self.temporary_directory, f".{self.preffix}")
         self._make_internals_directory()
 
     def setup_logger(self, port: int) -> None:
@@ -300,7 +309,7 @@ class Backend(object):
     def _get_datamanager_pickle_filename(self) -> str:
         return os.path.join(self.internals_directory, 'datamanager.pkl')
 
-    def save_datamanager(self, datamanager: T) -> str:
+    def save_datamanager(self, datamanager: DATAMANAGER_TYPE) -> str:
         self._make_internals_directory()
         filepath = self._get_datamanager_pickle_filename()
 
@@ -312,7 +321,7 @@ class Backend(object):
 
         return filepath
 
-    def load_datamanager(self) -> T:
+    def load_datamanager(self) -> DATAMANAGER_TYPE:
         filepath = self._get_datamanager_pickle_filename()
         with open(filepath, 'rb') as fh:
             return pickle.load(fh)
@@ -336,8 +345,8 @@ class Backend(object):
         )
         return model_files
 
-    def load_models_by_identifiers(self, identifiers: List[IDENTIFIER_T]
-                                   ) -> Dict[IDENTIFIER_T, Pipeline]:
+    def load_models_by_identifiers(self, identifiers: List[PIPELINE_IDENTIFIER_TYPE]
+                                   ) -> Dict[PIPELINE_IDENTIFIER_TYPE, Pipeline]:
         models = dict()
 
         for identifier in identifiers:
@@ -358,8 +367,8 @@ class Backend(object):
         with open(model_file_path, 'rb') as fh:
             return pickle.load(fh)
 
-    def load_cv_models_by_identifiers(self, identifiers: List[IDENTIFIER_T]
-                                      ) -> Dict[IDENTIFIER_T, Pipeline]:
+    def load_cv_models_by_identifiers(self, identifiers: List[PIPELINE_IDENTIFIER_TYPE]
+                                      ) -> Dict[PIPELINE_IDENTIFIER_TYPE, Pipeline]:
         models = dict()
 
         for identifier in identifiers:
