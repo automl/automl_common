@@ -3,7 +3,7 @@ repos:
     rev: v0.761
     hooks:
       - id: mypy
-        args: [--show-error-codes,--ignore-missing-imports]
+        args: [--show-error-codes, --ignore-missing-imports]
         files: common/.*
   - repo: https://gitlab.com/pycqa/flake8
     rev: 3.8.3
@@ -14,3 +14,8 @@ repos:
       - id: flake8
         name: flake8 test
         files: common/.*
+  - repo: https://github.com/ambv/black
+    rev: stable
+    hooks:
+      - id: black
+        language_version: python3.7

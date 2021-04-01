@@ -15,7 +15,7 @@ class AbstractEnsemble(object):
         base_models_predictions: np.ndarray,
         true_targets: np.ndarray,
         model_identifiers: List[Tuple[int, int, float]],
-    ) -> 'AbstractEnsemble':
+    ) -> "AbstractEnsemble":
         """Fit an ensemble given predictions of base models and targets.
 
         Ensemble building maximizes performance (in contrast to
