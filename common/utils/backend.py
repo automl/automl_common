@@ -29,22 +29,22 @@ PIPELINE_IDENTIFIER_TYPE = Tuple[int, int, float]
 def create(
     temporary_directory: str,
     output_directory: Optional[str],
-    preffix: str,
+    prefix: str,
     delete_tmp_folder_after_terminate: bool = True,
     delete_output_folder_after_terminate: bool = True,
 ) -> 'Backend':
     context = BackendContext(temporary_directory, output_directory,
                              delete_tmp_folder_after_terminate,
                              delete_output_folder_after_terminate,
-                             preffix=preffix,
+                             prefix=prefix,
                              )
-    backend = Backend(context, preffix)
+    backend = Backend(context, prefix)
 
     return backend
 
 
 def get_randomized_directory_name(
-    preffix: str,
+    prefix: str,
     temporary_directory: Optional[str] = None,
 ) -> str:
     uuid_str = str(uuid.uuid1(clock_seq=os.getpid()))
@@ -55,7 +55,7 @@ def get_randomized_directory_name(
         else os.path.join(
             tempfile.gettempdir(),
             "{}_tmp_{}".format(
-                preffix,
+                prefix,
                 uuid_str,
             ),
         )
@@ -71,7 +71,7 @@ class BackendContext(object):
                  output_directory: Optional[str],
                  delete_tmp_folder_after_terminate: bool,
                  delete_output_folder_after_terminate: bool,
-                 preffix: str,
+                 prefix: str,
                  ):
 
         # Check that the names of tmp_dir and output_dir is not the same.
@@ -84,12 +84,12 @@ class BackendContext(object):
         # attributes to check that directories were properly created
         self._tmp_dir_created = False
         self._output_dir_created = False
-        self._preffix = preffix
+        self._prefix = prefix
 
         self._temporary_directory = (
             get_randomized_directory_name(
                 temporary_directory=temporary_directory,
-                preffix=self._preffix,
+                prefix=self._prefix,
             )
         )
         self._output_directory = output_directory
@@ -175,13 +175,13 @@ class Backend(object):
     * true targets of the ensemble
     """
 
-    def __init__(self, context: BackendContext, preffix):
+    def __init__(self, context: BackendContext, prefix):
         # When the backend is created, this port is not available
         # When the port is available in the main process, we
         # call the setup_logger with this port and update self.logger
         self.logger = None  # type: Optional[PicklableClientLogger]
         self.context = context
-        self.preffix = preffix
+        self.prefix = prefix
 
         # Create the temporary directory if it does not yet exist
         try:
@@ -193,7 +193,7 @@ class Backend(object):
             if not os.path.exists(self.output_directory):
                 raise ValueError("Output directory %s does not exist." % self.output_directory)
 
-        self.internals_directory = os.path.join(self.temporary_directory, f".{self.preffix}")
+        self.internals_directory = os.path.join(self.temporary_directory, f".{self.prefix}")
         self._make_internals_directory()
 
     def setup_logger(self, port: int) -> None:

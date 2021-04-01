@@ -16,7 +16,7 @@ handlers:
     class: logging.FileHandler
     level: DEBUG
     formatter: simple
-    filename: autosklearn.log
+    filename: automl.log
 
   distributed_logfile:
     class: logging.FileHandler
@@ -29,11 +29,7 @@ root:
   handlers: [console, file_handler]
 
 loggers:
-  autosklearn.metalearning:
-    level: DEBUG
-    handlers: [file_handler]
-
-  autosklearn.util.backend:
+  Backend:
     level: DEBUG
     handlers: [file_handler]
     propagate: no
