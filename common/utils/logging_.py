@@ -19,7 +19,7 @@ def setup_logger(
     output_dir: str,
     filename: Optional[str] = None,
     distributedlog_filename: Optional[str] = None,
-    logging_config: Optional[Dict] = None,
+    logging_config: Optional[Dict[str, Dict[str, Any]]] = None,
 ) -> None:
     # logging_config must be a dictionary object specifying the configuration
     if logging_config is None:
@@ -151,9 +151,7 @@ def _get_named_client_logger(
         # Ignore mypy logging.handlers.SocketHandler has no attribute port
         # This is not the case clearly, yet MyPy assumes this is not the case
         # Even when using direct casting or getattr
-        ports = [
-            getattr(handler, "port", None) for handler in local_logger.handlers
-        ]  # type: ignore[attr-defined]
+        ports = [getattr(handler, "port", None) for handler in local_logger.handlers]
     except AttributeError:
         # We do not want to log twice but adding multiple times the same
         # handler. So we check to what ports we communicate to
@@ -259,7 +257,7 @@ def start_log_server(
     event: threading.Event,
     port: multiprocessing.Value,
     filename: str,
-    logging_config: Dict,
+    logging_config: Optional[Dict[str, Dict[str, Any]]],
     output_dir: str,
 ) -> None:
     setup_logger(filename=filename, logging_config=logging_config, output_dir=output_dir)
@@ -297,7 +295,7 @@ class LogRecordSocketReceiver(socketserver.ThreadingTCPServer):
         port: int = logging.handlers.DEFAULT_TCP_LOGGING_PORT,
         handler: Type[LogRecordStreamHandler] = LogRecordStreamHandler,
         logname: Optional[str] = None,
-        event: threading.Event = None,
+        event: Optional[threading.Event] = None,
     ):
         socketserver.ThreadingTCPServer.__init__(self, (host, port), handler)
         self.timeout = 1

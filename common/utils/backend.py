@@ -6,7 +6,7 @@ import tempfile
 import time
 import uuid
 import warnings
-from typing import Dict, List, Optional, Tuple, TypeVar, Union
+from typing import Dict, List, Optional, Tuple, TypeVar, Union, cast
 
 import numpy as np
 
@@ -177,7 +177,7 @@ class Backend(object):
     * true targets of the ensemble
     """
 
-    def __init__(self, context: BackendContext, prefix):
+    def __init__(self, context: BackendContext, prefix: str):
         # When the backend is created, this port is not available
         # When the port is available in the main process, we
         # call the setup_logger with this port and update self.logger
@@ -318,7 +318,7 @@ class Backend(object):
     def load_datamanager(self) -> DATAMANAGER_TYPE:
         filepath = self._get_datamanager_pickle_filename()
         with open(filepath, "rb") as fh:
-            return pickle.load(fh)
+            return cast(DATAMANAGER_TYPE, pickle.load(fh))
 
     def get_runs_directory(self) -> str:
         return os.path.join(self.internals_directory, "runs")
@@ -342,7 +342,7 @@ class Backend(object):
     def load_models_by_identifiers(
         self, identifiers: List[PIPELINE_IDENTIFIER_TYPE]
     ) -> Dict[PIPELINE_IDENTIFIER_TYPE, Pipeline]:
-        models = dict()
+        models = {}
 
         for identifier in identifiers:
             seed, idx, budget = identifier
@@ -361,7 +361,7 @@ class Backend(object):
     def load_cv_models_by_identifiers(
         self, identifiers: List[PIPELINE_IDENTIFIER_TYPE]
     ) -> Dict[PIPELINE_IDENTIFIER_TYPE, Pipeline]:
-        models = dict()
+        models = {}
 
         for identifier in identifiers:
             seed, idx, budget = identifier
@@ -448,7 +448,7 @@ class Backend(object):
             indices_files.sort(key=lambda f: time.ctime(os.path.getmtime(f)))
 
         with open(indices_files[-1], "rb") as fh:
-            ensemble_members_run_numbers = pickle.load(fh)
+            ensemble_members_run_numbers = cast(AbstractEnsemble, pickle.load(fh))
 
         return ensemble_members_run_numbers
 

@@ -3,12 +3,28 @@ repos:
     rev: v0.761
     hooks:
       - id: mypy
-        args: [--show-error-codes, --ignore-missing-imports]
+        args: [--show-error-codes, --ignore-missing-imports,
+               --strict, --disallow-any-generics,
+               --warn-unused-ignores,
+               --disallow-subclassing-any,
+               --disallow-untyped-calls,
+               --warn-redundant-casts,
+               --warn-return-any,
+               --warn-unreachable,
+               --disallow-untyped-decorators,
+               --disallow-incomplete-defs, --disallow-untyped-defs,
+               --follow-imports, skip]
         files: common/.*
   - repo: https://gitlab.com/pycqa/flake8
     rev: 3.8.3
     hooks:
       - id: flake8
+        additional_dependencies:
+          - flake8-bugbear
+          - flake8-builtins
+          - flake8-comprehensions
+          - flake8-tidy-imports
+          - flake8-import-order
         name: flake8 common
         files: common/.*
       - id: flake8

@@ -6,9 +6,7 @@ import numpy as np
 from sklearn.pipeline import Pipeline
 
 
-class AbstractEnsemble(object):
-    __metaclass__ = ABCMeta
-
+class AbstractEnsemble(object, metaclass=ABCMeta):
     @abstractmethod
     def fit(
         self,
