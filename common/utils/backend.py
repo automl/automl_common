@@ -95,7 +95,7 @@ class BackendContext(object):
         # When the backend is created, this port is not available
         # When the port is available in the main process, we
         # call the setup_logger with this port and update self.logger
-        self.logger = None  # type: Optional[PicklableClientLogger]
+        self._logger = None  # type: Optional[PicklableClientLogger]
         self.create_directories()
 
     def setup_logger(self, port: int) -> None:

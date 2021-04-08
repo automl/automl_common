@@ -148,9 +148,6 @@ def _get_named_client_logger(
     local_logger.setLevel(logging.DEBUG)
 
     try:
-        # Ignore mypy logging.handlers.SocketHandler has no attribute port
-        # This is not the case clearly, yet MyPy assumes this is not the case
-        # Even when using direct casting or getattr
         ports = [getattr(handler, "port", None) for handler in local_logger.handlers]
     except AttributeError:
         # We do not want to log twice but adding multiple times the same
