@@ -8,10 +8,13 @@ from common.ensemble_building.singlebest_ensemble import SingleBest
 
 this_directory = os.path.dirname(__file__)
 sys.path.append(this_directory)
-from ensemble_utils import accuracy_loss_fn, log_loss_fn  # noqa (E402: module level import not   at top of file)
+from ensemble_utils import (
+    accuracy_loss_fn,
+    log_loss_fn,
+)  # noqa (E402: module level import not   at top of file)
 
 
-@unittest.mock.patch('os.path.exists')
+@unittest.mock.patch("os.path.exists")
 def test_get_identifiers_from_run_history(exists, ensemble_run_history, ensemble_backend):
     exists.return_value = True
     ensemble = SingleBest(

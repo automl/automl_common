@@ -4,11 +4,13 @@ from pathlib import Path
 import dask.distributed
 
 
-class DummyFuture(dask.distributed.Future):
+# Dask is not typed -- ignore the cannot subclass error
+class DummyFuture(dask.distributed.Future):  # type: ignore
     """
     A class that mimics a distributed Future, the outcome of
     performing submit on a distributed client.
     """
+
     def __init__(self, result: typing.Any) -> None:
         self._result = result  # type: typing.Any
 
@@ -28,18 +30,28 @@ class DummyFuture(dask.distributed.Future):
         pass
 
 
-class SingleThreadedClient(dask.distributed.Client):
+class SingleThreadedClient(dask.distributed.Client):  # type: ignore
     """
     A class to Mock the Distributed Client class, in case
     Auto-Sklearn is meant to run in the current Thread.
     """
+
     def __init__(self) -> None:
 
         # Raise a not implemented error if using a method from Client
-        implemented_methods = ['submit', 'close', 'shutdown', 'write_scheduler_file',
-                               '_get_scheduler_info', 'nthreads']
-        method_list = [func for func in dir(dask.distributed.Client) if callable(
-            getattr(dask.distributed.Client, func)) and not func.startswith('__')]
+        implemented_methods = [
+            "submit",
+            "close",
+            "shutdown",
+            "write_scheduler_file",
+            "_get_scheduler_info",
+            "nthreads",
+        ]
+        method_list = [
+            func
+            for func in dir(dask.distributed.Client)
+            if callable(getattr(dask.distributed.Client, func)) and not func.startswith("__")
+        ]
         for method in method_list:
             if method in implemented_methods:
                 continue
@@ -51,10 +63,10 @@ class SingleThreadedClient(dask.distributed.Client):
 
     def submit(
         self,
-        func: typing.Callable,
-        *args: typing.List,
+        func: typing.Callable[..., typing.Any],
+        *args: typing.List[typing.Any],
         priority: int = 0,
-        **kwargs: typing.Dict,
+        **kwargs: typing.Dict[str, typing.Any],
     ) -> typing.Any:
         return DummyFuture(func(*args, **kwargs))
 
@@ -68,19 +80,19 @@ class SingleThreadedClient(dask.distributed.Client):
         Path(scheduler_file).touch()
         return
 
-    def _get_scheduler_info(self) -> typing.Dict:
+    def _get_scheduler_info(self) -> typing.Dict[str, typing.Any]:
         return {
-            'workers': ['127.0.0.1'],
-            'type': 'Scheduler',
+            "workers": ["127.0.0.1"],
+            "type": "Scheduler",
         }
 
-    def nthreads(self) -> typing.Dict:
+    def nthreads(self) -> typing.Dict[str, typing.Any]:
         return {
-            '127.0.0.1': 1,
+            "127.0.0.1": 1,
         }
 
     def __repr__(self) -> str:
-        return 'SingleThreadedClient()'
+        return "SingleThreadedClient()"
 
     def __del__(self) -> None:
         pass

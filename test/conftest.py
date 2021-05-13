@@ -15,12 +15,14 @@ from smac.runhistory.runhistory import RunHistory, RunValue, RunKey
 
 this_directory = os.path.dirname(__file__)
 sys.path.append(this_directory)
-from test_ensemble.ensemble_utils import BackendMock  # noqa (E402: module level import not   at top of file)
+from test_ensemble.ensemble_utils import (
+    BackendMock,
+)  # noqa (E402: module level import not   at top of file)
 
 
 @pytest.fixture(scope="function")
 def ensemble_backend(request):
-    test_id = '%s_%s' % (request.module.__name__, request.node.name)
+    test_id = "%s_%s" % (request.module.__name__, request.node.name)
     test_dir = os.path.join(this_directory, test_id)
 
     try:
@@ -37,7 +39,9 @@ def ensemble_backend(request):
                 shutil.rmtree(test_dir)
             except:  # noqa E722
                 pass
+
         return session_run_at_end
+
     request.addfinalizer(get_finalizer(backend))
 
     return backend
@@ -48,12 +52,7 @@ def ensemble_run_history(request):
 
     run_history = RunHistory()
     run_history._add(
-        RunKey(
-            config_id=3,
-            instance_id='{"task_id": "breast_cancer"}',
-            seed=1,
-            budget=3.0
-        ),
+        RunKey(config_id=3, instance_id='{"task_id": "breast_cancer"}', seed=1, budget=3.0),
         RunValue(
             cost=0.11347517730496459,
             time=0.21858787536621094,
@@ -61,30 +60,27 @@ def ensemble_run_history(request):
             starttime=time.time(),
             endtime=time.time(),
             additional_info={
-                'duration': 0.20323538780212402,
-                'num_run': 3,
-                'configuration_origin': 'Random Search'}
+                "duration": 0.20323538780212402,
+                "num_run": 3,
+                "configuration_origin": "Random Search",
+            },
         ),
         status=None,
         origin=None,
     )
     run_history._add(
-        RunKey(
-            config_id=6,
-            instance_id='{"task_id": "breast_cancer"}',
-            seed=1,
-            budget=6.0
-        ),
+        RunKey(config_id=6, instance_id='{"task_id": "breast_cancer"}', seed=1, budget=6.0),
         RunValue(
-            cost=2*0.11347517730496459,
-            time=2*0.21858787536621094,
+            cost=2 * 0.11347517730496459,
+            time=2 * 0.21858787536621094,
             status=None,
             starttime=time.time(),
             endtime=time.time(),
             additional_info={
-                'duration': 0.20323538780212402,
-                'num_run': 6,
-                'configuration_origin': 'Random Search'}
+                "duration": 0.20323538780212402,
+                "num_run": 6,
+                "configuration_origin": "Random Search",
+            },
         ),
         status=None,
         origin=None,
@@ -104,7 +100,9 @@ def dask_client_single_worker(request):
             client.shutdown()
             client.close()
             del client
+
         return session_run_at_end
-    request.addfinalizer(get_finalizer(client.scheduler_info()['address']))
+
+    request.addfinalizer(get_finalizer(client.scheduler_info()["address"]))
 
     return client

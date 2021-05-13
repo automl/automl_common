@@ -1,5 +1,5 @@
 import os
-from typing import List, Tuple, Union
+from typing import List, Tuple, Union, cast
 
 import numpy as np
 
@@ -20,6 +20,7 @@ class SingleBest(AbstractEnsemble):
     object, to comply with the expected interface of an
     AbstractEnsemble.
     """
+
     def __init__(
         self,
         run_history: RunHistory,
@@ -63,23 +64,25 @@ class SingleBest(AbstractEnsemble):
                 # Make sure that the individual best model actually exists
                 model_dir = self.backend.get_numrun_directory(
                     self.seed,
-                    run_value.additional_info['num_run'],
+                    run_value.additional_info["num_run"],
                     run_key.budget,
                 )
                 model_file_name = self.backend.get_model_filename(
                     self.seed,
-                    run_value.additional_info['num_run'],
+                    run_value.additional_info["num_run"],
                     run_key.budget,
                 )
                 file_path = os.path.join(model_dir, model_file_name)
                 if not os.path.exists(file_path):
                     continue
 
-                best_model_identifier = [(
-                    self.seed,
-                    run_value.additional_info['num_run'],
-                    run_key.budget,
-                )]
+                best_model_identifier = [
+                    (
+                        self.seed,
+                        run_value.additional_info["num_run"],
+                        run_key.budget,
+                    )
+                ]
                 best_model_loss = run_value.cost
 
         if not best_model_identifier:
@@ -96,15 +99,19 @@ class SingleBest(AbstractEnsemble):
         return predictions[0]
 
     def __str__(self) -> str:
-        return 'Single Model Selection:\n\tMembers: %s' \
-               '\n\tWeights: %s\n\tIdentifiers: %s' % \
-               (self.indices_, self.weights_,
-                ' '.join([str(identifier) for idx, identifier in
-                          enumerate(self.identifiers_)
-                          if self.weights_[idx] > 0]))
+        return "Single Model Selection:\n\tMembers: %s" "\n\tWeights: %s\n\tIdentifiers: %s" % (
+            self.indices_,
+            self.weights_,
+            " ".join(
+                [
+                    str(identifier)
+                    for idx, identifier in enumerate(self.identifiers_)
+                    if self.weights_[idx] > 0
+                ]
+            ),
+        )
 
-    def get_models_with_weights(self, models: Pipeline
-                                ) -> List[Tuple[float, Pipeline]]:
+    def get_models_with_weights(self, models: Pipeline) -> List[Tuple[float, Pipeline]]:
         output = []
         for i, weight in enumerate(self.weights_):
             if weight > 0.0:
@@ -127,4 +134,4 @@ class SingleBest(AbstractEnsemble):
         return output
 
     def get_validation_performance(self) -> float:
-        return self.best_loss
+        return cast(float, self.best_loss)
