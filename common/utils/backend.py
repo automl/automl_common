@@ -1,6 +1,7 @@
 import glob
 import os
 import pickle
+import re
 import shutil
 import tempfile
 import time
@@ -357,6 +358,7 @@ class Backend(object):
         other_num_runs = [
             int(os.path.basename(run_dir).split("_")[1])
             for run_dir in glob.glob(os.path.join(self.internals_directory, "runs", "*"))
+            if re.match(r"\d+_\d+_\d+", os.path.basename(run_dir))
         ]
         if len(other_num_runs) > 0:
             # We track the number of runs from two forefronts:
