@@ -6,7 +6,6 @@ repos:
         args: [--show-error-codes, --ignore-missing-imports,
                --strict, --disallow-any-generics,
                --warn-unused-ignores,
-               --disallow-subclassing-any,
                --disallow-untyped-calls,
                --warn-redundant-casts,
                --warn-return-any,
