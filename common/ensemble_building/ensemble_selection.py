@@ -1,11 +1,14 @@
 from collections import Counter
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, TypeVar, Union
 
 import numpy as np
 
 from sklearn.pipeline import Pipeline
 
 from .abstract_ensemble import AbstractEnsemble
+
+
+DType = TypeVar("DType")
 
 
 class EnsembleSelection(AbstractEnsemble):
@@ -15,11 +18,13 @@ class EnsembleSelection(AbstractEnsemble):
         loss_fn: Callable[..., float],
         loss_fn_args: Dict[str, Any],
         random_state: np.random.RandomState,
+        precision: Optional[DType] = None,
     ) -> None:
         self.ensemble_size = ensemble_size
         self.loss_fn: Optional[Callable[..., float]] = loss_fn
         self.loss_fn_args = loss_fn_args
         self.random_state = random_state
+        self.precision = precision
 
     def __getstate__(self) -> Dict[str, Any]:
         # Cannot serialize a metric if
@@ -71,17 +76,21 @@ class EnsembleSelection(AbstractEnsemble):
 
         weighted_ensemble_prediction = np.zeros(
             predictions[0].shape,
-            dtype=np.float64,
+            dtype=self.precision,
         )
         fant_ensemble_prediction = np.zeros(
             weighted_ensemble_prediction.shape,
-            dtype=np.float64,
+            dtype=self.precision,
+        )
+        # We will find the next model to add to the ensemble
+        # based on a minimization problem
+        # On every iteration, self.loss_fn computes the contribution of each
+        # candidate model to be added to the ensemble
+        losses = np.ones(
+            (len(predictions)),
+            dtype=self.precision,
         )
         for _ in range(ensemble_size):
-            losses = np.zeros(
-                (len(predictions)),
-                dtype=np.float64,
-            )
             s = len(ensemble)
             if s > 0:
                 np.add(
@@ -122,7 +131,7 @@ class EnsembleSelection(AbstractEnsemble):
         ensemble_members = Counter(self.indices_).most_common()
         weights = np.zeros(
             (self.num_input_models_,),
-            dtype=np.float64,
+            dtype=self.precision,
         )
         for ensemble_member in ensemble_members:
             weight = float(ensemble_member[1]) / self.ensemble_size
@@ -135,11 +144,12 @@ class EnsembleSelection(AbstractEnsemble):
 
     def predict(self, predictions: Union[np.ndarray, List[np.ndarray]]) -> np.ndarray:
 
-        average = np.zeros_like(predictions[0], dtype=np.float64)
-        tmp_predictions = np.empty_like(predictions[0], dtype=np.float64)
+        average = np.zeros_like(predictions[0], dtype=self.precision)
+        tmp_predictions = np.empty_like(predictions[0], dtype=self.precision)
 
         # if predictions.shape[0] == len(self.weights_),
-        # predictions include those of zero-weight models.
+        # Then it means that the predictions of non_zero_weight models
+        # is included.
         if len(predictions) == len(self.weights_):
             for pred, weight in zip(predictions, self.weights_):
                 np.multiply(pred, weight, out=tmp_predictions)

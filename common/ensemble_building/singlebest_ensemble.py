@@ -99,7 +99,7 @@ class SingleBest(AbstractEnsemble):
         return predictions[0]
 
     def __str__(self) -> str:
-        return "Single Model Selection:\n\tMembers: %s" "\n\tWeights: %s\n\tIdentifiers: %s" % (
+        return "Single Model Selection:\n\tMembers: {}\n\tWeights: {}\n\tIdentifiers: {}".format(
             self.indices_,
             self.weights_,
             " ".join(
