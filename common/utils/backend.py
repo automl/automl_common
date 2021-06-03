@@ -117,15 +117,15 @@ class BackendContext(object):
         # make sure that tilde does not appear on the path.
         return os.path.expanduser(os.path.expandvars(self._temporary_directory))
 
-    def create_directories(self) -> None:
+    def create_directories(self, exist_ok: bool = False) -> None:
         # No Exception is raised if self.temporary_directory already exists.
         # This allows to continue the search, also, an error will be raised if
         # save_start_time is called which ensures two searches are not performed
-        os.makedirs(self.temporary_directory, exist_ok=True)
+        os.makedirs(self.temporary_directory, exist_ok=exist_ok)
         self._tmp_dir_created = True
 
         if self.output_directory is not None:
-            os.makedirs(self.output_directory, exist_ok=True)
+            os.makedirs(self.output_directory, exist_ok=exist_ok)
             self._output_dir_created = True
 
     def delete_directories(self, force: bool = True) -> None:
