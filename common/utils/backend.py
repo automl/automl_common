@@ -26,15 +26,21 @@ PIPELINE_IDENTIFIER_TYPE = Tuple[int, int, float]
 
 
 class pycolor:
-    RED = '\033[31m'
-    YELLOW = '\033[33m'
+    color_dict = {
+        'red': '\033[31m',
+        'yellow': '\033[33m'
+    }
     END = '\033[0m'
+
+    @classmethod
+    def print(cls, txt: str, color: str = 'red') -> None:
+        print(f'{cls.color_dict[color]}{txt}{cls.END}')
 
 
 def _ask_delete_existing(dir_name: str, purpose: str) -> None:
     while True:
         print(f'The {purpose} directory `{dir_name}` already exists.')
-        print(pycolor.RED + 'Would you like to delete it and continue?: [y/n/help]\n' + pycolor.END)
+        pycolor.print('Would you like to delete it and continue?: [y/n/help]\n')
         answer = input()
         if answer == 'y':
             print('Delete the directory and continue the process.')
