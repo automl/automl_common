@@ -33,14 +33,20 @@ class pycolor:
     END = '\033[0m'
 
     @classmethod
-    def print(cls, txt: str, color: str = 'red') -> None:
+    def out(cls, txt: str, color: str = 'red') -> None:
+        if color not in cls.color_dict.keys():
+            raise ValueError('color must be {}, but got {}.'.format(
+                list(cls.color_dict.keys()),
+                color
+            ))
+
         print(f'{cls.color_dict[color]}{txt}{cls.END}')
 
 
 def _ask_delete_existing(dir_name: str, purpose: str) -> None:
     while True:
         print(f'The {purpose} directory `{dir_name}` already exists.')
-        pycolor.print('Would you like to delete it and continue?: [y/n/help]\n')
+        pycolor.out('Would you like to delete it and continue?: [y/n/help]\n')
         answer = input()
         if answer == 'y':
             print('Delete the directory and continue the process.')
