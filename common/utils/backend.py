@@ -2,6 +2,7 @@ import glob
 import os
 import pickle
 import shutil
+import sys
 import tempfile
 import time
 import uuid
@@ -24,6 +25,29 @@ DATAMANAGER_TYPE = TypeVar("DATAMANAGER_TYPE")
 PIPELINE_IDENTIFIER_TYPE = Tuple[int, int, float]
 
 
+class pycolor:
+    RED = '\033[31m'
+    YELLOW = '\033[33m'
+    END = '\033[0m'
+
+
+def _ask_delete_existing(dir_name: str, purpose: str) -> None:
+    while True:
+        print(f'The {purpose} directory `{dir_name}` already exists.')
+        print(pycolor.RED + 'Would you like to delete it and continue?: [y/n/help]\n' + pycolor.END)
+        answer = input()
+        if answer == 'y':
+            print('Delete the directory and continue the process.')
+            shutil.rmtree(dir_name)
+            return
+        elif answer == 'n':
+            print(f'Change the path for `{purpose}` and try again.')
+            print('Process finished.')
+            sys.exit()
+        elif answer == 'help':
+            print('y: Delete the directory\nn: Finish the process\n')
+
+
 def create(
     temporary_directory: str,
     output_directory: Optional[str],
@@ -32,10 +56,10 @@ def create(
     delete_output_folder_after_terminate: bool = True,
 ) -> "Backend":
     context = BackendContext(
-        temporary_directory,
-        output_directory,
-        delete_tmp_folder_after_terminate,
-        delete_output_folder_after_terminate,
+        temporary_directory=temporary_directory,
+        output_directory=output_directory,
+        delete_tmp_folder_after_terminate=delete_tmp_folder_after_terminate,
+        delete_output_folder_after_terminate=delete_output_folder_after_terminate,
         prefix=prefix,
     )
     backend = Backend(context, prefix)
@@ -69,9 +93,9 @@ class BackendContext(object):
         self,
         temporary_directory: str,
         output_directory: Optional[str],
-        delete_tmp_folder_after_terminate: bool,
-        delete_output_folder_after_terminate: bool,
         prefix: str,
+        delete_tmp_folder_after_terminate: bool = False,
+        delete_output_folder_after_terminate: bool = False,
     ):
 
         # Check that the names of tmp_dir and output_dir is not the same.
@@ -118,12 +142,16 @@ class BackendContext(object):
         return os.path.expanduser(os.path.expandvars(self._temporary_directory))
 
     def create_directories(self) -> None:
-        # Exception is raised if self.temporary_directory already exists.
+        if os.path.exists(self.temporary_directory):
+            _ask_delete_existing(self.temporary_directory, purpose='temporary')
+
         os.makedirs(self.temporary_directory)
         self._tmp_dir_created = True
 
-        # Exception is raised if self.output_directory already exists.
         if self.output_directory is not None:
+            if os.path.exists(self.output_directory):
+                _ask_delete_existing(self.output_directory, purpose='output')
+
             os.makedirs(self.output_directory)
             self._output_dir_created = True
 
