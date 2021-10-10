@@ -26,38 +26,46 @@ PIPELINE_IDENTIFIER_TYPE = Tuple[int, int, float]
 
 
 class pycolor:
-    color_dict = {
-        'red': '\033[31m',
-        'yellow': '\033[33m'
-    }
-    END = '\033[0m'
+    COLORS = dict(
+        BLACK="\033[30m",
+        RED="\033[31m",
+        GREEN="\033[32m",
+        YELLOW="\033[33m",
+        BLUE="\033[34m",
+        MAGENTA="\033[35m",
+        CYAN="\033[36m",
+        WHITE="\033[37m",
+    )
+    END = "\033[0m"
 
     @classmethod
-    def out(cls, txt: str, color: str = 'red') -> None:
-        if color not in cls.color_dict.keys():
-            raise ValueError('color must be {}, but got {}.'.format(
-                list(cls.color_dict.keys()),
-                color
-            ))
-
-        print(f'{cls.color_dict[color]}{txt}{cls.END}')
+    def print_(cls, txt: str, color="red") -> None:
+        try:
+            col = cls.COLORS[color.upper()]
+            print(f"{col}{txt}{cls.END}")
+        except KeyError:
+            raise ValueError(
+                "color must be in {}, but got {}.".format(
+                    ", ".join(cls.COLORS.keys()), color.upper()
+                )
+            )
 
 
 def _ask_delete_existing(dir_name: str, purpose: str) -> None:
     while True:
-        print(f'The {purpose} directory `{dir_name}` already exists.')
-        pycolor.out('Would you like to delete it and continue?: [y/n/help]\n')
+        print(f"The {purpose} directory `{dir_name}` already exists.")
+        pycolor.print_("Would you like to delete it and continue?: [y/n/help]\n")
         answer = input()
-        if answer == 'y':
-            print('Delete the directory and continue the process.')
+        if answer == "y":
+            print("Delete the directory and continue the process.")
             shutil.rmtree(dir_name)
             return
-        elif answer == 'n':
-            print(f'Change the path for `{purpose}` and try again.')
-            print('Process finished.')
+        elif answer == "n":
+            print(f"Change the path for `{purpose}` and try again.")
+            print("Process finished.")
             sys.exit()
-        elif answer == 'help':
-            print('y: Delete the directory\nn: Finish the process\n')
+        elif answer == "help":
+            print("y: Delete the directory\nn: Finish the process\n")
 
 
 def create(
@@ -155,14 +163,14 @@ class BackendContext(object):
 
     def create_directories(self) -> None:
         if os.path.exists(self.temporary_directory):
-            _ask_delete_existing(self.temporary_directory, purpose='temporary')
+            _ask_delete_existing(self.temporary_directory, purpose="temporary")
 
         os.makedirs(self.temporary_directory)
         self._tmp_dir_created = True
 
         if self.output_directory is not None:
             if os.path.exists(self.output_directory):
-                _ask_delete_existing(self.output_directory, purpose='output')
+                _ask_delete_existing(self.output_directory, purpose="output")
 
             os.makedirs(self.output_directory)
             self._output_dir_created = True
