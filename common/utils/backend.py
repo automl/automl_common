@@ -30,7 +30,7 @@ class pycolor:
     END = "\033[0m"
 
     @classmethod
-    def print_(cls, txt: str, color="red") -> None:
+    def print_(cls, txt: str, color: str = "red") -> None:
         try:
             col = cls.COLORS[color.upper()]
             print(f"{col}{txt}{cls.END}")
