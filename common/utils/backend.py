@@ -384,7 +384,7 @@ class Backend(object):
 
         Returns
         -------
-        bool:
+        _: bool
             whether the provided run directory matches the run_dir_pattern
             signifying that it is a run directory
         """
