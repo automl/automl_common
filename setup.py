@@ -13,7 +13,7 @@ setuptools.setup(
     name="automl_common",
     version="0.0.1",
     author="AutoML Freiburg",
-    author_email="watanabs@informatik.uni-freiburg.de",
+    author_email="feurerm@informatik.uni-freiburg.de",
     description=("Shared utilities that AutoML frameworks may benefit from."),
     long_description=long_description,
     url="https://github.com/automl/automl_common",
