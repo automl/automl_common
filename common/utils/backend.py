@@ -1,6 +1,7 @@
 import glob
 import os
 import pickle
+import re
 import shutil
 import tempfile
 import time
@@ -117,14 +118,15 @@ class BackendContext(object):
         # make sure that tilde does not appear on the path.
         return os.path.expanduser(os.path.expandvars(self._temporary_directory))
 
-    def create_directories(self) -> None:
-        # Exception is raised if self.temporary_directory already exists.
-        os.makedirs(self.temporary_directory)
+    def create_directories(self, exist_ok: bool = False) -> None:
+        # No Exception is raised if self.temporary_directory already exists.
+        # This allows to continue the search, also, an error will be raised if
+        # save_start_time is called which ensures two searches are not performed
+        os.makedirs(self.temporary_directory, exist_ok=exist_ok)
         self._tmp_dir_created = True
 
-        # Exception is raised if self.output_directory already exists.
         if self.output_directory is not None:
-            os.makedirs(self.output_directory)
+            os.makedirs(self.output_directory, exist_ok=exist_ok)
             self._output_dir_created = True
 
     def delete_directories(self, force: bool = True) -> None:
@@ -357,6 +359,7 @@ class Backend(object):
         other_num_runs = [
             int(os.path.basename(run_dir).split("_")[1])
             for run_dir in glob.glob(os.path.join(self.internals_directory, "runs", "*"))
+            if self._is_run_dir(os.path.basename(run_dir))
         ]
         if len(other_num_runs) > 0:
             # We track the number of runs from two forefronts:
@@ -369,6 +372,25 @@ class Backend(object):
         if not peek:
             self.active_num_run += 1
         return self.active_num_run
+
+    @staticmethod
+    def _is_run_dir(run_dir: str) -> bool:
+        """
+        Run directories are stored in the format <seed>_<num_run>_<budget>.
+
+        Parameters
+        ----------
+        run_dir: str
+            string containing the base name of the run directory
+
+        Returns
+        -------
+        _: bool
+            whether the provided run directory matches the run_dir_pattern
+            signifying that it is a run directory
+        """
+        run_dir_pattern = r"\d+_\d+_\d+"
+        return bool(re.match(run_dir_pattern, run_dir))
 
     def get_model_filename(self, seed: int, idx: int, budget: float) -> str:
         return "%s.%s.%s.model" % (seed, idx, budget)
