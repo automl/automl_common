@@ -5,7 +5,7 @@ import unittest.mock
 
 import pytest
 
-from common.utils.backend import Backend
+from automl_common.utils.backend import Backend
 
 
 class BackendStub(Backend):
@@ -42,7 +42,7 @@ def test_load_model_by_seed_and_id(exists_mock, pickleLoadMock, backend_stub):
     exists_mock.return_value = False
     open_mock = unittest.mock.mock_open(read_data="Data")
     with unittest.mock.patch(
-        "common.utils.backend.open",
+        "automl_common.utils.backend.open",
         open_mock,
         create=True,
     ):

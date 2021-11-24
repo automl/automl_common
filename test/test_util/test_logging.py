@@ -6,7 +6,7 @@ import tempfile
 import yaml
 
 
-from common.utils import logging_
+from automl_common.utils import logging_
 
 
 def test_setup_logger():
