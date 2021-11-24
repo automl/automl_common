@@ -15,7 +15,7 @@ class Run(Generic[Model], Generic[RunID]):
     /<root>
         /<id>
             - model
-            - predictions
+            - <prefix>_predictions
     """
 
     def __init__(self, id: RunID, root: str, context: Context):

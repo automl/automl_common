@@ -43,6 +43,29 @@ class Backend(Generic[Model], Generic[EnsembleID], Generic[RunID], Generic[DM]):
     # an `int`. Finally, the kind of datamanger used is `MyDataManager`
 
     backend: [MyModelType, int, int, MyDataManager] = Backend(...)
+
+    /<root>
+        /<framework>
+        /optimizer
+        /data
+            - datamanger.npy
+        /ensembles
+            - targets.npy
+            /<ensembleID>
+                - ensemble
+                - ...
+            /<ensembleID>
+                - ensemble
+                - ...
+        /runs
+            /<runid>
+                - model
+                - <prefix>_predictions
+                - ...
+            /<runid>
+                - model
+                - <prefix>_predictions
+                - ...
     """
 
     def __init__(
