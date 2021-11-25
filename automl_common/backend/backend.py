@@ -20,7 +20,7 @@ from automl_common.backend.optimizer import Optimizer
 from automl_common.backend.model import Model
 from automl_common.backend.datamanager import DataManager
 from automl_common.backend.ensemble import Ensemble, Ensembles
-from automl_common.backend.run import Run
+from automl_common.backend.run import Run, Runs
 
 
 Model = TypeVar("Model")  # The Type of Model loaded
@@ -100,6 +100,7 @@ class Backend(Generic[Model], Generic[DM]):
 
         self._optimizer = Optimizer(dir=self.optimizer_dir, context=context)
         self._ensembles = Ensembles(dir=self.ensembles_dir, context=context)
+        self._runs = Runs(dir=self.runs_dir, context=context)
         self._datamanager: DataManager[DM] = DataManager(self.data_dir, context=context)
 
         self._logger: Optional[PicklableClientLogger] = None
@@ -191,36 +192,6 @@ class Backend(Generic[Model], Generic[DM]):
     def data(self) -> DataManager[DM]:
         """Object to access to the data part of the backend"""
         return self._datamanager
-
-    def run(self, id: str) -> Run[Model]:
-        """Object to access files and directories for a specific run
-
-        Parameters
-        ----------
-        id: str
-            The identifier for the run
-
-        Returns
-        -------
-        Run[Model]
-            A run object to access files and directories for a specific run
-        """
-        return Run(id=id, root=self.runs_dir, context=self.context)
-
-    def ensemble(self, id: str) -> Ensemble:
-        """Object to access files and directories for a specific ensemble
-
-        Parameters
-        ----------
-        id: str
-            The identifier for the ensemble
-
-        Returns
-        -------
-        Ensemble
-            A run object to access files and directories for a specific run
-        """
-        return Ensemble(id=id, root=self.ensembles_dir)
 
     def mark_start(self) -> None:
         """Write the start time to file"""

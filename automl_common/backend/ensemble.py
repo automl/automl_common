@@ -103,7 +103,7 @@ class Ensembles(Mapping):
         ensemble_dir = self.context.join(self.dir, id)
         return Ensemble(id=id, dir=ensemble_dir, context=self.context)
 
-    def __iter__(self) -> Iterable[Tuple[str, Ensemble]]:
+    def __iter__(self) -> Iterable[str]:
         """Iterate over ensembles
 
         Returns
