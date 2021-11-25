@@ -24,17 +24,13 @@ from automl_common.backend.run import Run
 
 
 Model = TypeVar("Model")  # The Type of Model loaded
-RunID = TypeVar("RunID")  # The Type of identifier for a unique run
-EnsembleID = TypeVar("EnsembleID")  # The Type of identifier for a unique ensemble
 DM = TypeVar("DM")  # The Type of the datamanager
 
-class Backend(Generic[Model], Generic[EnsembleID], Generic[RunID], Generic[DM]):
+class Backend(Generic[Model], Generic[DM]):
     """Utility class to load and save objects to be persisted
 
     A backend is parameterized by 4 Types
     * Model - The Type of Model loaded
-    * RunID - The Type of identifier for a unique run
-    * EnsembleID -  The Type of identifier for a unique ensemble
     * DM -  The Type of the datamanager
 
 
@@ -42,7 +38,7 @@ class Backend(Generic[Model], Generic[EnsembleID], Generic[RunID], Generic[DM]):
     # run is identified by an `int`, and each ensemble created is identified by
     # an `int`. Finally, the kind of datamanger used is `MyDataManager`
 
-    backend: [MyModelType, int, int, MyDataManager] = Backend(...)
+    backend: [MyModelType, MyDataManager] = Backend(...)
 
     /<root>
         /<framework>
@@ -196,32 +192,32 @@ class Backend(Generic[Model], Generic[EnsembleID], Generic[RunID], Generic[DM]):
         """Object to access to the data part of the backend"""
         return self._datamanager
 
-    def run(self, id: RunID) -> Run[RunID, Model]:
+    def run(self, id: str) -> Run[Model]:
         """Object to access files and directories for a specific run
 
         Parameters
         ----------
-        id: RunID
+        id: str
             The identifier for the run
 
         Returns
         -------
-        Run[RunID, Model]
+        Run[Model]
             A run object to access files and directories for a specific run
         """
         return Run(id=id, root=self.runs_dir, context=self.context)
 
-    def ensemble(self, id: EnsembleID) -> Ensemble[EnsembleID]:
+    def ensemble(self, id: str) -> Ensemble:
         """Object to access files and directories for a specific ensemble
 
         Parameters
         ----------
-        id: EnsembleID
+        id: str
             The identifier for the ensemble
 
         Returns
         -------
-        Ensemble[EnsembleID]
+        Ensemble
             A run object to access files and directories for a specific run
         """
         return Ensemble(id=id, root=self.ensembles_dir)
@@ -242,12 +238,12 @@ class Backend(Generic[Model], Generic[EnsembleID], Generic[RunID], Generic[DM]):
         """A list of run names in the runs folder"""
         return os.listdir(self.runs_dir)
 
-    def models(self, ids: List[RunID]) -> List[Model]:
-        """A list of Models gotten by their RunID
+    def models(self, ids: List[str]) -> List[Model]:
+        """A list of Models gotten by their id
 
         Parameters
         ----------
-        ids: List[RunID]
+        ids: List[str]
             The list of models to get
 
         Returns

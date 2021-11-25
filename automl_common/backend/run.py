@@ -7,10 +7,8 @@ from automl_common.backend.context import Context, LocalContext
 
 
 Model = TypeVar("Model")
-RunID = TypeVar("RUnID")
 
-
-class Run(Generic[Model], Generic[RunID]):
+class Run(Generic[Model]):
     """
     /<root>
         /<id>
@@ -18,7 +16,7 @@ class Run(Generic[Model], Generic[RunID]):
             - <prefix>_predictions
     """
 
-    def __init__(self, id: RunID, root: str, context: Context):
+    def __init__(self, id: str, root: str, context: Context):
         self.id = id
         self.root = root
         self.context = context

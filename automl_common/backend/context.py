@@ -147,6 +147,7 @@ class Context(ABC):
         List[str]
             The folders and files in a directory
         """
+        ...
 
 class LocalContext(Context):
     """A local context for files, using `os` and `shutil`
@@ -262,6 +263,9 @@ class LocalContext(Context):
             The joined path
         """
         return os.path.join(*args)
+
+    def listdir(self, path: str) -> List[str]:
+        return os.listdir(path)
 
 class AWSContext(Context):
     """A Context for AWS ... just as example of what other contexts could exist """
