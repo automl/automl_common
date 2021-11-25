@@ -184,6 +184,11 @@ class Backend(Generic[Model], Generic[DM]):
         return self._ensembles
 
     @property
+    def runs(self) -> Runs:
+        """Object to access the runs part of the backend"""
+        return self._runs
+
+    @property
     def optimizer(self) -> Optimizer:
         """Object to access to the optimizer part of the backend"""
         return self._optimizer
