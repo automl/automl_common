@@ -29,28 +29,74 @@ DM = TypeVar("DM")  # The Type of the datamanager
 class Backend(Generic[Model], Generic[DM]):
     """Utility class to load and save objects to be persisted
 
-    A backend is parameterized by 4 Types
+    A backend is parameterized by 2 Types
     * Model - The Type of Model loaded
     * DM -  The Type of the datamanager
 
-
-    # An example of a backend where it returns models of `MyModelType`, where each
-    # run is identified by an `int`, and each ensemble created is identified by
-    # an `int`. Finally, the kind of datamanger used is `MyDataManager`
-
     backend: [MyModelType, MyDataManager] = Backend(...)
+
+    Id's used for ensembles are str. The reason for this is that we do not know what
+    a framework would like to use as a key and these keys must be written as a directory
+    name. Any id may be used as long as it can be converted to a string. As we load
+    identifiers from directory names, they are internally stored as str.
+
+    tldr;
+    ```
+    id = (3,4,5)
+    type(id) # tuple                    - (3,4,5)
+    type(backend.runs[id].id) # str     - "(3,4,5)"
+
+    backend.runs[id].exists() # False
+
+    backend.runs[id].save_model(my_model)
+    backend.runs[id].exists() # True
+
+    backend.runs[id].save_predictions(preds, prefix="train")
+
+    model = backend.runs[id].model()
+    train_predictions = backend.runs[id].predictions("train")
+
+    for id, run in backend.runs.items():
+        predictions = run.predictions()
+
+    # Supposing we have a directory of 10 runs id's from 1, 10
+    ids = [1, 2, 3, 4]
+    models = [backend.runs[id].model() for id in ids]
+    predictions = [backend.runs[id].predictions("train") for id in ids]
+
+    # Acts as a mapping
+    len(backend.runs) # 10
+    list(backend.runs) # [1, ..., 10]
+    6 in backend.runs # True
+
+    # Generate predictions for all models in the backend
+    model_predictions = {
+        id: run.model().predict(X_test)
+        for id, run in backend.runs.items
+    }
+    ```
+
+    Backend has a similar object `ensembles` which works in much the same way
+
+    i.e. `backend.ensembles`
+
+    The framework dir and optimizer dir are setup to be used as you would like.
+
+    The runs dir holds all the runs, labeled by an id and containing a run and it's
+    predictions.
 
     /<root>
         /<framework>
+            - ...
         /optimizer
         /data
             - datamanger.npy
         /ensembles
             - targets.npy
-            /<ensembleID>
+            /<ensembleid>
                 - ensemble
                 - ...
-            /<ensembleID>
+            /<ensembleid>
                 - ensemble
                 - ...
         /runs
@@ -209,10 +255,6 @@ class Backend(Generic[Model], Generic[DM]):
         end_time = str(time.time())
         with self.context.open(self.end_time_path, "w") as f:
             f.write(end_time)
-
-    def runs(self) -> List[str]:
-        """A list of run names in the runs folder"""
-        return os.listdir(self.runs_dir)
 
     def models(self, ids: List[str]) -> List[Model]:
         """A list of Models gotten by their id

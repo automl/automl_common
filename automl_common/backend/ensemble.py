@@ -20,24 +20,50 @@ class Ensemble:
         id: str
             A unique identifier for an ensemble
 
+        dir: str
+            The directory where this ensemble is stored
+
+        context: Context
+            The context to access the filesystem with
         """
         self.id = id
         self.dir = dir
         self.context = context
 
+        self.exists = False
+
     @property
     def ensemble_path(self) -> str:
+        """The path to the ensemle model"""
         return self.context.join(self.dir, "ensemble")
 
     def save(self, ensemble: AbstractEnsemble) -> None:
+        """Save an ensemble to a file
+
+        Parameters
+        ----------
+        ensemble: AbstractEnsemble
+            The ensemble object to save
+        """
+        if not self.exists:
+            self._setup()
+
         with self.context.open(self.ensemble_path, "wb") as f:
             pickle.dump(ensemble, f)
 
     def load(self) -> AbstractEnsemble:
+        """Save an ensemble to the filesystem"""
         with self.context.open(self.ensemble_path, "rb") as f:
             ensemble = pickle.load(f)
 
         return cast(AbstractEnsemble, ensemble)
+
+    def _setup(self) -> None:
+        if self.exists is True:
+            raise RuntimeError(f"Ensemble {self.id} already exists at {self.dir}")
+
+        self.context.mkdir(self.dir)
+        self.exists = True
 
 
 class Ensembles(Mapping):
@@ -92,7 +118,7 @@ class Ensembles(Mapping):
 
         return targets
 
-    def __getitem__(self, id: str) -> Ensemble:
+    def __getitem__(self, id: Any) -> Ensemble:
         """Get an ensemble
 
         Parameters
@@ -100,8 +126,8 @@ class Ensembles(Mapping):
         id: str
             The id of the ensemble
         """
-        ensemble_dir = self.context.join(self.dir, id)
-        return Ensemble(id=id, dir=ensemble_dir, context=self.context)
+        ensemble_dir = self.context.join(self.dir, str(id))
+        return Ensemble(id=str(id), dir=ensemble_dir, context=self.context)
 
     def __iter__(self) -> Iterable[str]:
         """Iterate over ensembles
@@ -113,7 +139,7 @@ class Ensembles(Mapping):
         """
         return iter(self.context.listdir(self.dir))
 
-    def __contains__(self, id: str) -> bool:
+    def __contains__(self, id: Any) -> bool:
         """Whether a given ensemble is contained in the backend
 
         Parameters
@@ -126,7 +152,7 @@ class Ensembles(Mapping):
         bool
             Whether this ensemble is contained in the backend
         """
-        path = self.context.join(self.dir, id)
+        path = self.context.join(self.dir, str(id))
         return self.context.exists(path)
 
     def __len__(self) -> int:
