@@ -42,29 +42,38 @@ class Backend(Generic[Model], Generic[DM]):
 
     tldr;
     ```
+    backend.runs[1337].exists() # False
+
     id = (3,4,5)
     type(id) # tuple                    - (3,4,5)
     type(backend.runs[id].id) # str     - "(3,4,5)"
 
+    # Existence and creation
     backend.runs[id].exists() # False
 
-    backend.runs[id].save_model(my_model)
+    backend.runs[id].save_model(my_model) # Save something
     backend.runs[id].exists() # True
 
+    # Save predictions
     backend.runs[id].save_predictions(preds, prefix="train")
 
+    # Accessing things
     model = backend.runs[id].model()
     train_predictions = backend.runs[id].predictions("train")
 
+    # Works as a map
     for id, run in backend.runs.items():
         predictions = run.predictions()
 
+    # Some usages
     # Supposing we have a directory of 10 runs id's from 1, 10
-    ids = [1, 2, 3, 4]
-    models = [backend.runs[id].model() for id in ids]
-    predictions = [backend.runs[id].predictions("train") for id in ids]
 
-    # Acts as a mapping
+    # Getting specific models
+    ids = set(1, 2, 3, 4)
+    models = [run.model() for id, run in backend.runs.items() if id in ids]
+    predictions = [run.predictions("train") for id, run in backend.runs.items() if id in ids]
+
+    # Some checking information
     len(backend.runs) # 10
     list(backend.runs) # [1, ..., 10]
     6 in backend.runs # True
