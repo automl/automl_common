@@ -17,3 +17,13 @@ extend-exclude = '''
   | dist
 )/
 '''
+
+[tool.pydocstyle]
+ignore = ["D100", "D101", "D104", "D105","D400", "D415", "D210", "D213", "D413", "D203", "D212", "D205", "D401"]
+
+[tool.mypy]
+python_version = 3.7
+
+[[tool.mypy.overrides]]
+module = "pandas"
+ignore_missing_imports = true
