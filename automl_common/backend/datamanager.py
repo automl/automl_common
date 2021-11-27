@@ -7,6 +7,7 @@ from automl_common.backend.context import Context
 
 DM = TypeVar("T")
 
+
 class DataManager(Generic[DM]):
     """An interface to the datamanager part of the backend"""
 
