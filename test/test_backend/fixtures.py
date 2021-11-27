@@ -4,6 +4,7 @@ from pytest_lazyfixture import lazy_fixture
 from pathlib import Path
 
 from automl_common.backend.context import Context, LocalContext
+from automl_common.backend.run import Run
 from automl_common.backend.datamanager import DataManager
 
 @pytest.fixture(scope="function")
@@ -25,3 +26,9 @@ def context(request) -> Context:
 @pytest.fixture(scope="function")
 def datamanager(tmpdir: Path, context: Context) -> DataManager:
     return DataManager(dir=tmpdir, context=context)
+
+@pytest.fixture(scope="function")
+def run(request, tmpdir: Path, context: Context) -> Run:
+    id = "1"
+    path = context.join(tmpdir, id)
+    return Run(id=id, dir=path, context=context)
