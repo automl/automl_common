@@ -1,5 +1,4 @@
-from typing import Any, TypeVar, Generic, Iterable, Tuple
-from collections.abc import Mapping
+from typing import Any, TypeVar, Generic, Iterable, Tuple, cast
 
 import numpy as np
 import pickle
@@ -56,15 +55,16 @@ class Run(Generic[Model]):
         model: Model
             A model object to save, must be picklable
         """
-        if not self.exists():
-            self._setup()
+        if not self.exists:
+            self.setup()
 
         with open(self.model_path, "wb") as f:
             pickle.dump(model, f)
 
     def model(self) -> Model:
         """Return the model for this run"""
-        return pickle.load(self.model_path)
+        with open(self.model_path, "rb") as f:
+            return cast(Model, pickle.load(f))
 
     def predictions_path(self, prefix: str) -> str:
         """Get the path for predictions starting with `prefix`
@@ -81,6 +81,21 @@ class Run(Generic[Model]):
         """
         return self.context.join(self.dir, f"{prefix}_predictions.npy")
 
+    def has_predictions(self, prefix: str) -> bool:
+        """Whether predictions starting with `prefix` exist
+
+        Parameters
+        ----------
+        prefix: str
+            The prefix to give the predictions
+
+        Returns
+        -------
+        bool
+            Whether they exist or not
+        """
+        return self.context.exists(self.predictions_path(prefix))
+
     def save_predictions(self, predictions: np.ndarray, prefix: str) -> None:
         """Save predictions with a given prefix {prefix}_predictions.npy
 
@@ -95,7 +110,7 @@ class Run(Generic[Model]):
         if not self.exists:
             self.setup()
 
-        with self.context.open(self.predictions_path(prefix), "w") as f:
+        with self.context.open(self.predictions_path(prefix), "wb") as f:
             np.save(f, predictions)
 
     def predictions(self, prefix: str) -> np.ndarray:
@@ -111,8 +126,8 @@ class Run(Generic[Model]):
         np.ndarray
             The predictions as an np.ndarray
         """
-        with self.context.open(self.predictions(prefix), "rb") as f:
-            predicitons = np.load(f)
+        with self.context.open(self.predictions_path(prefix), "rb") as f:
+            predictions = np.load(f)
 
         return predictions
 
@@ -122,76 +137,3 @@ class Run(Generic[Model]):
 
         self.context.mkdir(self.dir)
         self.exists = True
-
-
-class Runs(Mapping):
-    """Interaface to the runs directory in the backend
-
-    /<dir>
-        /<id>
-            - model
-            - {prefix}_predictions
-        /<id>
-            - model
-            - {prefix}_predictions
-        /...
-    """
-
-    def __init__(self, dir: str, context: Context):
-        """
-        Parameters
-        ----------
-        dir: str
-            The directory of the runs
-
-        context: Context
-            The context to access the filesystem through
-        """
-        self.dir = dir
-        self.context = context
-
-    def __getitem__(self, id: Any) -> Run:
-        """Get a run
-
-        Parameters
-        ----------
-        id: Any
-            The id of the run
-        """
-        run_dir = self.context.join(self.dir, str(id))
-        return Run(id=str(id), dir=run_dir, context=self.context)
-
-    def __iter__(self) -> Iterable[str]:
-        """Iterate over runs
-
-        Returns
-        -------
-        Iterable[Tuple[str, Run]]
-            Key, value pairs of identifiers to Run objects
-        """
-        return iter(self.context.listdir(self.dir))
-
-    def __contains__(self, id: Any) -> bool:
-        """Whether a given run is contained in the backend
-
-        Parameters
-        ----------
-        id: Any
-            The id of the run to get
-
-        Returns
-        -------
-        bool
-            Whether this run is contained in the backend
-        """
-        path = self.context.join(self.dir, str(id))
-        return self.context.exists(path)
-
-    def __len__(self) -> int:
-        """
-        Returns
-        -------
-        int
-            The amount of runs in the backend
-        """
-        return len(self.context.listdir(self.dir))
