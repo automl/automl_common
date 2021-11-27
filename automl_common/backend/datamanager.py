@@ -2,6 +2,9 @@ from typing import TypeVar, Generic, cast
 
 import pickle
 
+from automl_common.backend.context import Context
+
+
 DM = TypeVar("T")
 
 class DataManager(Generic[DM]):
@@ -21,7 +24,7 @@ class DataManager(Generic[DM]):
         self.context = context
 
     @property
-    def datamanager_path(self) -> str:
+    def data_path(self) -> str:
         """The path to the datamanager"""
         return self.context.join(self.dir, "datamanager.pkl")
 
@@ -30,21 +33,21 @@ class DataManager(Generic[DM]):
 
         Parameters
         ----------
-        datamanger: DM
+        datamanager: DM
             Save a datamanager
         """
-        with open(self.datamanager_path, "wb") as f:
-            pickle.dump(datamanger, f, protocol=pickle.HIGHEST_PROTOCOL)
+        with open(self.data_path, "wb") as f:
+            pickle.dump(datamanager, f, protocol=pickle.HIGHEST_PROTOCOL)
 
     def load(self) -> DM:
-        """Load a datamanger
+        """Load a datamanager
 
         Returns
         -------
         DM
             Load a datamanager into memory
         """
-        with open(self.datamanager_path, "rb") as f:
-            datamanger = pickle.load(datamanger, f, protocol=pickle.HIGHEST_PROTOCOL)
+        with open(self.data_path, "rb") as f:
+            datamanager = pickle.load(f)
 
-        return cast(DM, datamanger)
+        return cast(DM, datamanager)
