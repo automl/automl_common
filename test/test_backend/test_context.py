@@ -23,15 +23,6 @@ def test_local_context_construction():
     LocalContext()
 
 
-@pytest.fixture(scope="function")
-def local_context() -> LocalContext:
-    return LocalContext()
-
-
-_contexts = ["local_context"]
-
-
-@pytest.mark.parametrize("context", lazy_fixture(_contexts))
 @pytest.mark.parametrize("mode, content", [("", "hello"), ("b", b"hello")])
 def test_context_open(tmpfile: Path, context: Context, mode: str, content: Union[str, bytes]):
     """
@@ -63,7 +54,6 @@ def test_context_open(tmpfile: Path, context: Context, mode: str, content: Union
         assert f.read() == content
 
 
-@pytest.mark.parametrize("context", lazy_fixture(_contexts))
 def test_context_mkdir(tmpdir: Path, context: Context):
     """
     Parameters
@@ -84,7 +74,6 @@ def test_context_mkdir(tmpdir: Path, context: Context):
     assert folder.exists()
 
 
-@pytest.mark.parametrize("context", lazy_fixture(_contexts))
 def test_context_mkdir_fails_if_exists(tmpdir: Path, context: Context):
     """
     Parameters
@@ -106,7 +95,6 @@ def test_context_mkdir_fails_if_exists(tmpdir: Path, context: Context):
         context.mkdir(folder)
 
 
-@pytest.mark.parametrize("context", lazy_fixture(_contexts))
 def test_context_makedirs_makes_dirs(tmpdir: Path, context: Context):
     """
     Parameters
@@ -127,7 +115,6 @@ def test_context_makedirs_makes_dirs(tmpdir: Path, context: Context):
     assert context.exists(path)
 
 
-@pytest.mark.parametrize("context", lazy_fixture(_contexts))
 def test_context_makedirs_fails_if_exists(tmpdir: Path, context: Context):
     """
     Parameters
@@ -149,7 +136,6 @@ def test_context_makedirs_fails_if_exists(tmpdir: Path, context: Context):
         context.makedirs(path)
 
 
-@pytest.mark.parametrize("context", lazy_fixture(_contexts))
 def test_context_makedirs_if_partial_path_exists(tmpdir: Path, context: Context):
     """
     Parameters
@@ -173,7 +159,6 @@ def test_context_makedirs_if_partial_path_exists(tmpdir: Path, context: Context)
     assert path.exists()
 
 
-@pytest.mark.parametrize("context", lazy_fixture(_contexts))
 def test_context_exists(tmpfile: Path, context: Context):
     """
     Parameters
@@ -197,7 +182,6 @@ def test_context_exists(tmpfile: Path, context: Context):
     assert tmpfile.exists() and context.exists(tmpfile)
 
 
-@pytest.mark.parametrize("context", lazy_fixture(_contexts))
 def test_context_rm(tmpfile: Path, context: Context):
     """
     Parameters
@@ -222,7 +206,6 @@ def test_context_rm(tmpfile: Path, context: Context):
     assert not tmpfile.exists()
 
 
-@pytest.mark.parametrize("context", lazy_fixture(_contexts))
 def test_context_rm_fails_if_not_exist(tmpfile: Path, context: Context):
     """
     Parameters
@@ -243,7 +226,6 @@ def test_context_rm_fails_if_not_exist(tmpfile: Path, context: Context):
         context.rm(tmpfile)
 
 
-@pytest.mark.parametrize("context", lazy_fixture(_contexts))
 def test_context_rm_fails_with_dir(tmpdir: Path, context: Context):
     """
     Parameters
@@ -264,7 +246,6 @@ def test_context_rm_fails_with_dir(tmpdir: Path, context: Context):
         context.rm(tmpdir)
 
 
-@pytest.mark.parametrize("context", lazy_fixture(_contexts))
 def test_context_rmdir(tmpdir: Path, context: Context):
     """
     Parameters
@@ -289,7 +270,6 @@ def test_context_rmdir(tmpdir: Path, context: Context):
     assert not folder.exists()
 
 
-@pytest.mark.parametrize("context", lazy_fixture(_contexts))
 def test_context_rmdir_fail_if_not_exist(tmpdir: Path, context: Context):
     """
     Parameters
@@ -311,7 +291,6 @@ def test_context_rmdir_fail_if_not_exist(tmpdir: Path, context: Context):
         context.rmdir(folder)
 
 
-@pytest.mark.parametrize("context", lazy_fixture(_contexts))
 def test_context_rmdir_not_remove_file(tmpfile: Path, context: Context):
     """
     Parameters
@@ -335,7 +314,6 @@ def test_context_rmdir_not_remove_file(tmpfile: Path, context: Context):
         context.rmdir(tmpfile)
 
 
-@pytest.mark.parametrize("context", lazy_fixture(_contexts))
 def test_context_rmdir_not_remove_file(tmpfile: Path, context: Context):
     """
     Parameters
@@ -359,7 +337,6 @@ def test_context_rmdir_not_remove_file(tmpfile: Path, context: Context):
         context.rmdir(tmpfile)
 
 
-@pytest.mark.parametrize("context", lazy_fixture(_contexts))
 def test_tmpdir_creates_tmpdir(context: Context):
     """
     Parameters
@@ -379,7 +356,6 @@ def test_tmpdir_creates_tmpdir(context: Context):
     assert not context.exists(tmp)
 
 
-@pytest.mark.parametrize("context", lazy_fixture(_contexts))
 @pytest.mark.parametrize("prefix", ["pre", "__", "test."])
 def test_tmpdir_creates_tmpdir_with_prefix(context: Context, prefix: str):
     """
@@ -400,7 +376,6 @@ def test_tmpdir_creates_tmpdir_with_prefix(context: Context, prefix: str):
         assert tmp.name.startswith(prefix)
 
 
-@pytest.mark.parametrize("context", lazy_fixture(_contexts))
 @pytest.mark.parametrize("prefix", ["pre", "__", "test."])
 def test_tmpdir_creates_tmpdir_with_prefix(context: Context, prefix: str):
     """
@@ -422,7 +397,6 @@ def test_tmpdir_creates_tmpdir_with_prefix(context: Context, prefix: str):
         assert tmp.name.startswith(prefix), tmp.name
 
 
-@pytest.mark.parametrize("context", lazy_fixture(_contexts))
 def test_tmpdir_retains(context: Context):
     """
     Parameters
@@ -442,15 +416,7 @@ def test_tmpdir_retains(context: Context):
     assert context.exists(tmp_object)
 
 
-@pytest.mark.parametrize("context", lazy_fixture(_contexts))
-@pytest.mark.parametrize(
-    "segments",
-    [
-        ("one",),
-        ("one", "two"),
-        ("one", "two", "three"),
-    ],
-)
+@pytest.mark.parametrize("segments", [("one",), ("one", "two"), ("one", "two", "three")])
 def test_join(context: Context, segments: List[str]):
     """
     Parameters
@@ -479,7 +445,6 @@ def test_join(context: Context, segments: List[str]):
             assert path.find(segment[i]) < path.find(segment[i + 1])
 
 
-@pytest.mark.parametrize("context", lazy_fixture(_contexts))
 def test_listdir_gives_lists_files_and_folders(tmpdir: Path, context: Context):
     """
     Parameters

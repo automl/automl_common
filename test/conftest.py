@@ -5,6 +5,12 @@ from pathlib import Path
 
 from pytest import fixture
 
+from automl_common.backend.context import Context, LocalContext
+
+# Load in other pytest modules, in this case fixtures
+pytest_plugins = [
+    "test_backend.fixtures"
+]
 
 def test_id(request) -> str:
     """Gets a unique id for all tests, even parameterized tests"""

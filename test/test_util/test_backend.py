@@ -5,6 +5,7 @@ import unittest.mock
 
 import pytest
 
+"""
 from automl_common.utils.backend import Backend
 
 
@@ -28,9 +29,7 @@ def setup_load_model_mocks(openMock, pickleLoadMock, seed, idx, budget):
 
     return expected_model
 
-
-@pytest.fixture
-def backend_stub():
+@pytest.fixture def backend_stub():
     backend = BackendStub()
     backend.internals_directory = "/"
     return backend
@@ -77,3 +76,4 @@ def test_loads_models_by_identifiers(exists_mock, openMock, pickleLoadMock, back
 
     assert isinstance(actual_dict, dict)
     assert expected_dict == actual_dict
+"""
