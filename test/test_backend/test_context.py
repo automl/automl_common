@@ -447,15 +447,8 @@ def test_tmpdir_retains(context: Context):
     "segments",
     [
         ("one",),
-        (
-            "one",
-            "two",
-        ),
-        (
-            "one",
-            "two",
-            "three",
-        ),
+        ("one", "two"),
+        ("one", "two", "three"),
     ],
 )
 def test_join(context: Context, segments: List[str]):
