@@ -40,10 +40,12 @@ class Runs(Mapping):
             The id of the run
         """
         run_dir = self.context.join(self.dir, str(id))
-        return Run(id=str(id), dir=run_dir, context=self.context)
+        return Run(id=id, dir=run_dir, context=self.context)
 
     def __iter__(self) -> Iterable[str]:
         """Iterate over runs
+
+        Can not garuntee order due to listdir
 
         Returns
         -------

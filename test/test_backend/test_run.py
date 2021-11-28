@@ -354,3 +354,51 @@ def test_setup_when_exists(run: Run):
 
     with pytest.raises(RuntimeError):
         run.setup()
+
+
+def test_equality_with_other_equivalent_run(run: Run):
+    """
+    Parameters
+    ----------
+    run: Run
+        The run to check
+
+    Expects
+    -------
+    * Should equal the other run when id and dir is the same
+    """
+    other = Run(id=run.id, dir=run.dir, context=run.context)
+    assert run == other
+    assert run.__eq__(other)
+
+
+def test_equality_with_other_different_run(run: Run):
+    """
+    Parameters
+    ----------
+    run: Run
+        The run to check
+
+    Expects
+    -------
+    * Should not equal a run with a different id
+    """
+    other = Run(id="nope", dir=run.dir, context=run.context)
+    assert not run == other
+    assert not run.__eq__(other)
+
+
+def test_equality_works_with_str_conversion(run: Run):
+    """
+    Parameters
+    ----------
+    run: Run
+        The run to check
+
+    Expects
+    -------
+    * Should equal the other run if the only difference is a str conversion of the id
+    """
+    other = Run(id=str(run.id), dir=run.dir, context=run.context)
+    assert run == other
+    assert run.__eq__(other)

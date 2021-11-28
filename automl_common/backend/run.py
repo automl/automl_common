@@ -17,11 +17,11 @@ class Run(Generic[Model]):
         - {prefix}_predictions
     """
 
-    def __init__(self, id: str, dir: str, context: Context):
+    def __init__(self, id: Any, dir: str, context: Context):
         """
         Parameters
         ----------
-        id: str
+        id: Any
             The id of this run
 
         dir: str
@@ -137,3 +137,21 @@ class Run(Generic[Model]):
 
         self.context.mkdir(self.dir)
         self.exists = True
+
+    def __eq__(self, other: Any) -> bool:
+        """Two runs are equal if they have the same id and the same dir
+
+        Parameters
+        ----------
+        other: Any
+            The object to compare to
+
+        Returns
+        -------
+        bool
+            Whether this is equal to other
+        """
+        if not isinstance(other, Run):
+            raise NotImplementedError()
+
+        return str(self.id) == str(other.id) and self.dir == other.dir

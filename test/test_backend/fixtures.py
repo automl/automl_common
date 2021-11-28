@@ -1,11 +1,14 @@
 import pytest
+
 from pytest_lazyfixture import lazy_fixture
 
 from pathlib import Path
 
 from automl_common.backend.context import Context, LocalContext
-from automl_common.backend.run import Run
 from automl_common.backend.datamanager import DataManager
+from automl_common.backend.run import Run
+from automl_common.backend.runs import Runs
+
 
 @pytest.fixture(scope="function")
 def local_context() -> LocalContext:
@@ -27,8 +30,60 @@ def context(request) -> Context:
 def datamanager(tmpdir: Path, context: Context) -> DataManager:
     return DataManager(dir=tmpdir, context=context)
 
+
 @pytest.fixture(scope="function")
-def run(request, tmpdir: Path, context: Context) -> Run:
-    id = "1"
-    path = context.join(tmpdir, id)
+def run_int(tmpdir: Path, context: Context) -> Run:
+    id = 1
+    path = context.join(tmpdir, str(id))
     return Run(id=id, dir=path, context=context)
+
+
+@pytest.fixture(scope="function")
+def run_tuple(tmpdir: Path, context: Context) -> Run:
+    id = (1, 1)
+    path = context.join(tmpdir, str(id))
+    return Run(id=id, dir=path, context=context)
+
+
+@pytest.fixture(scope="function", params=[lazy_fixture("run_int"), lazy_fixture("run_tuple")])
+def run(request) -> Run:
+    return request.param
+
+
+@pytest.fixture(scope="function")
+def empty_runs(tmpdir: Path, context: Context) -> Runs:
+    return Runs(dir=tmpdir, context=context)
+
+
+@pytest.fixture(scope="function")
+def runs(request, tmpdir: Path, context: Context) -> Runs:
+    """Creates Runs objects, populating with id's passed as parameters
+
+    https://docs.pytest.org/en/latest/example/parametrize.html#indirect-parametrization
+    ```
+    # How to use
+
+    @pytest.mark.parametrize("runs", [[1,2,3], [], [(1,2), (3,4)]], indirect=True)
+    def test_func(runs: Runs):
+        ...
+    ```
+
+    Parameters
+    ----------
+    request.param: List[Any]
+        The id's of runs to populate
+
+    Returns
+    -------
+    Runs
+        Returns the Runs object along with any runs it should contain
+    """
+    ids = request.param
+    print(ids)
+    runs = [Run(id, context.join(tmpdir, str(id)), context) for id in ids]
+
+    for run in runs:
+        run.save_model("this string is a model")
+        run.save_predictions([1, 1, 1], "train")
+
+    return Runs(dir=tmpdir, context=context)
