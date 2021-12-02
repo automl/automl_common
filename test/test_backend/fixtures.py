@@ -4,10 +4,7 @@ from pytest_lazyfixture import lazy_fixture
 
 from pathlib import Path
 
-from automl_common.backend.context import Context, LocalContext
-from automl_common.backend.datamanager import DataManager
-from automl_common.backend.run import Run
-from automl_common.backend.runs import Runs
+from automl_common.backend import Context, LocalContext, Run, Runs, DataManager, Ensemble
 
 
 @pytest.fixture(scope="function")
@@ -51,8 +48,25 @@ def run(request) -> Run:
 
 
 @pytest.fixture(scope="function")
-def empty_runs(tmpdir: Path, context: Context) -> Runs:
-    return Runs(dir=tmpdir, context=context)
+def ensemble_int(tmpdir: Path, context: Context) -> Ensemble:
+    id = 1
+    path = context.join(tmpdir, str(id))
+    return Ensemble(id=id, dir=path, context=context)
+
+
+@pytest.fixture(scope="function")
+def ensemble_tuple(tmpdir: Path, context: Context) -> Ensemble:
+    id = (1, 1)
+    path = context.join(tmpdir, str(id))
+    return Ensemble(id=id, dir=path, context=context)
+
+
+@pytest.fixture(
+    scope="function",
+    params=[lazy_fixture("ensemble_int"), lazy_fixture("ensemble_tuple")]
+)
+def ensemble(request) -> Ensemble:
+    return request.param
 
 
 @pytest.fixture(scope="function")

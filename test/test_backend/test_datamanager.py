@@ -4,8 +4,7 @@ import pytest
 
 from pathlib import Path
 
-from automl_common.backend.datamanager import DataManager
-from automl_common.backend.context import Context
+from automl_common.backend import DataManager, Context
 
 
 def test_construction(tmpdir: Path, context: Context):

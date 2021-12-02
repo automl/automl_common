@@ -1,8 +1,8 @@
-from typing import Dict, List, Optional, Tuple, TypeVar, Generic, Union, cast, IO
+from typing import Dict, List, Optional, Tuple, TypeVar, Generic, Iterator, Union, cast, IO
+
 from contextlib import contextmanager
 
 import glob
-import os
 import pickle
 import shutil
 import tempfile
@@ -13,27 +13,29 @@ import numpy as np
 
 from sklearn.pipeline import Pipeline
 
-from automl_common.logging_ import PicklableClientLogger, get_named_client_logger
-from automl_common.ensemble_building.abstract_ensemble import AbstractEnsemble
-from automl_common.backend.context import Context, LocalContext
-from automl_common.backend.optimizer import Optimizer
-from automl_common.backend.model import Model
-from automl_common.backend.datamanager import DataManager
-from automl_common.backend.ensemble import Ensemble, Ensembles
-from automl_common.backend.run import Run, Runs
+from ..utils.logging_ import PicklableClientLogger
+
+from .context import Context, LocalContext
+from .optimizer import Optimizer
+from .datamanager import DataManager
+from .ensemble import Ensemble
+from .ensembles import Ensembles
+from .run import Run
+from .runs import Runs
 
 
 Model = TypeVar("Model")  # The Type of Model loaded
 DM = TypeVar("DM")  # The Type of the datamanager
 
-class Backend(Generic[Model], Generic[DM]):
+
+class Backend(Generic[Model, DM]):
     """Utility class to load and save objects to be persisted
 
     A backend is parameterized by 2 Types
     * Model - The Type of Model loaded
     * DM -  The Type of the datamanager
 
-    backend: [MyModelType, MyDataManager] = Backend(...)
+    backend: Backend[MyModelType, MyDataManager] = Backend(...)
 
     Id's used for ensembles are str. The reason for this is that we do not know what
     a framework would like to use as a key and these keys must be written as a directory
@@ -120,11 +122,7 @@ class Backend(Generic[Model], Generic[DM]):
     """
 
     def __init__(
-        self,
-        framework: str,
-        root: str,
-        context: Optional[Context] = None,
-        retain: bool = False
+        self, framework: str, root: str, context: Optional[Context] = None, retain: bool = False
     ):
         """
         Parameters
@@ -169,7 +167,7 @@ class Backend(Generic[Model], Generic[DM]):
             self.optimizer_dir,
             self.ensembles_dir,
             self.runs_dir,
-            self.data_dir
+            self.data_dir,
         ]
         for folder in folders:
             path = self.context.join(self.root, folder)

@@ -1,8 +1,8 @@
 from collections.abc import Mapping
-from typing import Any, Iterable
+from typing import Any, Iterator
 
-from automl_common.backend.context import Context
-from automl_common.backend.run import Run
+from .context import Context
+from .run import Run
 
 
 class Runs(Mapping):
@@ -42,7 +42,7 @@ class Runs(Mapping):
         run_dir = self.context.join(self.dir, str(id))
         return Run(id=id, dir=run_dir, context=self.context)
 
-    def __iter__(self) -> Iterable[str]:
+    def __iter__(self) -> Iterator[str]:
         """Iterate over runs
 
         Can not garuntee order due to listdir

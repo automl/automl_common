@@ -3,11 +3,10 @@ from typing import Any, TypeVar, Generic, Iterable, Tuple, cast
 import numpy as np
 import pickle
 
-from automl_common.backend.context import Context, LocalContext
+from .context import Context, LocalContext
 
 
 Model = TypeVar("Model")
-
 
 class Run(Generic[Model]):
     """Interaface to access a run through.
@@ -34,7 +33,6 @@ class Run(Generic[Model]):
         self.dir = dir
         self.context = context
 
-        # We cache whether this run exists when it's created
         # It's created whenever we save a model or predictions
         self.exists = self.context.exists(self.dir)
 
@@ -63,6 +61,9 @@ class Run(Generic[Model]):
 
     def model(self) -> Model:
         """Return the model for this run"""
+        if not self.has_model():
+            raise RuntimeError(f"This run {self.id} at {self.dir} has no model saved")
+
         with open(self.model_path, "rb") as f:
             return cast(Model, pickle.load(f))
 

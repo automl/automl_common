@@ -2,8 +2,7 @@ import pytest
 
 from pathlib import Path
 
-from automl_common.backend.runs import Runs
-from automl_common.backend.context import Context
+from automl_common.backend import Runs, Context
 
 
 def test_construction(tmpdir: Path, context: Context):

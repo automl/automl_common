@@ -5,8 +5,7 @@ import numpy as np
 
 from pathlib import Path
 
-from automl_common.backend.context import Context
-from automl_common.backend.run import Run
+from automl_common.backend import Context, Run
 
 
 def test_construction(tmpdir: Path, context: Context):
@@ -129,7 +128,7 @@ def test_has_model_when_it_has_none_saved(run: Run):
 
 
 @pytest.mark.parametrize("model", [1, {"hello": "world"}, (1, 2, 3)])
-def test_load_model(run: Run, model: Any):
+def test_load_model_when_has_model(run: Run, model: Any):
     """
     Parameters
     ----------
@@ -142,12 +141,29 @@ def test_load_model(run: Run, model: Any):
     Expects
     -------
     * Should be able to load a model saved to disk
+    * The loaded model should be the same as the one saved
     """
     run.save_model(model)
-    assert run.context.exists(run.model_path)
+    assert run.has_model()
 
-    model = run.model()
-    assert run.context.exists(run.model_path)
+    loaded = run.model()
+    assert loaded == model
+
+
+def test_load_model_when_not_has_model(run: Run):
+    """
+    Parameters
+    ----------
+    run: Run
+        The run to check
+
+    Expects
+    -------
+    * Should raise a RuntimeError if the model doesn't exist yet
+    """
+    assert not run.has_model()
+    with pytest.raises(RuntimeError):
+        run.model()
 
 
 @pytest.mark.parametrize("prefix", ["train", "test", "_other", "x.y"])
@@ -356,6 +372,23 @@ def test_setup_when_exists(run: Run):
         run.setup()
 
 
+def test_equality_with_self(run: Run):
+    """
+    Parameters
+    ----------
+    run: Run
+        The run to check
+
+    Expects
+    -------
+    * Should be equal to itself
+    * Should not be != to itself
+    """
+    assert run == run
+    assert run.__eq__(run)
+    assert not run != run
+
+
 def test_equality_with_other_equivalent_run(run: Run):
     """
     Parameters
@@ -386,6 +419,7 @@ def test_equality_with_other_different_run(run: Run):
     other = Run(id="nope", dir=run.dir, context=run.context)
     assert not run == other
     assert not run.__eq__(other)
+    assert run != other
 
 
 def test_equality_works_with_str_conversion(run: Run):
@@ -402,3 +436,28 @@ def test_equality_works_with_str_conversion(run: Run):
     other = Run(id=str(run.id), dir=run.dir, context=run.context)
     assert run == other
     assert run.__eq__(other)
+
+
+@pytest.mark.parametrize("obj", [ [1,2,3], {"hello": "world"}, "hi" ])
+def test_equality_with_different_type(run: Run, obj: Any):
+    """
+    Parameters
+    ----------
+    run: Run
+        The run to check
+
+    obj: Any
+        The thing to compare to
+
+    Expects
+    -------
+    * Equality check between a run and a different type should raise a NotImplementedError
+    """
+    with pytest.raises(NotImplementedError):
+        run == obj
+
+    with pytest.raises(NotImplementedError):
+        run.__eq__(obj)
+
+    with pytest.raises(NotImplementedError):
+        run != obj

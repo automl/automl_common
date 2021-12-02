@@ -5,8 +5,6 @@ from pathlib import Path
 
 from pytest import fixture
 
-from automl_common.backend.context import Context, LocalContext
-
 # Load in other pytest modules, in this case fixtures
 pytest_plugins = [
     "test_backend.fixtures"

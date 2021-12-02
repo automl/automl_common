@@ -15,7 +15,7 @@ from pathlib import Path
 import pytest
 from pytest_lazyfixture import lazy_fixture  # Allows fixture in parametrization
 
-from automl_common.backend.context import Context, LocalContext
+from automl_common.backend import Context, LocalContext
 
 
 def test_local_context_construction():

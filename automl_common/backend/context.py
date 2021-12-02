@@ -12,8 +12,7 @@ import tempfile
 from pathlib import Path
 
 
-PathLike = Union[str, bytes, os.PathLike]
-
+PathLike = Union[str, os.PathLike]
 
 class Context(ABC):
     """A object that lets file operations be performed in some place"""
@@ -105,12 +104,12 @@ class Context(ABC):
 
     @contextmanager
     @abstractmethod
-    def tmpdir(self, prefix: PathLike, retain: bool = False) -> Iterator[Path]:
+    def tmpdir(self, prefix: Optional[str] = None, retain: bool = False) -> Iterator[Path]:
         """Return a directory path as a context manager
 
         Parameters
         ----------
-        prefix: PathLike
+        prefix: Optional[str] = None
             A prefix to attach to the directory
 
         retain: bool = False

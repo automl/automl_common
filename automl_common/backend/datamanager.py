@@ -2,7 +2,7 @@ from typing import TypeVar, Generic, cast
 
 import pickle
 
-from automl_common.backend.context import Context
+from .context import Context
 
 
 DM = TypeVar("T")

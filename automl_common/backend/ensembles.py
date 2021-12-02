@@ -3,8 +3,8 @@ from typing import Any, Iterable
 
 import numpy as np
 
-from automl_common.backend.context import Context
-from automl_common.backend.ensemble import Ensemble
+from .context import Context
+from .ensemble import Ensemble
 
 
 class Ensembles(Mapping):

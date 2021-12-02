@@ -1,4 +1,4 @@
-from automl_common.backend.context import Context
+from .context import Context
 
 class Optimizer:
 

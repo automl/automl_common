@@ -9,6 +9,18 @@ with open("requirements.txt", "r") as f:
     for line in f:
         requirements.append(line.strip())
 
+extra_reqs = {
+    "test": {
+        "pytest",
+        "flake8",
+        "flake8-import-order",
+        "mypy",
+        "pytest-timeout",
+        "pre-commit",
+        "pytest-cov",
+    }
+}
+
 setuptools.setup(
     name="automl_common",
     version="0.0.1",

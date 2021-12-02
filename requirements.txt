@@ -1,12 +1,5 @@
 numpy>=1.9.0
 scipy>=0.14.1
 scikit-learn
-pytest
-flake8
-flake8-import-order
-mypy
-pytest-timeout
-pre-commit
-pytest-cov
 dask
 distributed

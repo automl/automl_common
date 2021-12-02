@@ -1,7 +1,9 @@
+from typing import Any, cast
+
 import pickle
 
-from automl_common.ensemble_building.abstract_ensemble import AbstractEnsemble
-from automl_common.backend.context import Context
+from ..ensemble_building.abstract_ensemble import AbstractEnsemble
+from .context import Context
 
 
 class Ensemble:
@@ -28,7 +30,8 @@ class Ensemble:
         self.dir = dir
         self.context = context
 
-        self.exists = False
+        # Created whenever we save an ensemble
+        self.exists = self.context.exists(self.dir)
 
     @property
     def ensemble_path(self) -> str:
@@ -51,6 +54,9 @@ class Ensemble:
 
     def load(self) -> AbstractEnsemble:
         """Save an ensemble to the filesystem"""
+        if not self.exists:
+            raise RuntimeError(f"Ensemble with id {self.id} at {self.dir} has no ensemble saved")
+
         with self.context.open(self.ensemble_path, "rb") as f:
             ensemble = pickle.load(f)
 
@@ -62,3 +68,22 @@ class Ensemble:
 
         self.context.mkdir(self.dir)
         self.exists = True
+
+    def __eq__(self, other: Any) -> bool:
+        """Two ensembles are equal if they have the same id and the same dir
+
+        Parameters
+        ----------
+        other: Any
+            The object to compare to
+
+        Returns
+        -------
+        bool
+            Whether this is equal to other
+        """
+        if not isinstance(other, Ensemble):
+            raise NotImplementedError()
+
+        return str(self.id) == str(other.id) and self.dir == other.dir
+
