@@ -1,11 +1,11 @@
-from collections.abc import Mapping
-from typing import Any, Iterator
+from typing import Any, Iterator, Mapping, TypeVar
 
 from .context import Context
 from .run import Run
 
+Model = TypeVar("Model")
 
-class Runs(Mapping):
+class Runs(Mapping[Any, Model]):
     """Interaface to the runs directory in the backend
 
     /<dir>
@@ -31,7 +31,7 @@ class Runs(Mapping):
         self.dir = dir
         self.context = context
 
-    def __getitem__(self, id: Any) -> Run:
+    def __getitem__(self, id: Any) -> Run[Model]:
         """Get a run
 
         Parameters

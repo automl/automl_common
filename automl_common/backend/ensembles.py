@@ -1,5 +1,4 @@
-from collections.abc import Mapping
-from typing import Any, Iterable
+from typing import Any, Iterable, Mapping
 
 import numpy as np
 
@@ -7,7 +6,7 @@ from .context import Context
 from .ensemble import Ensemble
 
 
-class Ensembles(Mapping):
+class Ensembles(Mapping[Any, Ensemble]):
     """Interface to the ensembles part of the backend
 
     /ensembles
@@ -44,7 +43,7 @@ class Ensembles(Mapping):
             The targets to save
         """
         with self.context.open(self.targets_path, "wb") as f:
-            np.save(f)
+            np.save(f, targets)
 
     def targets(self) -> np.ndarray:
         """Load the targets from disk
@@ -54,6 +53,9 @@ class Ensembles(Mapping):
         np.ndarray
             The targets used to evaluate an ensemble
         """
+        if not self.context.exists(self.targets_path):
+            raise FileNotFoundError(f"{self.targets_path} not found")
+
         with self.context.open(self.targets_path, "rb") as f:
             targets = np.load(f, allow_pickle=True)
 
@@ -64,11 +66,11 @@ class Ensembles(Mapping):
 
         Parameters
         ----------
-        id: str
+        id: Any
             The id of the ensemble
         """
         ensemble_dir = self.context.join(self.dir, str(id))
-        return Ensemble(id=str(id), dir=ensemble_dir, context=self.context)
+        return Ensemble(id=id, dir=ensemble_dir, context=self.context)
 
     def __iter__(self) -> Iterable[str]:
         """Iterate over ensembles

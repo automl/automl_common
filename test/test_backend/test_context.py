@@ -369,32 +369,11 @@ def test_tmpdir_creates_tmpdir_with_prefix(context: Context, prefix: str):
 
     Expects
     -------
-    * Should create a tmp directory and it should begin with the prefix
+    * Should create a tmp directory and it should have the prefix in it
     """
     with context.tmpdir(prefix=prefix) as tmp:
         assert context.exists(tmp)
-        assert tmp.name.startswith(prefix)
-
-
-@pytest.mark.parametrize("prefix", ["pre", "__", "test."])
-def test_tmpdir_creates_tmpdir_with_prefix(context: Context, prefix: str):
-    """
-    Parameters
-    ----------
-    context: Context
-        The context object to check
-
-    prefix: str
-        A prefix to add
-
-    Expects
-    -------
-    * Should create a tmp directory and it should begin with the prefix
-    """
-    with context.tmpdir(prefix=prefix) as tmp:
-        assert context.exists(tmp)
-
-        assert tmp.name.startswith(prefix), tmp.name
+        assert prefix in tmp
 
 
 def test_tmpdir_retains(context: Context):

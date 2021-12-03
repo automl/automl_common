@@ -13,7 +13,7 @@ class Ensemble:
         - ensemble
     """
 
-    def __init__(self, id: str, dir: str, context: Context):
+    def __init__(self, id: Any, dir: str, context: Context):
         """
         Parameters
         ----------

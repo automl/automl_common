@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Tuple, TypeVar, Generic, Iterator, Union, cast, IO
+from typing import Any, Dict, List, Optional, Tuple, TypeVar, Generic, Iterator, Union, cast, IO
 
 from contextlib import contextmanager
 
@@ -8,14 +8,15 @@ import shutil
 import tempfile
 import time
 import warnings
+from pathlib import Path
 
 import numpy as np
 
 from sklearn.pipeline import Pipeline
 
-from ..utils.logging_ import PicklableClientLogger
+from ..utils.logging_ import PicklableClientLogger, get_named_client_logger
 
-from .context import Context, LocalContext
+from .context import Context, LocalContext, PathLike
 from .optimizer import Optimizer
 from .datamanager import DataManager
 from .ensemble import Ensemble
@@ -28,8 +29,13 @@ Model = TypeVar("Model")  # The Type of Model loaded
 DM = TypeVar("DM")  # The Type of the datamanager
 
 
-class Backend(Generic[Model, DM]):
+class Backend(Generic[Model, DM], Context):
     """Utility class to load and save objects to be persisted
+
+    Note:
+        Inheriting from Context as this provides all the functionality of one,
+        all be it by wrapping another context and just forwarding all its
+        methods.
 
     A backend is parameterized by 2 Types
     * Model - The Type of Model loaded
@@ -122,20 +128,24 @@ class Backend(Generic[Model, DM]):
     """
 
     def __init__(
-        self, framework: str, root: str, context: Optional[Context] = None, retain: bool = False
+        self,
+        framework: str = "framework",
+        root: Optional[str] = None,
+        context: Optional[Context] = None,
+        retain: bool = False,
     ):
         """
         Parameters
         ----------
-        framework: str
-            The name of the framework
+        framework: str = "framework"
+            The name of the framework. Defaults to "framework"
 
-        root: str
-            The root directory of this backend
+        root: Optional[str] = None
+            The root directory of this backend. Defaults to the contexts tmpdir.
 
         context: Optional[Context] = None
             The context to operate in. For now only a local context operating on the
-            local filesystem is supported.
+            local filesystem is supported. Defaults to a `LocalContext()`
 
         retain: bool = False
             Whether to keep the backend and it's content after the object has unloaded.
@@ -143,25 +153,36 @@ class Backend(Generic[Model, DM]):
         if context is None:
             context = LocalContext()
 
-        if context.exists(root):
-            raise ValueError(f"Path {root} already exists, reusing paths is not supported yet")
+        # Make sure the root directory doesn't exist
+        if root is not None:
+            if context.exists(root):
+                raise RuntimeError(
+                    f"{root} already exists, does not support reusing directories yet"
+                )
+            context.mkdir(root)
+        else:
+            # Otherwise we create a tmpdir as our root
+            # We set `retain = True` as we make sure to delete it when this
+            # object is unloaded through __del__
+            with context.tmpdir(prefix=framework, retain=True) as tmpdir:
+                root = tmpdir
 
         self.root = root
         self.framework = framework
         self.context = context
         self.retain = retain
 
-        self._optimizer = Optimizer(dir=self.optimizer_dir, context=context)
-        self._ensembles = Ensembles(dir=self.ensembles_dir, context=context)
-        self._runs = Runs(dir=self.runs_dir, context=context)
-        self._datamanager: DataManager[DM] = DataManager(self.data_dir, context=context)
+        # Backend objects
+        self.optimizer = Optimizer(dir=self.optimizer_dir, context=context)
+        self.ensembles = Ensembles(dir=self.ensembles_dir, context=context)
+        self.runs = Runs[Model](dir=self.runs_dir, context=context)
+        self.datamanager = DataManager[DM](self.data_dir, context=context)
 
         self._logger: Optional[PicklableClientLogger] = None
 
         # Create the folders we can control, users may decide to create their own
         # extra folders. We have flexible way to manage these other than they are under
-        # root
-        self.context.mkdir(self.root)
+
         folders = [
             self.framework_dir,
             self.optimizer_dir,
@@ -170,13 +191,13 @@ class Backend(Generic[Model, DM]):
             self.data_dir,
         ]
         for folder in folders:
-            path = self.context.join(self.root, folder)
-            self.context.mkdir(path)
+            path = self.join(self.root, folder)
+            self.mkdir(path)
 
     def __del__(self):
         """Delete the folders if we do not retain them."""
-        if not self.retain:
-            self.context.rmdir(self.root)
+        if not self.retain and self.exists(self.root):
+            self.rmdir(self.root)
 
     @property
     def logger(self) -> PicklableClientLogger:
@@ -194,114 +215,186 @@ class Backend(Generic[Model, DM]):
         port: int
             Which port the logger should be hosted on
         """
-        self.logger = get_named_client_logger(name=__name__, port=port)
+        self._logger = get_named_client_logger(name=__name__, port=port)
 
     @property
     def framework_dir(self) -> str:
         """Directory for framework specific files."""
-        return self.context.join(self.root, self.framework)
+        return self.join(self.root, self.framework)
 
     @property
     def optimizer_dir(self) -> str:
         """Directory for optimizer specific files."""
-        return self.context.join(self.root, "optimizer")
+        return self.join(self.root, "optimizer")
 
     @property
     def ensembles_dir(self) -> str:
         """Directory for ensemble related files"""
-        return self.context.join(self.root, "ensembles")
+        return self.join(self.root, "ensembles")
 
     @property
     def runs_dir(self) -> str:
         """Directory for all the runs"""
-        return self.context.join(self.root, "runs")
+        return self.join(self.root, "runs")
 
     @property
     def data_dir(self) -> str:
         """Directory for data specific files"""
-        return self.context.join(self.root, "data")
+        return self.join(self.root, "data")
 
     @property
     def start_time_path(self) -> str:
         """Path to where the start time is written"""
-        return self.context.join(self.root, "start_time.marker")
+        return self.join(self.root, "start_time.marker")
 
     @property
     def end_time_path(self) -> str:
         """Path to where the end time is written"""
-        return self.context.join(self.root, "end_time.marker")
-
-    @property
-    def ensembles(self) -> Ensembles:
-        """Object to access to the ensembles part of the backend"""
-        return self._ensembles
-
-    @property
-    def runs(self) -> Runs:
-        """Object to access the runs part of the backend"""
-        return self._runs
-
-    @property
-    def optimizer(self) -> Optimizer:
-        """Object to access to the optimizer part of the backend"""
-        return self._optimizer
-
-    @property
-    def data(self) -> DataManager[DM]:
-        """Object to access to the data part of the backend"""
-        return self._datamanager
+        return self.join(self.root, "end_time.marker")
 
     def mark_start(self) -> None:
         """Write the start time to file"""
+        if self.exists(self.start_time_path):
+            raise RuntimeError(f"Already started, written in {self.start_time_path}")
+
         start_time = str(time.time())
-        with self.context.open(self.start_time_path, "w") as f:
+        with self.open(self.start_time_path, "w") as f:
             f.write(start_time)
 
     def mark_end(self) -> None:
         """Write the end time to file"""
+        if self.exists(self.end_time_path):
+            raise RuntimeError(f"Already started, written in {self.end_time_path}")
         end_time = str(time.time())
-        with self.context.open(self.end_time_path, "w") as f:
+        with self.open(self.end_time_path, "w") as f:
             f.write(end_time)
 
-    def models(self, ids: List[str]) -> List[Model]:
-        """A list of Models gotten by their id
+    @contextmanager
+    def open(self, path: PathLike, mode: str) -> Iterator[IO]:
+        """A file handle to a given path
 
         Parameters
         ----------
-        ids: List[str]
-            The list of models to get
+        path: PathLike
+            A path to the file
+
+        mode: str = 'r'
+            One of mode flags used for python's `open`. See
+            `https://docs.python.org/3/library/functions.html#open`_
 
         Returns
         -------
-        List[Model]
-            A list of models retrieved
+        IO
+            Returns a file object that is opened in the associated mode
         """
-        return [self.run(id).model() for id in ids]
+        with self.context.open(path, mode) as f:
+            yield f
+
+    def mkdir(self, path: PathLike) -> None:
+        """Make a directory
+
+        Parameters
+        ----------
+        path: PathLike
+            The path to where the directory should be made
+        """
+        self.context.mkdir(path)
+
+    def makedirs(self, path: PathLike, exist_ok: bool = False) -> None:
+        """Recursively make directories, creating those that don't exist one the way
+
+        Parameters
+        ----------
+        path: PathLike
+            The end path to make
+
+        exist_ok: bool = False
+            Whether to raise an error if the end directory or any intermediate path
+            exists
+        """
+        self.context.makedirs(path, exist_ok=exist_ok)
+
+    def exists(self, path: PathLike) -> bool:
+        """Whether a given path exists
+
+        Parameters
+        ----------
+        path: PathLike
+            The path to the file or directory
+
+        Returns
+        -------
+        bool
+            Whether it exists or not
+        """
+        return self.context.exists(path)
+
+    def rm(self, path: PathLike) -> None:
+        """Delete a file
+
+        Parameters
+        ----------
+        path: PathLike
+            The path to the file to remove
+        """
+        self.context.rm(path)
+
+    def rmdir(self, path: PathLike) -> None:
+        """Delete a directory
+
+        Parameters
+        ----------
+        path: PathLike
+            The path to the directory to remove
+        """
+        self.context.rmdir(path)
 
     @contextmanager
-    def open(self, path: str, mode: str) -> Iterator[IO]:
-        """Open a file
-
-        # NOTE:
-        #   User would have no way to join files. Not an issue in local setting, might
-        #   be an issue if using something like AWS filesystem where os.join does not
-        #   match
+    def tmpdir(self, prefix: Optional[str] = None, retain: bool = False) -> Iterator[str]:
+        """Return a directory path as a context manager
 
         Parameters
         ----------
-        path: str
-            The path to the file
+        prefix: Optional[str] = None
+            A prefix to attach to the directory
 
-        mode: str
-            One of the modes that can be passed to file opening
+        retain: bool = False
+            Whether to keep the directory after the context ends
 
         Returns
         -------
-        Iterator[IO]
-            A context manager that can be used in the normal way
-            ```
-            with backend.open(...) as f:
-                ...
-            ```
+        Iterator[str]
+            The directory path
         """
-        yield self.context.open(path, mode)
+        with self.context.tmpdir(prefix=prefix, retain=retain) as tmpdir:
+            yield tmpdir
+
+    def join(self, *args: PathLike) -> str:
+        """Join parts of path together
+
+        Parameters
+        ----------
+        *args: PathLike
+            Any amount of PathLike
+
+        Returns
+        -------
+        str
+            The joined path
+        """
+        return self.context.join(*args)
+
+    def listdir(self, dir: PathLike) -> List[str]:
+        """List the files in a directory
+
+        Parameters
+        ----------
+        dir: PathLike
+            The directory to list
+
+        Returns
+        -------
+        List[str]
+            The folders and files in a directory
+        """
+        return self.context.listdir(dir)

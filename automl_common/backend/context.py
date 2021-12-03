@@ -14,6 +14,7 @@ from pathlib import Path
 
 PathLike = Union[str, os.PathLike]
 
+
 class Context(ABC):
     """A object that lets file operations be performed in some place"""
 
@@ -156,8 +157,7 @@ class Context(ABC):
 
 
 class LocalContext(Context):
-    """A local context for files, using `os` and `shutil`
-    """
+    """A local context for files, using `os` and `shutil`"""
 
     @contextmanager
     def open(self, path: PathLike, mode: str) -> Iterator[IO]:
@@ -177,7 +177,8 @@ class LocalContext(Context):
         IO
             Returns a file object that is opened in the associated mode
         """
-        yield open(path, mode=mode)
+        with open(path, mode=mode) as f:
+            yield f
 
     def mkdir(self, path: PathLike) -> None:
         """Make a directory
@@ -239,7 +240,7 @@ class LocalContext(Context):
         shutil.rmtree(path)
 
     @contextmanager
-    def tmpdir(self, prefix: Optional[str] = None, retain: bool = False) -> Iterator[Path]:
+    def tmpdir(self, prefix: Optional[str] = None, retain: bool = False) -> Iterator[str]:
         """Return a temporary directory
 
         `with context.tmpdir() as tmpdir: ...`
@@ -254,10 +255,10 @@ class LocalContext(Context):
 
         Returns
         -------
-        Iterator[Path]
-            The directory name
+        Iterator[str]
+            The directory path
         """
-        path = Path(tempfile.mkdtemp(prefix=prefix))
+        path = tempfile.mkdtemp(prefix=prefix)
         yield path
 
         if not retain and self.exists(path):
@@ -295,7 +296,7 @@ class LocalContext(Context):
 
 
 class AWSContext(Context):
-    """A Context for AWS ... just as example of what other contexts could exist """
+    """A Context for AWS ... just as example of what other contexts could exist"""
 
     def __init__(self, some_key: str):
         raise NotImplementedError()

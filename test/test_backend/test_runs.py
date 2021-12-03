@@ -40,7 +40,7 @@ def test_len_non_empty(runs: Runs):
 
 
 @pytest.mark.parametrize("runs", [[]], indirect=True)
-def test_len_non_empty(runs: Runs):
+def test_len_empty(runs: Runs):
     """
     Parameters
     ----------
