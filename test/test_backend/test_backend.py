@@ -24,15 +24,15 @@ def test_default_construction_set_properties():
     """
     backend = Backend()
 
-    assert backend.root is not None
-    assert backend.exists(backend.root)
+    assert backend._root is not None
+    assert backend.exists(backend._root)
 
-    assert backend.framework == "framework"
-    assert "framework" in backend.root
+    assert backend._framework == "framework"
+    assert "framework" in backend._root
 
-    assert isinstance(backend.context, LocalContext)
+    assert isinstance(backend._context, LocalContext)
 
-    assert backend.retain == False
+    assert backend._retain == False
 
     assert backend._logger is None
 
@@ -57,7 +57,7 @@ def test_default_construction_set_properties():
         assert backend.exists(path)
 
     for path in paths:
-        assert backend.root in path
+        assert backend._root in path
 
 
 def test_construction_fails_when_root_exists(tmpdir: str):
@@ -88,8 +88,8 @@ def test_construction_with_framework_is_in_root_path_when_no_dir(framework: str)
     * Should put the `framework` in the root path when no `dir` is specified
     """
     backend = Backend(framework=framework)
-    assert backend.framework == framework
-    assert framework in backend.root
+    assert backend._framework == framework
+    assert framework in backend._root
 
 
 @pytest.mark.parametrize("root", [lazy_fixture("tmpfile")])
@@ -105,7 +105,7 @@ def test_construction_with_root(root: str):
     * Should set the root correctly and create it
     """
     backend = Backend(root=root)
-    assert backend.root == root
+    assert backend._root == root
     assert backend.exists(root)
 
 
@@ -121,7 +121,7 @@ def test_construction_with_context(context: Context):
     * Should set the context property correctly
     """
     backend = Backend(context=context)
-    assert backend.context == context
+    assert backend._context == context
 
 
 @pytest.mark.parametrize("retain", [True, False])
@@ -138,8 +138,8 @@ def test_del_with_retain(retain: bool):
     """
     backend = Backend(retain=retain)
 
-    root = backend.root
-    context = backend.context  # Used to check existence
+    root = backend._root
+    context = backend._context  # Used to check existence
 
     assert backend.exists(root)
 

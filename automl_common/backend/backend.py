@@ -167,10 +167,12 @@ class Backend(Generic[Model, DM], Context):
             with context.tmpdir(prefix=framework, retain=True) as tmpdir:
                 root = tmpdir
 
-        self.root = root
-        self.framework = framework
-        self.context = context
-        self.retain = retain
+        self._root = root
+        self._framework = framework
+        self._context = context
+        self._retain = retain
+
+        self._logger: Optional[PicklableClientLogger] = None
 
         # Backend objects
         self.optimizer = Optimizer(dir=self.optimizer_dir, context=context)
@@ -178,11 +180,8 @@ class Backend(Generic[Model, DM], Context):
         self.runs = Runs[Model](dir=self.runs_dir, context=context)
         self.datamanager = DataManager[DM](self.data_dir, context=context)
 
-        self._logger: Optional[PicklableClientLogger] = None
-
         # Create the folders we can control, users may decide to create their own
         # extra folders. We have flexible way to manage these other than they are under
-
         folders = [
             self.framework_dir,
             self.optimizer_dir,
@@ -191,13 +190,13 @@ class Backend(Generic[Model, DM], Context):
             self.data_dir,
         ]
         for folder in folders:
-            path = self.join(self.root, folder)
+            path = self.join(self._root, folder)
             self.mkdir(path)
 
     def __del__(self):
         """Delete the folders if we do not retain them."""
-        if not self.retain and self.exists(self.root):
-            self.rmdir(self.root)
+        if not self._retain and self.exists(self._root):
+            self.rmdir(self._root)
 
     @property
     def logger(self) -> PicklableClientLogger:
@@ -220,37 +219,37 @@ class Backend(Generic[Model, DM], Context):
     @property
     def framework_dir(self) -> str:
         """Directory for framework specific files."""
-        return self.join(self.root, self.framework)
+        return self.join(self._root, self._framework)
 
     @property
     def optimizer_dir(self) -> str:
         """Directory for optimizer specific files."""
-        return self.join(self.root, "optimizer")
+        return self.join(self._root, "optimizer")
 
     @property
     def ensembles_dir(self) -> str:
         """Directory for ensemble related files"""
-        return self.join(self.root, "ensembles")
+        return self.join(self._root, "ensembles")
 
     @property
     def runs_dir(self) -> str:
         """Directory for all the runs"""
-        return self.join(self.root, "runs")
+        return self.join(self._root, "runs")
 
     @property
     def data_dir(self) -> str:
         """Directory for data specific files"""
-        return self.join(self.root, "data")
+        return self.join(self._root, "data")
 
     @property
     def start_time_path(self) -> str:
         """Path to where the start time is written"""
-        return self.join(self.root, "start_time.marker")
+        return self.join(self._root, "start_time.marker")
 
     @property
     def end_time_path(self) -> str:
         """Path to where the end time is written"""
-        return self.join(self.root, "end_time.marker")
+        return self.join(self._root, "end_time.marker")
 
     def mark_start(self) -> None:
         """Write the start time to file"""
@@ -287,7 +286,7 @@ class Backend(Generic[Model, DM], Context):
         IO
             Returns a file object that is opened in the associated mode
         """
-        with self.context.open(path, mode) as f:
+        with self._context.open(path, mode) as f:
             yield f
 
     def mkdir(self, path: PathLike) -> None:
@@ -298,7 +297,7 @@ class Backend(Generic[Model, DM], Context):
         path: PathLike
             The path to where the directory should be made
         """
-        self.context.mkdir(path)
+        self._context.mkdir(path)
 
     def makedirs(self, path: PathLike, exist_ok: bool = False) -> None:
         """Recursively make directories, creating those that don't exist one the way
@@ -312,7 +311,7 @@ class Backend(Generic[Model, DM], Context):
             Whether to raise an error if the end directory or any intermediate path
             exists
         """
-        self.context.makedirs(path, exist_ok=exist_ok)
+        self._context.makedirs(path, exist_ok=exist_ok)
 
     def exists(self, path: PathLike) -> bool:
         """Whether a given path exists
@@ -327,7 +326,7 @@ class Backend(Generic[Model, DM], Context):
         bool
             Whether it exists or not
         """
-        return self.context.exists(path)
+        return self._context.exists(path)
 
     def rm(self, path: PathLike) -> None:
         """Delete a file
@@ -337,7 +336,7 @@ class Backend(Generic[Model, DM], Context):
         path: PathLike
             The path to the file to remove
         """
-        self.context.rm(path)
+        self._context.rm(path)
 
     def rmdir(self, path: PathLike) -> None:
         """Delete a directory
@@ -347,7 +346,7 @@ class Backend(Generic[Model, DM], Context):
         path: PathLike
             The path to the directory to remove
         """
-        self.context.rmdir(path)
+        self._context.rmdir(path)
 
     @contextmanager
     def tmpdir(self, prefix: Optional[str] = None, retain: bool = False) -> Iterator[str]:
@@ -366,7 +365,7 @@ class Backend(Generic[Model, DM], Context):
         Iterator[str]
             The directory path
         """
-        with self.context.tmpdir(prefix=prefix, retain=retain) as tmpdir:
+        with self._context.tmpdir(prefix=prefix, retain=retain) as tmpdir:
             yield tmpdir
 
     def join(self, *args: PathLike) -> str:
@@ -382,7 +381,7 @@ class Backend(Generic[Model, DM], Context):
         str
             The joined path
         """
-        return self.context.join(*args)
+        return self._context.join(*args)
 
     def listdir(self, dir: PathLike) -> List[str]:
         """List the files in a directory
@@ -397,4 +396,4 @@ class Backend(Generic[Model, DM], Context):
         List[str]
             The folders and files in a directory
         """
-        return self.context.listdir(dir)
+        return self._context.listdir(dir)
