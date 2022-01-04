@@ -51,3 +51,7 @@ ignore_missing_imports = false # prefer explicit ignores
 disallow_untyped_defs = true # All functions must have types
 disallow_untyped_decorators = true # ... even decorators
 disallow_incomplete_defs = true # ...all types
+
+[[tool.mypy.overrides]]
+modules = ["setuptools.*"]
+ignore_missing_imports = true
