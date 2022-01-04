@@ -30,7 +30,7 @@ setuptools.setup(
     python_requires=">=3.7",
     platforms=["Linux"],
     install_requires=requirements,
-    extra_reqs={
+    extras_require={
         "dev": [
             "pytest",
             "pytest-cov",
