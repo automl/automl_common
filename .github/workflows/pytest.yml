@@ -79,9 +79,9 @@ jobs:
       timeout-minutes: 20
       run: |
         if [ ${{ matrix.code-cov }} ]; then
-          $PYTHON -m pytest ${{ env.pytest-args }} ${{ env.code-cov-args }} test
+          python -m pytest ${{ env.pytest-args }} ${{ env.code-cov-args }} test
         else
-          $PYTHON -m pytest ${{ env.pytest-args }} test
+          python -m pytest ${{ env.pytest-args }} test
         fi
 
     - name: Check for files left behind by test
