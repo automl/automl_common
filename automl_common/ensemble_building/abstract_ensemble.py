@@ -2,7 +2,6 @@ from abc import ABCMeta, abstractmethod
 from typing import Dict, List, Tuple, Union
 
 import numpy as np
-
 from sklearn.pipeline import Pipeline
 
 
@@ -38,7 +37,9 @@ class AbstractEnsemble(object, metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def predict(self, base_models_predictions: Union[np.ndarray, List[np.ndarray]]) -> np.ndarray:
+    def predict(
+        self, base_models_predictions: Union[np.ndarray, List[np.ndarray]]
+    ) -> np.ndarray:
         """Create ensemble predictions from the base model predictions.
 
         Parameters
@@ -53,7 +54,9 @@ class AbstractEnsemble(object, metaclass=ABCMeta):
         self
 
     @abstractmethod
-    def get_models_with_weights(self, models: Dict[str, Pipeline]) -> List[Tuple[float, Pipeline]]:
+    def get_models_with_weights(
+        self, models: Dict[str, Pipeline]
+    ) -> List[Tuple[float, Pipeline]]:
         """Return a list of (weight, model) pairs
 
         Parameters

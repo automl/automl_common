@@ -3,14 +3,13 @@
 For now we only support a local context which uses os
 """
 from abc import ABC, abstractmethod
-from typing import List, IO, Iterator, Union, Optional
-from contextlib import contextmanager
+from typing import IO, Iterator, List, Optional, Union
 
 import os
 import shutil
 import tempfile
+from contextlib import contextmanager
 from pathlib import Path
-
 
 PathLike = Union[str, os.PathLike]
 
@@ -105,7 +104,9 @@ class Context(ABC):
 
     @contextmanager
     @abstractmethod
-    def tmpdir(self, prefix: Optional[str] = None, retain: bool = False) -> Iterator[Path]:
+    def tmpdir(
+        self, prefix: Optional[str] = None, retain: bool = False
+    ) -> Iterator[Path]:
         """Return a directory path as a context manager
 
         Parameters
@@ -240,7 +241,9 @@ class LocalContext(Context):
         shutil.rmtree(path)
 
     @contextmanager
-    def tmpdir(self, prefix: Optional[str] = None, retain: bool = False) -> Iterator[str]:
+    def tmpdir(
+        self, prefix: Optional[str] = None, retain: bool = False
+    ) -> Iterator[str]:
         """Return a temporary directory
 
         `with context.tmpdir() as tmpdir: ...`

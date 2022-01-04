@@ -5,7 +5,6 @@ import tempfile
 
 import yaml
 
-
 from automl_common.utils import logging_
 
 
@@ -14,11 +13,15 @@ def test_setup_logger():
     # according to the given dictionary, and uses the default
     # logging.yaml file if logging_config is not specified.
 
-    with open(os.path.join(os.path.dirname(__file__), "example_config.yaml"), "r") as fh:
+    with open(
+        os.path.join(os.path.dirname(__file__), "example_config.yaml"), "r"
+    ) as fh:
         example_config = yaml.safe_load(fh)
 
     # Configure logger with example_config.yaml.
-    logging_.setup_logger(logging_config=example_config, output_dir=tempfile.gettempdir())
+    logging_.setup_logger(
+        logging_config=example_config, output_dir=tempfile.gettempdir()
+    )
 
     # example_config sets the root logger's level to CRITICAL,
     # which corresponds to 50.

@@ -1,4 +1,6 @@
 # -*- encoding: utf-8 -*-
+from typing import Any, Dict, Optional, Type
+
 import logging
 import logging.config
 import logging.handlers
@@ -10,7 +12,6 @@ import select
 import socketserver
 import struct
 import threading
-from typing import Any, Dict, Optional, Type
 
 import yaml
 
@@ -28,10 +29,14 @@ def setup_logger(
 
     if filename is None:
         filename = logging_config["handlers"]["file_handler"]["filename"]
-    logging_config["handlers"]["file_handler"]["filename"] = os.path.join(output_dir, filename)
+    logging_config["handlers"]["file_handler"]["filename"] = os.path.join(
+        output_dir, filename
+    )
 
     if distributedlog_filename is None:
-        distributedlog_filename = logging_config["handlers"]["distributed_logfile"]["filename"]
+        distributedlog_filename = logging_config["handlers"]["distributed_logfile"][
+            "filename"
+        ]
     logging_config["handlers"]["distributed_logfile"]["filename"] = os.path.join(
         output_dir, distributedlog_filename
     )
@@ -257,7 +262,9 @@ def start_log_server(
     logging_config: Optional[Dict[str, Dict[str, Any]]],
     output_dir: str,
 ) -> None:
-    setup_logger(filename=filename, logging_config=logging_config, output_dir=output_dir)
+    setup_logger(
+        filename=filename, logging_config=logging_config, output_dir=output_dir
+    )
 
     while True:
         # Loop until we find a valid port

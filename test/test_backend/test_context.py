@@ -6,10 +6,9 @@ add it's string to `_contexts_to_tests`
 *   The `tmpfile` and `tmpdir` fixture parameter will need to be updated
     once considering non-local context
 """
-from typing import Union, List
+from typing import List, Union
 
 import os
-
 from pathlib import Path
 
 import pytest
@@ -24,7 +23,9 @@ def test_local_context_construction():
 
 
 @pytest.mark.parametrize("mode, content", [("", "hello"), ("b", b"hello")])
-def test_context_open(tmpfile: Path, context: Context, mode: str, content: Union[str, bytes]):
+def test_context_open(
+    tmpfile: Path, context: Context, mode: str, content: Union[str, bytes]
+):
     """
     Parameters
     ----------
@@ -395,7 +396,9 @@ def test_tmpdir_retains(context: Context):
     assert context.exists(tmp_object)
 
 
-@pytest.mark.parametrize("segments", [("one",), ("one", "two"), ("one", "two", "three")])
+@pytest.mark.parametrize(
+    "segments", [("one",), ("one", "two"), ("one", "two", "three")]
+)
 def test_join(context: Context, segments: List[str]):
     """
     Parameters

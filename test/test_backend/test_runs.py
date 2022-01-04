@@ -1,8 +1,8 @@
-import pytest
-
 from pathlib import Path
 
-from automl_common.backend import Runs, Context
+import pytest
+
+from automl_common.backend import Context, Runs
 
 
 def test_construction(tmpdir: Path, context: Context):

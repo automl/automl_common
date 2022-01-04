@@ -1,18 +1,17 @@
-import pytest
-
-from pytest_lazyfixture import lazy_fixture
-
 from pathlib import Path
+
+import pytest
+from pytest_lazyfixture import lazy_fixture
 
 from automl_common.backend import (
     Backend,
     Context,
+    DataManager,
+    Ensemble,
+    Ensembles,
     LocalContext,
     Run,
     Runs,
-    DataManager,
-    Ensemble,
-    Ensembles
 )
 
 from .mocks import MockEnsemble
@@ -33,10 +32,10 @@ def backend_as_context() -> Backend:
     return Backend()
 
 
-@pytest.fixture(scope="function", params=[
-    lazy_fixture("local_context"),
-    lazy_fixture("backend_as_context")
-])
+@pytest.fixture(
+    scope="function",
+    params=[lazy_fixture("local_context"), lazy_fixture("backend_as_context")],
+)
 def context(request) -> Context:
     """All Contexts collected together"""
     return request.param
@@ -61,7 +60,9 @@ def run_tuple(tmpdir: Path, context: Context) -> Run:
     return Run(id=id, dir=path, context=context)
 
 
-@pytest.fixture(scope="function", params=[lazy_fixture("run_int"), lazy_fixture("run_tuple")])
+@pytest.fixture(
+    scope="function", params=[lazy_fixture("run_int"), lazy_fixture("run_tuple")]
+)
 def run(request) -> Run:
     return request.param
 
@@ -81,7 +82,8 @@ def ensemble_tuple(tmpdir: Path, context: Context) -> Ensemble:
 
 
 @pytest.fixture(
-    scope="function", params=[lazy_fixture("ensemble_int"), lazy_fixture("ensemble_tuple")]
+    scope="function",
+    params=[lazy_fixture("ensemble_int"), lazy_fixture("ensemble_tuple")],
 )
 def ensemble(request) -> Ensemble:
     return request.param
@@ -144,7 +146,10 @@ def ensembles(request, tmpdir: Path, context: Context) -> Ensembles:
         Returns the Ensembles object along with any ensembles it should contain
     """
     ids = request.param if hasattr(request, "param") else []
-    ensembles = [Ensemble(id=id, dir=context.join(tmpdir, str(id)), context=context) for id in ids]
+    ensembles = [
+        Ensemble(id=id, dir=context.join(tmpdir, str(id)), context=context)
+        for id in ids
+    ]
 
     for ensemble in ensembles:
         ensemble.save(MockEnsemble(id=ensemble.id))

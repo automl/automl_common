@@ -1,10 +1,9 @@
 import logging
 
 import pytest
-
 from pytest_lazyfixture import lazy_fixture
 
-from automl_common.backend import Backend, LocalContext, Context
+from automl_common.backend import Backend, Context, LocalContext
 
 
 def test_default_construction_set_properties():
@@ -45,8 +44,7 @@ def test_default_construction_set_properties():
     for obj in backend_objs:
         assert obj is not None
 
-
-    paths =[
+    paths = [
         backend.framework_dir,
         backend.optimizer_dir,
         backend.ensembles_dir,
@@ -169,7 +167,6 @@ def test_logger_property_gives_default_logger(backend: Backend):
     assert logger.name == "automl_common.backend.backend"
     assert logger.host == "localhost"
     assert logger.port == logging.handlers.DEFAULT_TCP_LOGGING_PORT
-
 
 
 @pytest.mark.parametrize("port", [1338, 1339, 1440])

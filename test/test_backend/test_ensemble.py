@@ -1,8 +1,7 @@
 from pathlib import Path
 
-import pytest
-
 import numpy as np
+import pytest
 
 from automl_common.backend import Context, Ensemble
 
@@ -110,7 +109,7 @@ def test_load_when_not_exists(ensemble: Ensemble):
         ensemble.load()
 
 
-@pytest.mark.parametrize("id", [1,2,3])
+@pytest.mark.parametrize("id", [1, 2, 3])
 def test_load_when_exists(ensemble: Ensemble, id: int):
     """
     Parameters

@@ -1,6 +1,16 @@
-from typing import Any, Dict, List, Optional, Tuple, TypeVar, Generic, Iterator, Union, cast, IO
-
-from contextlib import contextmanager
+from typing import (
+    IO,
+    Any,
+    Dict,
+    Generic,
+    Iterator,
+    List,
+    Optional,
+    Tuple,
+    TypeVar,
+    Union,
+    cast,
+)
 
 import glob
 import pickle
@@ -8,22 +18,20 @@ import shutil
 import tempfile
 import time
 import warnings
+from contextlib import contextmanager
 from pathlib import Path
 
 import numpy as np
-
 from sklearn.pipeline import Pipeline
 
 from ..utils.logging_ import PicklableClientLogger, get_named_client_logger
-
 from .context import Context, LocalContext, PathLike
-from .optimizer import Optimizer
 from .datamanager import DataManager
 from .ensemble import Ensemble
 from .ensembles import Ensembles
+from .optimizer import Optimizer
 from .run import Run
 from .runs import Runs
-
 
 Model = TypeVar("Model")  # The Type of Model loaded
 DM = TypeVar("DM")  # The Type of the datamanager
@@ -349,7 +357,9 @@ class Backend(Generic[Model, DM], Context):
         self._context.rmdir(path)
 
     @contextmanager
-    def tmpdir(self, prefix: Optional[str] = None, retain: bool = False) -> Iterator[str]:
+    def tmpdir(
+        self, prefix: Optional[str] = None, retain: bool = False
+    ) -> Iterator[str]:
         """Return a directory path as a context manager
 
         Parameters

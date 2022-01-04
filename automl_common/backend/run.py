@@ -1,12 +1,13 @@
-from typing import Any, TypeVar, Generic, Iterable, Tuple, cast
+from typing import Any, Generic, Iterable, Tuple, TypeVar, cast
+
+import pickle
 
 import numpy as np
-import pickle
 
 from .context import Context, LocalContext
 
-
 Model = TypeVar("Model")
+
 
 class Run(Generic[Model]):
     """Interaface to access a run through.

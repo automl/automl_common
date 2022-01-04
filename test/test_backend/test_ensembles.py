@@ -1,10 +1,10 @@
-import pytest
-
 from pathlib import Path
 
 import numpy as np
+import pytest
 
-from automl_common.backend import Ensembles, Context
+from automl_common.backend import Context, Ensembles
+
 
 def test_construction(tmpdir: Path, context: Context):
     """
@@ -24,7 +24,8 @@ def test_construction(tmpdir: Path, context: Context):
     assert ensembles.dir == tmpdir
     assert ensembles.context == context
 
-@pytest.mark.parametrize("ensembles", [[1,2,3]], indirect=True)
+
+@pytest.mark.parametrize("ensembles", [[1, 2, 3]], indirect=True)
 def test_len_non_empty(ensembles: Ensembles):
     """
     Parameters
@@ -288,7 +289,7 @@ def test_save_targets(ensembles: Ensembles):
     -------
     * Should save targets to file
     """
-    targets = np.array([1,1,1])
+    targets = np.array([1, 1, 1])
     ensembles.save_targets(targets)
     assert ensembles.context.exists(ensembles.targets_path)
 
@@ -305,9 +306,8 @@ def test_load_targets(ensembles: Ensembles):
     * Should be able to load targets from file
     * These loaded targets should be the same
     """
-    targets = np.array([1,1,1])
+    targets = np.array([1, 1, 1])
     ensembles.save_targets(targets)
 
     loaded = ensembles.targets()
     assert all(targets == loaded)
-

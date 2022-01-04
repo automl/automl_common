@@ -5,6 +5,7 @@ from .run import Run
 
 Model = TypeVar("Model")
 
+
 class Runs(Mapping[Any, Model]):
     """Interaface to the runs directory in the backend
 

@@ -1,9 +1,9 @@
 from typing import Any
-import pytest
-
-import numpy as np
 
 from pathlib import Path
+
+import numpy as np
+import pytest
 
 from automl_common.backend import Context, Run
 
@@ -324,7 +324,7 @@ def test_load_predictions_when_both_exist(run: Run):
     one = np.asarray([1, 1, 1])
     run.save_predictions(one, "one")
 
-    two = np.asarray([2,2,2])
+    two = np.asarray([2, 2, 2])
     run.save_predictions(two, "two")
 
     loaded_one = run.predictions("one")
@@ -438,7 +438,7 @@ def test_equality_works_with_str_conversion(run: Run):
     assert run.__eq__(other)
 
 
-@pytest.mark.parametrize("obj", [ [1,2,3], {"hello": "world"}, "hi" ])
+@pytest.mark.parametrize("obj", [[1, 2, 3], {"hello": "world"}, "hi"])
 def test_equality_with_different_type(run: Run, obj: Any):
     """
     Parameters

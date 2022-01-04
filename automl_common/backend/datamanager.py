@@ -1,9 +1,8 @@
-from typing import TypeVar, Generic, cast
+from typing import Generic, TypeVar, cast
 
 import pickle
 
 from .context import Context
-
 
 DM = TypeVar("T")
 

@@ -1,10 +1,10 @@
 from typing import Any
 
-import pytest
-
 from pathlib import Path
 
-from automl_common.backend import DataManager, Context
+import pytest
+
+from automl_common.backend import Context, DataManager
 
 
 def test_construction(tmpdir: Path, context: Context):
@@ -41,7 +41,7 @@ def test_data_path_property(datamanager: DataManager):
     assert datamanager.data_path == expected
 
 
-@pytest.mark.parametrize("data", [(1,2,3), {"hello": "world"}, 10])
+@pytest.mark.parametrize("data", [(1, 2, 3), {"hello": "world"}, 10])
 def test_saves(datamanager: DataManager, data: Any):
     """
     Parameters
@@ -60,7 +60,7 @@ def test_saves(datamanager: DataManager, data: Any):
     assert datamanager.context.exists(datamanager.data_path)
 
 
-@pytest.mark.parametrize("data", [(1,2,3), {"hello": "world"}, 10])
+@pytest.mark.parametrize("data", [(1, 2, 3), {"hello": "world"}, 10])
 def test_datamanager_loads(datamanager: DataManager, data: Any):
     """
     Parameters

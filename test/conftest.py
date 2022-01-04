@@ -6,13 +6,17 @@ from pathlib import Path
 from pytest import fixture
 
 # Load in other pytest modules, in this case fixtures
-pytest_plugins = [
-    "test_backend.fixtures"
-]
+pytest_plugins = ["test_backend.fixtures"]
+
 
 def test_id(request) -> str:
     """Gets a unique id for all tests, even parameterized tests"""
-    return re.match(r".*::(.*)$", request.node.nodeid).group(1).replace("[", "_").replace("]", "")
+    return (
+        re.match(r".*::(.*)$", request.node.nodeid)
+        .group(1)
+        .replace("[", "_")
+        .replace("]", "")
+    )
 
 
 @fixture(scope="function")

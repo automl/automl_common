@@ -55,7 +55,9 @@ class Ensemble:
     def load(self) -> AbstractEnsemble:
         """Save an ensemble to the filesystem"""
         if not self.exists:
-            raise RuntimeError(f"Ensemble with id {self.id} at {self.dir} has no ensemble saved")
+            raise RuntimeError(
+                f"Ensemble with id {self.id} at {self.dir} has no ensemble saved"
+            )
 
         with self.context.open(self.ensemble_path, "rb") as f:
             ensemble = pickle.load(f)
@@ -86,4 +88,3 @@ class Ensemble:
             raise NotImplementedError()
 
         return str(self.id) == str(other.id) and self.dir == other.dir
-
