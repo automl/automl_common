@@ -1,36 +1,14 @@
-from typing import (
-    IO,
-    Any,
-    Dict,
-    Generic,
-    Iterator,
-    List,
-    Optional,
-    Tuple,
-    TypeVar,
-    Union,
-    cast,
-)
+from typing import IO, Generic, Iterator, List, Optional, TypeVar
 
-import glob
-import pickle
-import shutil
-import tempfile
 import time
-import warnings
 from contextlib import contextmanager
 from pathlib import Path
-
-import numpy as np
-from sklearn.pipeline import Pipeline
 
 from ..utils.logging_ import PicklableClientLogger, get_named_client_logger
 from .context import Context, LocalContext, PathLike
 from .datamanager import DataManager
-from .ensemble import Ensemble
 from .ensembles import Ensembles
 from .optimizer import Optimizer
-from .run import Run
 from .runs import Runs
 
 Model = TypeVar("Model")  # The Type of Model loaded
@@ -40,7 +18,8 @@ DM = TypeVar("DM")  # The Type of the datamanager
 class Backend(Generic[Model, DM], Context):
     """Utility class to load and save objects to be persisted
 
-    Note:
+    Note
+    ----
         Inheriting from Context as this provides all the functionality of one,
         all be it by wrapping another context and just forwarding all its
         methods.
@@ -87,7 +66,9 @@ class Backend(Generic[Model, DM], Context):
     # Getting specific models
     ids = set(1, 2, 3, 4)
     models = [run.model() for id, run in backend.runs.items() if id in ids]
-    predictions = [run.predictions("train") for id, run in backend.runs.items() if id in ids]
+    predictions = [
+        run.predictions("train") for id, run in backend.runs.items() if id in ids
+    ]
 
     # Some checking information
     len(backend.runs) # 10
@@ -359,7 +340,7 @@ class Backend(Generic[Model, DM], Context):
     @contextmanager
     def tmpdir(
         self, prefix: Optional[str] = None, retain: bool = False
-    ) -> Iterator[str]:
+    ) -> Iterator[Path]:
         """Return a directory path as a context manager
 
         Parameters
@@ -372,7 +353,7 @@ class Backend(Generic[Model, DM], Context):
 
         Returns
         -------
-        Iterator[str]
+        Iterator[Path]
             The directory path
         """
         with self._context.tmpdir(prefix=prefix, retain=retain) as tmpdir:
