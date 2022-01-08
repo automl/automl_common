@@ -7,7 +7,15 @@ Handler = Callable[..., ...]
 
 
 class Optimizer(ABC):
-    """An optimizer over a ConfigurationSpace"""
+    """An optimizer over a ConfigurationSpace
+
+    An optimizer can provide a list of events that users can subscribe
+    handlers to.
+
+    An optimizer can provide capabilities from a set list, if doing
+    so it must override the corresponding method:
+    * "``warmstart``" - The optimizer can be warm started
+    """
 
     def __init__(self, backend: Backend):
         """
@@ -51,6 +59,37 @@ class Optimizer(ABC):
     def events(self) -> List[str]:
         """A list of events the optimizer will emit"""
         ...
+
+    @abstractmethod
+    @property
+    def capabilities(self) -> List[str]:
+        """The List of capabilities provided by the Optimizer
+
+        Returns
+        -------
+        List[str]
+            A list of capabilities provided by the optimizer
+        """
+        ...
+
+    def warmstart(self, *args, **kwargs) -> None:
+        """Warmstart the optimizer"""
+        raise NotImplementedError("Optimizer does not support 'warmstart'")
+
+    def supports(self, capability: str) -> bool:
+        """Check if the Optimizer supports a given capability
+
+        Parameters
+        ----------
+        capability: str
+            The capability to check
+
+        Returns
+        -------
+        bool
+            Whether this optimizer supports the given capability
+        """
+        return capability in self.capabilities
 
     def _emit(self, event: str, *args, **kwargs) -> None:
         for handler in self._handlers.get(event, []):
