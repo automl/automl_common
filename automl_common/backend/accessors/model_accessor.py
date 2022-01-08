@@ -3,7 +3,7 @@ from typing import Generic, TypeVar
 import pickle
 from pathlib import Path
 
-from automl_common.backend.contexts import Context, PathLike
+from automl_common.backend import Backend, PathLike
 from automl_common.backend.stores import PredictionsStore
 
 Model = TypeVar("Model")
@@ -22,18 +22,12 @@ class ModelAccessor(Generic[Model]):
         / predictions_val.npy
         / model
         / ...
-
-    Any implementing class can add more state that can be managed about this model.
-
-    A ModelView must implement:
-    * `save` - Save a model to a backend
-    * `load` - Load a model from a backend
     """
 
     def __init__(
         self,
         dir: PathLike,
-        context: Context,
+        backend: Backend,
     ):
         """
         Parameters
@@ -44,7 +38,8 @@ class ModelAccessor(Generic[Model]):
         context: Context
             A context object to iteract with a filesystem
         """
-        self.context = context
+        self.backend = backend
+        self.context = backend.context
 
         self.dir: Path
         if isinstance(dir, Path):
@@ -52,7 +47,7 @@ class ModelAccessor(Generic[Model]):
         else:
             self.dir = self.context.as_path(dir)
 
-        self.predictions_store = PredictionsStore(dir, context)
+        self.predictions_store = PredictionsStore(dir, self.context)
 
     @property
     def path(self) -> Path:
@@ -70,6 +65,15 @@ class ModelAccessor(Generic[Model]):
 
         """
         return self.predictions_store
+
+    def exists(self) -> bool:
+        """
+        Returns
+        -------
+        bool
+            Whether a saved model exists or not
+        """
+        return self.context.exists(self.path)
 
     def load(self) -> Model:
         """Get the model in this model store

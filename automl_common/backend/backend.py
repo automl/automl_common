@@ -82,7 +82,7 @@ class Backend(Generic[ModelT]):
         self._model_store = ModelStore[ModelT](dir=models_dir, context=self.context)
 
         ensembles_dir = self.path / "ensembles"
-        self._ensembles_store = EnsembleStore(dir=ensembles_dir, context=self.context)
+        self._ensembles_store = EnsembleStore(dir=ensembles_dir, backend=self)
 
     @property
     def models(self) -> ModelStore[ModelT]:

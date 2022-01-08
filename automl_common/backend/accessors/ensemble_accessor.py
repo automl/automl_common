@@ -1,13 +1,12 @@
-from abc import ABC
-
+import pickle
 from pathlib import Path
 
-from automl_common.backend.accessors import ModelAccessor
+from automl_common.backend import Backend, PathLike
+from automl_common.backend.stores import PredictionsStore
 from automl_common.ensemble import Ensemble
 
 
-# Mostly just uses functionlality of ModelAccessor
-class EnsembleAccessor(ABC, ModelAccessor[Ensemble]):
+class EnsembleAccessor:
     """The state of an Ensemble with a directory on a filesystem.
 
     As automl_common manages ensembling in general, we can keep
@@ -21,15 +20,76 @@ class EnsembleAccessor(ABC, ModelAccessor[Ensemble]):
         / predictions_val.npy
         / ensemble
         / ...
-
-    Any implementing class can add more state that can be managed about this model.
-
-    An EnsembleView must implement:
-    * `save` - Save a model to a backend
-    * `load` - Load a model from a backend
+    Also uses
     """
+
+    def __init__(
+        self,
+        dir: PathLike,
+        backend: Backend,
+    ):
+        """
+        Parameters
+        ----------
+        dir: PathLike
+            The directory to load and store from
+
+        context: Context
+            A context object to iteract with a filesystem
+        """
+        self.context = backend.context
+        self.backend = backend
+
+        self.dir: Path
+        if isinstance(dir, Path):
+            self.dir = dir
+        else:
+            self.dir = self.context.as_path(dir)
+
+        self.predictions_store = PredictionsStore(dir, self.context)
+
+    @property
+    def predictions(self) -> PredictionsStore:
+        """Access to dictlike view of predicitons saved for this ensemble"""
+        return self.predictions_store
 
     @property
     def path(self) -> Path:
         """Path to the ensemble object"""
-        return self.path / "ensemble"
+        return self.path / "ensemble.json"
+
+    def exists(self) -> bool:
+        """
+        Returns
+        -------
+        bool
+            Whether the ensemble exists or not
+        """
+        return self.context.exists(self.path)
+
+    def load(self) -> Ensemble:
+        """Load a stored ensemble
+
+        Returns
+        -------
+        EnsembleT
+            The loaded ensemble
+        """
+        with open(self.path, "rb") as f:
+            ensemble = pickle.load(f)
+
+            # We need to inject the current backend we're using
+            ensemble.backend = self.backend
+
+            return ensemble
+
+    def save(self, ensemble: Ensemble) -> None:
+        """Save an ensemble
+
+        Parameters
+        ----------
+        ensemlbe: EnsembleT
+            The ensemble object to save
+        """
+        with open(self.path, "wb") as f:
+            pickle.dump(ensemble, f)

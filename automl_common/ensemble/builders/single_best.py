@@ -1,11 +1,8 @@
-from typing import Any, Callable, Mapping, Optional
+from typing import Any, Mapping, Optional
 
 import numpy as np
 
-# https://github.com/python/mypy/issues/5876#issuecomment-706396563
-
-Metric = Callable[..., float]
-# (np.ndarray, np.ndarray, kwargs) -> float
+from automl_common.metric import Metric
 
 
 def single_best(
@@ -24,7 +21,7 @@ def single_best(
     y: np.ndarray
         The targets
 
-    metric: (np.ndarray, np.ndarray, np.ndarray=None) -> float
+    metric: (np.ndarray, np.ndarray, **kwargs) -> float
         A metric to asses predictions on. Must take in the following order
 
         pred: np.ndarray
@@ -33,13 +30,13 @@ def single_best(
         target: np.ndarray
             The corresponding targets
 
-        sample_weights: Optional[np.ndarray] = None
-            The sample weights to pass to the metric
+        **kwargs
+            Any other values to forward to the metric
 
         returns: float
             The score of the model
 
-    metric_args: Dict[str, Any]
+    metric_args: Optional[Mapping[str, Any]] = None
         Arguments to forward to the metric
 
     Returns

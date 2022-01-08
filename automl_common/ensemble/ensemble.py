@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
-from typing import Iterator, Mapping, Sequence, TypeVar
+from typing import Any, Iterator, List, Mapping, TypeVar
+
+import copy
 
 import numpy as np
 
@@ -11,11 +13,13 @@ ModelT = TypeVar("ModelT", bound=Model)
 
 
 class Ensemble(ABC, Mapping[str, ModelAccessor[ModelT]]):
-    def __init__(self, backend: Backend[ModelT], identifiers: Sequence[str]):
+    """Manages functionality around using multiple models ensembled in some fashion"""
+
+    def __init__(self, backend: Backend[ModelT], identifiers: List[str]):
         """
         Parameters
         ----------
-        identifiers: Sequence[str]
+        identifiers: List[str]
             The identifiers of the models in the ensemble
 
         backend: Backend
@@ -23,20 +27,6 @@ class Ensemble(ABC, Mapping[str, ModelAccessor[ModelT]]):
         """
         self.backend = backend
         self.identifiers = identifiers
-
-    def __getitem__(self, key: str) -> ModelAccessor[ModelT]:
-        if key not in self.identifiers:
-            raise ValueError(f"Model with {key} not in ensemble, {self.identifiers}")
-        return self.backend.models[key]
-
-    def __contains__(self, key: object) -> bool:
-        if not isinstance(key, str):
-            return False
-
-        return key in self.identifiers
-
-    def __iter__(self) -> Iterator[str]:
-        return iter(self.identifiers)
 
     @abstractmethod
     def predict(self, x: np.ndarray) -> np.ndarray:
@@ -53,3 +43,22 @@ class Ensemble(ABC, Mapping[str, ModelAccessor[ModelT]]):
             The prediction for the given values
         """
         ...
+
+    def __getitem__(self, key: str) -> ModelAccessor[ModelT]:
+        if key not in self.identifiers:
+            raise ValueError(f"Model with {key} not in ensemble, {self.identifiers}")
+        return self.backend.models[key]
+
+    def __contains__(self, key: object) -> bool:
+        if not isinstance(key, str):
+            return False
+
+        return key in self.identifiers
+
+    def __iter__(self) -> Iterator[str]:
+        return iter(self.identifiers)
+
+    def __getstate__(self) -> Any:
+        state = copy.deepcopy(self.__dict__)
+        del state["backend"]
+        return state
