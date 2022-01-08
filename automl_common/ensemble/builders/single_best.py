@@ -21,7 +21,7 @@ def single_best(
     y: np.ndarray
         The targets
 
-    metric: (np.ndarray, np.ndarray, **kwargs) -> float
+    metric: MetricProtocol
         A metric to asses predictions on. Must take in the following order
 
         pred: np.ndarray
