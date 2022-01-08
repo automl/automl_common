@@ -1,23 +1,53 @@
-"""Defines contexts for file interaction
-
+"""
+Defines contexts for file interaction
 For now we only support a local context which uses os
 """
 from abc import ABC, abstractmethod
 from typing import IO, Iterator, List, Optional, Union
 
-import os
 from contextlib import contextmanager
 from pathlib import Path
 
-PathLike = Union[str, os.PathLike]
+PathLike = Union[str, Path]
 
 
 class Context(ABC):
-    """A object that lets file operations be performed in some place"""
+    """An `os` like class to interact with a filesystem. It additionally manages
+    cleanup and temporary direcory cleanup if required.
+    """
 
+    @classmethod
+    @contextmanager
+    def tmpdir(
+        cls,
+        prefix: Optional[str] = None,
+        retain: bool = False,
+    ) -> Iterator[Path]:
+        """Return a directory path as a context manager
+
+        Parameters
+        ----------
+        prefix: Optional[str] = None
+            A prefix to attach to the directory
+
+        retain: bool = False
+            Whether to keep the directory after the context ends
+
+        Returns
+        -------
+        Iterator[Path]
+            The directory path
+        """
+        path = cls.mkdtemp(prefix=prefix)
+        yield Path(path)
+
+        if not retain and cls.exists(path):
+            cls.rmdir(path)
+
+    @classmethod
     @contextmanager
     @abstractmethod
-    def open(self, path: PathLike, mode: str) -> Iterator[IO]:
+    def open(cls, path: PathLike, mode: str = "r") -> Iterator[IO]:
         """A file handle to a given path
 
         Parameters
@@ -36,8 +66,9 @@ class Context(ABC):
         """
         ...
 
+    @classmethod
     @abstractmethod
-    def mkdir(self, path: PathLike) -> None:
+    def mkdir(cls, path: PathLike) -> None:
         """Make a directory
 
         Parameters
@@ -47,8 +78,9 @@ class Context(ABC):
         """
         ...
 
+    @classmethod
     @abstractmethod
-    def makedirs(self, path: PathLike, exist_ok: bool = False) -> None:
+    def makedirs(cls, path: PathLike, exist_ok: bool = False) -> None:
         """Recursively make directories, creating those that don't exist one the way
 
         Parameters
@@ -62,8 +94,9 @@ class Context(ABC):
         """
         ...
 
+    @classmethod
     @abstractmethod
-    def exists(self, path: PathLike) -> bool:
+    def exists(cls, path: PathLike) -> bool:
         """Whether a given path exists
 
         Parameters
@@ -78,8 +111,9 @@ class Context(ABC):
         """
         ...
 
+    @classmethod
     @abstractmethod
-    def rm(self, path: PathLike) -> None:
+    def rm(cls, path: PathLike) -> None:
         """Delete a file
 
         Parameters
@@ -89,8 +123,9 @@ class Context(ABC):
         """
         ...
 
+    @classmethod
     @abstractmethod
-    def rmdir(self, path: PathLike) -> None:
+    def rmdir(cls, path: PathLike) -> None:
         """Delete a directory
 
         Parameters
@@ -100,30 +135,26 @@ class Context(ABC):
         """
         ...
 
-    @contextmanager
+    @classmethod
     @abstractmethod
-    def tmpdir(
-        self, prefix: Optional[str] = None, retain: bool = False
-    ) -> Iterator[Path]:
-        """Return a directory path as a context manager
+    def mkdtemp(cls, prefix: Optional[str] = None) -> Path:
+        """Create a temporary folder the user is responsible for deleting
 
         Parameters
         ----------
-        prefix: Optional[str] = None
-            A prefix to attach to the directory
-
-        retain: bool = False
-            Whether to keep the directory after the context ends
+        prefix: Optional[str]
+            A prefix to add to the tmp folder name that is created
 
         Returns
         -------
-        Iterator[Path]
-            The directory path
+        Path
+            The path to the tmp folder
         """
         ...
 
+    @classmethod
     @abstractmethod
-    def listdir(self, dir: PathLike) -> List[str]:
+    def listdir(cls, dir: PathLike) -> List[str]:
         """List the files in a directory
 
         Parameters
@@ -138,8 +169,9 @@ class Context(ABC):
         """
         ...
 
+    @classmethod
     @abstractmethod
-    def as_path(self, path: str) -> Path:
+    def as_path(cls, path: str) -> Path:
         """Convert a str path to a Path object used for this context
 
         Parameters

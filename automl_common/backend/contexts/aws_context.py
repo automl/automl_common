@@ -1,6 +1,6 @@
-from automl_common.backend.context import Context
+from pathlib import Path
 
-from Pathlib import Path
+from automl_common.backend.contexts import Context
 
 
 class AWSPath(Path):
@@ -15,6 +15,7 @@ class AWSContext(Context):
     def __init__(self, some_key: str):
         raise NotImplementedError()
 
-    def as_path(self, path: str) -> AWSPath:
+    @classmethod
+    def as_path(cls, path: str) -> AWSPath:
         """Would use the special path for AWS"""
         raise NotImplementedError()

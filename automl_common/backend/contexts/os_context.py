@@ -6,14 +6,15 @@ import tempfile
 from contextlib import contextmanager
 from pathlib import Path
 
-from automl_common.backend.context import Context, PathLike
+from automl_common.backend.contexts import Context, PathLike
 
 
-class LocalContext(Context):
+class OSContext(Context):
     """A local context for files on this local machine"""
 
+    @classmethod
     @contextmanager
-    def open(self, path: PathLike, mode: str) -> Iterator[IO]:
+    def open(cls, path: PathLike, mode: str = "r") -> Iterator[IO]:
         """A file handle to a given path
 
         Parameters
@@ -33,7 +34,8 @@ class LocalContext(Context):
         with open(path, mode=mode) as f:
             yield f
 
-    def mkdir(self, path: PathLike) -> None:
+    @classmethod
+    def mkdir(cls, path: PathLike) -> None:
         """Make a directory
 
         Parameters
@@ -43,7 +45,8 @@ class LocalContext(Context):
         """
         os.mkdir(path)
 
-    def makedirs(self, path: PathLike, exist_ok: bool = False) -> None:
+    @classmethod
+    def makedirs(cls, path: PathLike, exist_ok: bool = False) -> None:
         """Recursively make directories, creating those that don't exist one the way
 
         Parameters
@@ -57,7 +60,8 @@ class LocalContext(Context):
         """
         os.makedirs(path, exist_ok=exist_ok)
 
-    def exists(self, path: PathLike) -> bool:
+    @classmethod
+    def exists(cls, path: PathLike) -> bool:
         """Whether a given path exists
 
         Parameters
@@ -72,7 +76,8 @@ class LocalContext(Context):
         """
         return os.path.exists(path)
 
-    def rm(self, path: PathLike) -> None:
+    @classmethod
+    def rm(cls, path: PathLike) -> None:
         """Delete a file
 
         Parameters
@@ -82,7 +87,8 @@ class LocalContext(Context):
         """
         os.remove(path)
 
-    def rmdir(self, path: PathLike) -> None:
+    @classmethod
+    def rmdir(cls, path: PathLike) -> None:
         """Delete a directory
 
         Parameters
@@ -92,34 +98,25 @@ class LocalContext(Context):
         """
         shutil.rmtree(path)
 
-    @contextmanager
-    def tmpdir(
-        self, prefix: Optional[str] = None, retain: bool = False
-    ) -> Iterator[Path]:
-        """Return a temporary directory
-
-        `with context.tmpdir() as tmpdir: ...`
+    @classmethod
+    def mkdtemp(cls, prefix: Optional[str] = None) -> Path:
+        """Create a temporary folder the user is responsible for deleting
 
         Parameters
         ----------
-        prefix: Optional[str] = None
-            A prefix to attach to the directory
-
-        retain: bool = False
-            Whether to retain the directory after the context finishes
+        prefix: Optional[str]
+            A prefix to add to the tmp folder name that is created
 
         Returns
         -------
-        Iterator[Path]
-            The directory path
+        Path
+            The path to the tmp folder
         """
         path = tempfile.mkdtemp(prefix=prefix)
-        yield Path(path)
+        return Path(path)
 
-        if not retain and self.exists(path):
-            self.rmdir(path)
-
-    def listdir(self, path: PathLike) -> List[str]:
+    @classmethod
+    def listdir(cls, path: PathLike) -> List[str]:
         """Return a list of the contents of a directory
 
         Parameters
@@ -134,7 +131,8 @@ class LocalContext(Context):
         """
         return os.listdir(path)
 
-    def as_path(self, path: str) -> Path:
+    @classmethod
+    def as_path(cls, path: str) -> Path:
         """Convert a str path to a Path object used for this context
 
         Parameters
