@@ -3,7 +3,7 @@ from collections import Counter
 
 import numpy as np
 
-from automl_common.metric import Metric
+from automl_common.metric import MetricProtocol
 from automl_common.util import as_random_state
 
 
@@ -11,7 +11,7 @@ def weighted_ensemble(
     model_predictions: Mapping[str, np.ndarray],
     targets: np.ndarray,
     size: int,
-    metric: Metric,
+    metric: MetricProtocol,
     method: str = "caruana",
     metric_args: Optional[Mapping[str, Any]] = None,
     random_state: Optional[Union[int, np.random.RandomState]] = None
@@ -29,7 +29,7 @@ def weighted_ensemble(
     size: int
         The size of the ensemble to create
 
-    metric: Metric
+    metric: MetricProtocol
         The metric to use in calculating which models to add to the ensemble
 
     method: str = "caruana"

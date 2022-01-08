@@ -2,13 +2,13 @@ from typing import Any, Mapping, Optional
 
 import numpy as np
 
-from automl_common.metric import Metric
+from automl_common.metric import MetricProtocol
 
 
 def single_best(
     model_predictions: Mapping[str, np.ndarray],
     y: np.ndarray,
-    metric: Metric,
+    metric: MetricProtocol,
     metric_args: Optional[Mapping[str, Any]] = None,
 ) -> str:
     """Get an Ensemble consisting of the single best model
