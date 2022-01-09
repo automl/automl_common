@@ -1,7 +1,5 @@
 from typing import Union
 
-import numbers
-
 import numpy as np
 
 
@@ -24,7 +22,7 @@ def as_random_state(
     """
     if seed is None or seed is np.random:
         return np.random.mtrand._rand
-    if isinstance(seed, numbers.Integral):
+    if isinstance(seed, int):
         return np.random.RandomState(seed)
     if isinstance(seed, np.random.RandomState):
         return seed
