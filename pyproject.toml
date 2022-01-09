@@ -53,5 +53,5 @@ disallow_untyped_decorators = true # ... even decorators
 disallow_incomplete_defs = true # ...all types
 
 [[tool.mypy.overrides]]
-module = ["setuptools.*"]
+module = ["setuptools.*", "smac.*", "dask.*", "ConfigSpace.*"]
 ignore_missing_imports = true
