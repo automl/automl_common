@@ -1,4 +1,4 @@
-from typing import Protocol
+from typing import Any, Protocol
 
 import numpy as np
 
@@ -6,7 +6,12 @@ import numpy as np
 class MetricProtocol(Protocol):
     """Describes an interface for a metric"""
 
-    def __call__(self, predicitons: np.ndarray, targets: np.ndarray, **kwargs) -> float:
+    def __call__(
+        self,
+        predicitons: np.ndarray,
+        targets: np.ndarray,
+        **kwargs: Any,
+    ) -> float:
         """
         Parameters
         ----------
@@ -16,12 +21,17 @@ class MetricProtocol(Protocol):
         targets: np.ndarray
             The targets to compare to
 
-        **kwargs
+        **kwargs: Any
             Any arguments tht will be forwarded to implementers
         """
         ...
 
-    def score(self, predicitons: np.ndarray, targets: np.ndarray, **kwargs) -> float:
+    def score(
+        self,
+        predicitons: np.ndarray,
+        targets: np.ndarray,
+        **kwargs: Any,
+    ) -> float:
         """
         Parameters
         ----------
@@ -31,12 +41,17 @@ class MetricProtocol(Protocol):
         targets: np.ndarray
             The targets to compare to
 
-        **kwargs
+        **kwargs: Any
             Any arguments tht will be forwarded to implementers
         """
         ...
 
-    def loss(self, predicitons: np.ndarray, targets: np.ndarray, **kwargs) -> float:
+    def loss(
+        self,
+        predicitons: np.ndarray,
+        targets: np.ndarray,
+        **kwargs: Any,
+    ) -> float:
         """
         Parameters
         ----------
@@ -46,7 +61,7 @@ class MetricProtocol(Protocol):
         targets: np.ndarray
             The targets to compare to
 
-        **kwargs
+        **kwargs: Any
             Any arguments tht will be forwarded to implementers
         """
         ...

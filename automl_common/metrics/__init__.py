@@ -1,3 +1,3 @@
-from automl_common.metrics.metric import Metric
+from automl_common.metrics.metric import MetricProtocol
 
-__all__ = ["Metric"]
+__all__ = ["MetricProtocol"]
