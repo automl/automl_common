@@ -1,8 +1,13 @@
-from typing import Iterator
+from __future__ import annotations
 
-from automl_common.backend import Backend, PathLike
+from typing import TYPE_CHECKING, Iterator
+
 from automl_common.backend.accessors import EnsembleAccessor
-from automl_common.backend.stores import StoreView
+from automl_common.backend.contexts import PathLike
+from automl_common.backend.stores.store import StoreView
+
+if TYPE_CHECKING:
+    from automl_common.backend.backend import Backend
 
 
 class EnsembleStore(StoreView[EnsembleAccessor]):

@@ -3,7 +3,8 @@ from typing import Generic, Optional, TypeVar
 from pathlib import Path
 
 from automl_common.backend.contexts import Context, OSContext, PathLike
-from automl_common.backend.stores import EnsembleStore, ModelStore
+from automl_common.backend.stores.ensemble_store import EnsembleStore
+from automl_common.backend.stores.model_store import ModelStore
 from automl_common.model import Model
 
 ModelT = TypeVar("ModelT", bound=Model)
@@ -79,7 +80,7 @@ class Backend(Generic[ModelT]):
         self.name = name
 
         models_dir = self.path / "models"
-        self._model_store = ModelStore[ModelT](dir=models_dir, context=self.context)
+        self._model_store = ModelStore[ModelT](dir=models_dir, backend=self)
 
         ensembles_dir = self.path / "ensembles"
         self._ensembles_store = EnsembleStore(dir=ensembles_dir, backend=self)

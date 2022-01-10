@@ -1,10 +1,15 @@
-from typing import Dict, TypeVar, cast
+from __future__ import annotations
+
+from typing import Dict, TypeVar, cast, TYPE_CHECKING
 
 import numpy as np
 
-from automl_common.backend import Backend
-from automl_common.ensemble import Ensemble
+from automl_common.ensemble.ensemble import Ensemble
 from automl_common.model import Model
+
+if TYPE_CHECKING:
+    from automl_common.backend import Backend
+
 
 ModelT = TypeVar("ModelT", bound=Model)
 

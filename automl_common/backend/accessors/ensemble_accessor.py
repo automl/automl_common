@@ -1,11 +1,18 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import pickle
 from pathlib import Path
 
-from automl_common.backend import Backend, PathLike
-from automl_common.backend.stores import PredictionsStore
-from automl_common.ensemble import Ensemble
+from automl_common.backend.stores.predictions_store import PredictionsStore
+from automl_common.ensemble.ensemble import Ensemble
+
+if TYPE_CHECKING:
+    from automl_common.backend import Backend, PathLike
 
 
+# TODO make iterable
 class EnsembleAccessor:
     """The state of an Ensemble with a directory on a filesystem.
 
@@ -75,6 +82,7 @@ class EnsembleAccessor:
         EnsembleT
             The loaded ensemble
         """
+        # TODO, load in the models too
         with open(self.path, "rb") as f:
             ensemble = pickle.load(f)
 

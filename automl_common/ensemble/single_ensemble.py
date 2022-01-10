@@ -1,8 +1,12 @@
-from typing import TypeVar
+from __future__ import annotations
 
-from automl_common.backend import Backend
-from automl_common.ensemble import WeightedEnsemble
+from typing import TYPE_CHECKING, TypeVar
+
+from automl_common.ensemble.weighted_ensemble import WeightedEnsemble
 from automl_common.model import Model
+
+if TYPE_CHECKING:
+    from automl_common.backend import Backend
 
 ModelT = TypeVar("ModelT", bound=Model)
 

@@ -1,12 +1,13 @@
 from pathlib import Path
 
-from automl_common.backend.contexts import Context
+from automl_common.backend.contexts.context import Context
 
 
 class AWSPath(Path):
     """A special Path object for AWS if needed"""
 
-    pass
+    def __init__(self):
+        raise NotImplementedError()
 
 
 class AWSContext(Context):

@@ -1,9 +1,10 @@
-from typing import Any, Dict, List, Tuple, Mapping, Optional, Union
+from typing import Any, Dict, List, Mapping, Optional, Tuple, Union
+
 from collections import Counter
 
 import numpy as np
 
-from automl_common.metric import MetricProtocol
+from automl_common.metrics import MetricProtocol
 from automl_common.util import as_random_state
 
 
@@ -14,7 +15,7 @@ def weighted_ensemble(
     metric: MetricProtocol,
     method: str = "caruana",
     metric_args: Optional[Mapping[str, Any]] = None,
-    random_state: Optional[Union[int, np.random.RandomState]] = None
+    random_state: Optional[Union[int, np.random.RandomState]] = None,
 ) -> Tuple[Dict[str, float], List[float]]:
     """Calculate a weighted ensemble of `n` models
 
@@ -61,9 +62,10 @@ def weighted_ensemble(
         return func(
             model_predictions=model_predictions,
             targets=targets,
+            size=size,
             metric=metric,
             metric_args=metric_args,
-            random_state=random_state
+            random_state=random_state,
         )
 
 
@@ -71,9 +73,9 @@ def weighted_ensemble_caruana(
     model_predictions: Mapping[str, np.ndarray],
     targets: np.ndarray,
     size: int,
-    metric: Metric,
+    metric: MetricProtocol,
     metric_args: Optional[Mapping[str, Any]] = None,
-    random_state: Optional[Union[int, np.random.RandomState]] = None
+    random_state: Optional[Union[int, np.random.RandomState]] = None,
 ) -> Tuple[Dict[str, float], List[float]]:
     """Calculate a weighted ensemble of `n` models
 
@@ -110,6 +112,7 @@ def weighted_ensemble_caruana(
         during training.
     """
     rand = as_random_state(random_state)
+    kwargs = metric_args if metric_args is not None else {}
 
     ids = list(model_predictions.keys())
     predictions = list(model_predictions.values())
@@ -127,7 +130,7 @@ def weighted_ensemble_caruana(
         # Get the loss if the model was added to the current set of predicitons
         np.add(current, model_predictions[_id], out=buffer)
         np.divide(buffer, len(ensemble) + 1, out=buffer)
-        return metric.loss(buffer, targets, **metric_args)
+        return metric.loss(buffer, targets, **kwargs)
 
     for i in range(size):
         # Get the loss for each model
@@ -153,6 +156,6 @@ def weighted_ensemble_caruana(
             break
 
     # Calculate weights
-    weighted_ensemble = {id: count / size for id, count in Counter(ensemble)}
+    weighted_ensemble = {id: count / size for id, count in Counter(ensemble).items()}
 
     return weighted_ensemble, trajectory

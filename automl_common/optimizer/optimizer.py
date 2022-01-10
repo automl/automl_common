@@ -6,7 +6,7 @@ from pathlib import Path
 from automl_common.backend import Backend
 from automl_common.backend.contexts import OSContext
 
-Handler = Callable[..., ...]
+Handler = Callable[..., Any]
 
 
 class Optimizer(ABC):

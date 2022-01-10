@@ -4,10 +4,24 @@
 [tool.pytest.ini_options]
 testpaths = ["test"]
 minversion = "3.7"
+addopts = "--cov=automl_common"
 
 [tool.black]
 target-version = ['py37']
 line-length = 88
+
+[tool.coverage.run]
+branch = true
+context = "automl_common"
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+exclude_lines = [
+    "pragma: no cover",
+    '\.\.\.',
+    "raise NotImplementedError"
+]
 
 [tool.isort]
 py_version = "37"
@@ -15,7 +29,7 @@ profile = "black" # Play nicely with black
 src_paths = ["src", "test"]
 known_types = ["typing", "abc"] # We put these in their own section "types"
 known_first_party = ["automl_common"]
-sections = ["TYPES", "FUTURE", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"] # section ordering
+sections = ["FUTURE", "TYPES", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"] # section ordering
 multi_line_output = 3 # https://pycqa.github.io/isort/docs/configuration/multi_line_output_modes.html
 
 [tool.pydocstyle]
@@ -55,3 +69,7 @@ disallow_incomplete_defs = true # ...all types
 [[tool.mypy.overrides]]
 module = ["setuptools.*", "smac.*", "dask.*", "ConfigSpace.*"]
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["test.*"]
+disallow_untyped_decorators = false # decorators in testing are not all annotated
