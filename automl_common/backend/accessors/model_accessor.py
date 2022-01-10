@@ -1,10 +1,15 @@
-from typing import Generic, TypeVar
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Generic, TypeVar
 
 import pickle
 from pathlib import Path
 
-from automl_common.backend import Backend, PathLike
-from automl_common.backend.stores import PredictionsStore
+from automl_common.backend.stores.predictions_store import PredictionsStore
+
+if TYPE_CHECKING:
+    from automl_common.backend.backend import Backend, PathLike
+
 
 Model = TypeVar("Model")
 

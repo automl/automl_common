@@ -3,7 +3,7 @@ from typing import Iterator
 import re
 from pathlib import Path
 
-from automl_common.backend.stores import NumpyStore
+from automl_common.backend.stores.numpy_store import NumpyStore
 
 
 class PredictionsStore(NumpyStore):

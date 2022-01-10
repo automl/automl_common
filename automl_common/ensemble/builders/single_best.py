@@ -2,7 +2,7 @@ from typing import Any, Mapping, Optional
 
 import numpy as np
 
-from automl_common.metric import MetricProtocol
+from automl_common.metrics import MetricProtocol
 
 
 def single_best(

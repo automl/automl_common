@@ -1,7 +1,12 @@
-from typing import Sequence, TypeVar
+from __future__ import annotations
 
-from automl_common.backend import Backend
-from automl_common.ensemble import WeightedEnsemble
+from typing import TYPE_CHECKING, Sequence, TypeVar
+
+from automl_common.ensemble.weighted_ensemble import WeightedEnsemble
+
+if TYPE_CHECKING:
+    from automl_common.backend import Backend
+
 
 Model = TypeVar("Model")
 

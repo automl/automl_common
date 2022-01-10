@@ -1,38 +1,42 @@
 """Tests the Contexts
 
-If adding more contexts, add a fixture such as `local_context` and then
-add it's string to `_contexts_to_tests`
-
 *   The `tmpfile` and `tmpdir` fixture parameter will need to be updated
     once considering non-local context
 """
-from typing import List, Union
+from typing import Union
 
-import os
 from pathlib import Path
 
 import pytest
-from pytest_lazyfixture import lazy_fixture  # Allows fixture in parametrization
+from pytest_cases import parametrize
 
-from automl_common.backend import Context, LocalContext
-
-
-def test_local_context_construction():
-    """Should construct with no issues"""
-    LocalContext()
+from automl_common.backend.contexts import OSContext
 
 
-@pytest.mark.parametrize("mode, content", [("", "hello"), ("b", b"hello")])
-def test_context_open(
-    tmpfile: Path, context: Context, mode: str, content: Union[str, bytes]
-):
+def test_construction() -> None:
+    """
+
+    Expects
+    -------
+    * Constructs without issue
+    """
+    OSContext()
+
+
+@parametrize("mode, content", [("", "hello"), ("b", b"hello")])
+def test_open(
+    tmpfile: Path,
+    os_context: OSContext,
+    mode: str,
+    content: Union[str, bytes],
+) -> None:
     """
     Parameters
     ----------
     tmpfile: Path
         Path to a tmpfile that can be used
 
-    context: Context
+    os_context: OSContext
         A context object to test
 
     mode: "" | "b"
@@ -46,23 +50,23 @@ def test_context_open(
     * Should be able to write a file in both modes
     * Should be able to read a file in both modes
     """
-    with context.open(tmpfile, "w" + mode) as f:
+    with os_context.open(tmpfile, "w" + mode) as f:
         f.write(content)
 
     assert tmpfile.exists()
 
-    with context.open(tmpfile, "r" + mode) as f:
+    with os_context.open(tmpfile, "r" + mode) as f:
         assert f.read() == content
 
 
-def test_context_mkdir(tmpdir: Path, context: Context):
+def test_context_mkdir(tmpdir: Path, os_context: OSContext) -> None:
     """
     Parameters
     ----------
     tmpdir: Path
         A path to a tmpdir
 
-    context: Context
+    os_context: OSContext
         A context object to test
 
     Expects
@@ -70,19 +74,19 @@ def test_context_mkdir(tmpdir: Path, context: Context):
     * Should create a directory if it doesn't exist
     """
     folder = tmpdir / "folder"
-    context.mkdir(folder)
+    os_context.mkdir(folder)
 
     assert folder.exists()
 
 
-def test_context_mkdir_fails_if_exists(tmpdir: Path, context: Context):
+def test_context_mkdir_fails_if_exists(tmpdir: Path, os_context: OSContext) -> None:
     """
     Parameters
     ----------
     tmpdir: Path
         A path to a tmpdir
 
-    local_context: LocalContext
+    os_context: OSContext
         A local_context object to check
 
     Expects
@@ -90,20 +94,20 @@ def test_context_mkdir_fails_if_exists(tmpdir: Path, context: Context):
     * Should fail creating a dir if it already exists
     """
     folder = tmpdir / "folder"
-    context.mkdir(folder)
+    os_context.mkdir(folder)
 
     with pytest.raises(FileExistsError):
-        context.mkdir(folder)
+        os_context.mkdir(folder)
 
 
-def test_context_makedirs_makes_dirs(tmpdir: Path, context: Context):
+def test_context_makedirs_makes_dirs(tmpdir: Path, os_context: OSContext) -> None:
     """
     Parameters
     ----------
     tmpdir: Path
         A path to a tmpdir
 
-    context: Context
+    os_context: OSContext
         A local_context object to check
 
     Expects
@@ -111,19 +115,19 @@ def test_context_makedirs_makes_dirs(tmpdir: Path, context: Context):
     * Should create all dirs if the don't exist
     """
     path = tmpdir / "folder1" / "folder2"
-    context.makedirs(path)
+    os_context.makedirs(path)
 
-    assert context.exists(path)
+    assert path.exists()
 
 
-def test_context_makedirs_fails_if_exists(tmpdir: Path, context: Context):
+def test_context_makedirs_fails_if_exists(tmpdir: Path, os_context: OSContext) -> None:
     """
     Parameters
     ----------
     tmpdir: Path
         A path to a tmpdir
 
-    context: Context
+    os_context: OSContext
         A context object to check
 
     Expects
@@ -131,20 +135,23 @@ def test_context_makedirs_fails_if_exists(tmpdir: Path, context: Context):
     * Should not create dir if it exists
     """
     path = tmpdir / "folder1" / "folder2"
-    context.makedirs(path, exist_ok=False)
+    os_context.makedirs(path, exist_ok=False)
 
     with pytest.raises(FileExistsError):
-        context.makedirs(path)
+        os_context.makedirs(path)
 
 
-def test_context_makedirs_if_partial_path_exists(tmpdir: Path, context: Context):
+def test_context_makedirs_if_partial_path_exists(
+    tmpdir: Path,
+    os_context: OSContext,
+) -> None:
     """
     Parameters
     ----------
     tmpdir: Path
         A path to a tmpdir
 
-    context: Context
+    os_context: OSContext
         A context object to check
 
     Expects
@@ -154,20 +161,20 @@ def test_context_makedirs_if_partial_path_exists(tmpdir: Path, context: Context)
     partial_path = tmpdir / "folder1"
     path = partial_path / "folder2"
 
-    context.makedirs(partial_path)
-    context.makedirs(path, exist_ok=True)
+    os_context.makedirs(partial_path)
+    os_context.makedirs(path, exist_ok=True)
 
     assert path.exists()
 
 
-def test_context_exists(tmpfile: Path, context: Context):
+def test_context_exists(tmpfile: Path, os_context: OSContext) -> None:
     """
     Parameters
     ----------
     tmpfile: Path
         A path to a tmpdir
 
-    context: LocalContext
+    os_context: OSContext
         A context object to check
 
     Expects
@@ -175,46 +182,46 @@ def test_context_exists(tmpfile: Path, context: Context):
     * Should give false for a file which does not exist
     * Should give true for a file that exists
     """
-    assert not tmpfile.exists() and not context.exists(tmpfile)
+    assert not tmpfile.exists() and not os_context.exists(tmpfile)
 
-    with context.open(tmpfile, "w") as f:
+    with os_context.open(tmpfile, "w") as f:
         f.write("Hello")
 
-    assert tmpfile.exists() and context.exists(tmpfile)
+    assert tmpfile.exists() and os_context.exists(tmpfile)
 
 
-def test_context_rm(tmpfile: Path, context: Context):
+def test_context_rm(tmpfile: Path, os_context: OSContext) -> None:
     """
     Parameters
     ----------
     tmpfile: Path
         Path to a temporary file
 
-    context: Context
+    os_context: OSContext
         The context object to check
 
     Expects
     -------
     * Should remove an existing file
     """
-    with context.open(tmpfile, "w") as f:
+    with os_context.open(tmpfile, "w") as f:
         f.write("hello")
 
     assert tmpfile.exists()
 
-    context.rm(tmpfile)
+    os_context.rm(tmpfile)
 
     assert not tmpfile.exists()
 
 
-def test_context_rm_fails_if_not_exist(tmpfile: Path, context: Context):
+def test_context_rm_fails_if_not_exist(tmpfile: Path, os_context: OSContext) -> None:
     """
     Parameters
     ----------
     tmpfile: Path
         Path to a temporary file
 
-    context: Context
+    os_context: OSContext
         The context object to check
 
     Expects
@@ -224,17 +231,17 @@ def test_context_rm_fails_if_not_exist(tmpfile: Path, context: Context):
     assert not tmpfile.exists()
 
     with pytest.raises(FileNotFoundError):
-        context.rm(tmpfile)
+        os_context.rm(tmpfile)
 
 
-def test_context_rm_fails_with_dir(tmpdir: Path, context: Context):
+def test_context_rm_fails_with_dir(tmpdir: Path, os_context: OSContext) -> None:
     """
     Parameters
     ----------
     tmpdir: Path
         Path to a temporary directory
 
-    context: Context
+    os_context: OSContext
         The context object to check
 
     Expects
@@ -244,17 +251,17 @@ def test_context_rm_fails_with_dir(tmpdir: Path, context: Context):
     assert tmpdir.exists()
 
     with pytest.raises(IsADirectoryError):
-        context.rm(tmpdir)
+        os_context.rm(tmpdir)
 
 
-def test_context_rmdir(tmpdir: Path, context: Context):
+def test_context_rmdir(tmpdir: Path, os_context: OSContext) -> None:
     """
     Parameters
     ----------
     tmpdir: Path
         Path to a temporary directory
 
-    context: Context
+    os_context: OSContext
         The context object to check
 
     Expects
@@ -263,22 +270,22 @@ def test_context_rmdir(tmpdir: Path, context: Context):
     """
     folder = tmpdir / "folder"
 
-    context.mkdir(folder)
+    os_context.mkdir(folder)
     assert folder.exists()
 
-    context.rmdir(folder)
+    os_context.rmdir(folder)
 
     assert not folder.exists()
 
 
-def test_context_rmdir_fail_if_not_exist(tmpdir: Path, context: Context):
+def test_context_rmdir_fail_if_not_exist(tmpdir: Path, os_context: OSContext) -> None:
     """
     Parameters
     ----------
     tmpdir: Path
         Path to a temporary file
 
-    context: Context
+    os_context: OSContext
         The context object to check
 
     Expects
@@ -289,60 +296,37 @@ def test_context_rmdir_fail_if_not_exist(tmpdir: Path, context: Context):
     assert not folder.exists()
 
     with pytest.raises(FileNotFoundError):
-        context.rmdir(folder)
+        os_context.rmdir(folder)
 
 
-def test_context_rmdir_not_remove_file(tmpfile: Path, context: Context):
+def test_context_rmdir_not_remove_file(tmpfile: Path, os_context: OSContext) -> None:
     """
     Parameters
     ----------
     tmpfile: Path
         Path to a temporary file
 
-    context: Context
+    os_context: OSContext
         The context object to check
 
     Expects
     -------
     * Should not delete a file that exists
     """
-    with context.open(tmpfile, "w") as f:
+    with os_context.open(tmpfile, "w") as f:
         f.write("hello")
 
     assert tmpfile.exists()
 
     with pytest.raises(NotADirectoryError):
-        context.rmdir(tmpfile)
+        os_context.rmdir(tmpfile)
 
 
-def test_context_rmdir_not_remove_file(tmpfile: Path, context: Context):
+def test_tmpdir_creates_tmpdir(os_context: OSContext) -> None:
     """
     Parameters
     ----------
-    tmpfile: Path
-        Path to a temporary file
-
-    context: Context
-        The context object to check
-
-    Expects
-    -------
-    * Should not delete a file that exists
-    """
-    with context.open(tmpfile, "w") as f:
-        f.write("hello")
-
-    assert tmpfile.exists()
-
-    with pytest.raises(NotADirectoryError):
-        context.rmdir(tmpfile)
-
-
-def test_tmpdir_creates_tmpdir(context: Context):
-    """
-    Parameters
-    ----------
-    context: Context
+    os_context: OSContext
         The context object to check
 
     Expects
@@ -350,19 +334,19 @@ def test_tmpdir_creates_tmpdir(context: Context):
     * Should create a tmp directory in the context and delete it after
     """
     tmp_obj = None
-    with context.tmpdir() as tmp:
+    with os_context.tmpdir() as tmp:
         tmp_obj = tmp  # Store a reference to the path
-        assert context.exists(tmp)
+        assert tmp.exists()
 
-    assert not context.exists(tmp)
+    assert not tmp_obj.exists()
 
 
 @pytest.mark.parametrize("prefix", ["pre", "__", "test."])
-def test_tmpdir_creates_tmpdir_with_prefix(context: Context, prefix: str):
+def test_tmpdir_creates_tmpdir_with_prefix(os_context: OSContext, prefix: str) -> None:
     """
     Parameters
     ----------
-    context: Context
+    os_context: OSContext
         The context object to check
 
     prefix: str
@@ -372,16 +356,16 @@ def test_tmpdir_creates_tmpdir_with_prefix(context: Context, prefix: str):
     -------
     * Should create a tmp directory and it should have the prefix in it
     """
-    with context.tmpdir(prefix=prefix) as tmp:
-        assert context.exists(tmp)
-        assert prefix in tmp
+    with os_context.tmpdir(prefix=prefix) as tmp:
+        assert tmp.exists()
+        assert tmp.name.startswith(prefix)
 
 
-def test_tmpdir_retains(context: Context):
+def test_tmpdir_retains(os_context: OSContext) -> None:
     """
     Parameters
     ----------
-    context: Context
+    os_context: OSContext
         The context object to check
 
     Expects
@@ -389,52 +373,24 @@ def test_tmpdir_retains(context: Context):
     * Should not delete the tmpdir after it context manager ends
     """
     tmp_object = None
-    with context.tmpdir(retain=True) as tmp:
+    with os_context.tmpdir(retain=True) as tmp:
         tmp_object = tmp  # Hold reference
-        assert context.exists(tmp)
+        assert tmp.exists()
 
-    assert context.exists(tmp_object)
-
-
-@pytest.mark.parametrize(
-    "segments", [("one",), ("one", "two"), ("one", "two", "three")]
-)
-def test_join(context: Context, segments: List[str]):
-    """
-    Parameters
-    ----------
-    context: Context
-        The context to test
-
-    segments: Tuple[str]
-        A collection of strings
-
-    Expects
-    -------
-    * Join should work on arbitrary length of parameters and be in the right order
-
-    Can't make any assumptions on what joins two segments of a path
-    """
-    print(*segments)
-    path = context.join(*segments)
-    assert isinstance(path, str)
-
-    for segment in segments:
-        assert segment in path
-
-    if len(segments) > 1:
-        for i in range(len(segments) - 1):
-            assert path.find(segment[i]) < path.find(segment[i + 1])
+    assert os_context.exists(tmp_object)
 
 
-def test_listdir_gives_lists_files_and_folders(tmpdir: Path, context: Context):
+def test_listdir_gives_lists_files_and_folders(
+    tmpdir: Path,
+    os_context: OSContext,
+) -> None:
     """
     Parameters
     ----------
     tmpdir: Path
         A tmpdir to use
 
-    context: Context
+    os_context: OSContext
         The context object to test
 
     Expects
@@ -445,14 +401,33 @@ def test_listdir_gives_lists_files_and_folders(tmpdir: Path, context: Context):
     folders = ["a", "b", "c"]
 
     for file in files:
-        path = context.join(tmpdir, file)
-        with context.open(path, "w") as f:
+        path = tmpdir / file
+        with os_context.open(path, "w") as f:
             f.write("hello")
 
     for folder in folders:
-        path = context.join(tmpdir, folder)
-        context.mkdir(path)
+        path = tmpdir / folder
+        os_context.mkdir(path)
 
-    listed = context.listdir(tmpdir)
+    listed = os_context.listdir(tmpdir)
     assert all(file in listed for file in files)
     assert all(folder in listed for folder in folders)
+
+
+@parametrize("strpath", ["/home/user/somewhere", "nothere/there/out.txt"])
+def test_as_path(strpath: str, os_context: OSContext) -> None:
+    """
+    Parameters
+    ----------
+    strpath: str
+        The path to convert
+
+    os_context: OSContext
+        The context to use
+
+    Expects
+    -------
+    * Should return a path object given a str path
+    """
+    path = os_context.as_path(strpath)
+    assert isinstance(path, Path)

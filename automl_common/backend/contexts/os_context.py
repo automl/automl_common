@@ -6,7 +6,7 @@ import tempfile
 from contextlib import contextmanager
 from pathlib import Path
 
-from automl_common.backend.contexts import Context, PathLike
+from automl_common.backend.contexts.context import Context, PathLike
 
 
 class OSContext(Context):

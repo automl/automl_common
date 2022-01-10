@@ -1,6 +1,6 @@
 import numpy as np
 
-from automl_common.backend.stores import Store
+from automl_common.backend.stores.store import Store
 
 
 class NumpyStore(Store[np.ndarray]):

@@ -3,7 +3,7 @@ from typing import Iterator, Mapping, MutableMapping, TypeVar
 
 from pathlib import Path
 
-from automl_common.backend.contexts import Context, PathLike
+from automl_common.backend.contexts.context import Context, PathLike
 
 T = TypeVar("T")
 

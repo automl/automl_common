@@ -2,7 +2,7 @@ from typing import TypeVar
 
 import pickle
 
-from automl_common.backend.stores import Store
+from automl_common.backend.stores.store import Store
 
 T = TypeVar("T")
 

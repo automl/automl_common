@@ -1,9 +1,15 @@
-from typing import Iterator, TypeVar
+from __future__ import annotations
 
-from automl_common.backend import Backend, PathLike
+from typing import TYPE_CHECKING, Iterator, TypeVar
+
 from automl_common.backend.accessors import ModelAccessor
-from automl_common.backend.stores import StoreView
+from automl_common.backend.contexts import PathLike
+from automl_common.backend.stores.store import StoreView
 from automl_common.model import Model
+
+if TYPE_CHECKING:
+    from automl_common.backend.backend import Backend
+
 
 ModelT = TypeVar("ModelT", bound=Model)
 

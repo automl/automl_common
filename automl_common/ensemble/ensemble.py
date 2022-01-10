@@ -1,13 +1,18 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
-from typing import Any, Iterator, List, Mapping, TypeVar
+from typing import Any, Iterator, List, Mapping, TypeVar, TYPE_CHECKING
 
 import copy
 
 import numpy as np
 
-from automl_common.backend import Backend
-from automl_common.backend.accessors import ModelAccessor
 from automl_common.model import Model
+from automl_common.backend.accessors.model_accessor import ModelAccessor
+
+if TYPE_CHECKING:
+    from automl_common.backend import Backend
+
 
 ModelT = TypeVar("ModelT", bound=Model)
 
