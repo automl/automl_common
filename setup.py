@@ -34,6 +34,7 @@ setuptools.setup(
         "dev": [
             "pytest",
             "pytest-cov",
+            "pytest-cases"
             "pydocstyle",
             "flake8",
             "black",
