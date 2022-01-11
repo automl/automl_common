@@ -1,14 +1,13 @@
 from typing import Any, Type, Union
 
 from pathlib import Path
+from test.test_backend.test_stores.fixtures import MockStore
 
 import pytest
-from pytest_cases import fixture_ref, parametrize
+from pytest_cases import parametrize
 
 from automl_common.backend.contexts import Context
 from automl_common.backend.stores import PredictionsStore, Store, StoreView
-
-from test.test_backend.test_stores.fixtures import MockStore, MockStoreView
 
 
 @parametrize("cls", [MockStore, PredictionsStore])  # noqa
