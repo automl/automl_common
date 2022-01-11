@@ -5,10 +5,11 @@ from typing import TYPE_CHECKING, Generic, TypeVar
 import pickle
 from pathlib import Path
 
+from automl_common.backend.contexts import Context
 from automl_common.backend.stores.predictions_store import PredictionsStore
 
 if TYPE_CHECKING:
-    from automl_common.backend.backend import Backend, PathLike
+    from automl_common.backend.backend import PathLike
 
 
 Model = TypeVar("Model")
@@ -16,7 +17,8 @@ Model = TypeVar("Model")
 
 # TODO assuming a picklable Model
 #   Trying to parametrize the saveing and loading functions would
-#   lead to any framework using automl_common to not be picklalbe.
+#   lead to any framework using automl_common to not be picklalbe
+#   due to lambda's, unknown functions etc..
 class ModelAccessor(Generic[Model]):
     """Access state of a Model with a directory on a filesystem
 
@@ -32,7 +34,7 @@ class ModelAccessor(Generic[Model]):
     def __init__(
         self,
         dir: PathLike,
-        backend: Backend,
+        context: Context,
     ):
         """
         Parameters
@@ -43,8 +45,7 @@ class ModelAccessor(Generic[Model]):
         context: Context
             A context object to iteract with a filesystem
         """
-        self.backend = backend
-        self.context = backend.context
+        self.context = context
 
         self.dir: Path
         if isinstance(dir, Path):

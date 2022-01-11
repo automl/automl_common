@@ -43,13 +43,7 @@ class StoreView(ABC, Mapping[str, T]):
         return self.load(key)
 
     def __contains__(self, key: object) -> bool:
-        # Note why is it typed as object
-        # https://github.com/python/mypy/issues/5633#issuecomment-422434923
-        if isinstance(key, str):
-            path = self.path(key)
-            return self.context.exists(path)
-        else:
-            return False
+        return isinstance(key, str) and self.path(key).exists()
 
     def __len__(self) -> int:
         return len(list(self.__iter__()))
@@ -107,7 +101,10 @@ class Store(StoreView[T], MutableMapping[str, T]):
 
     def __delitem__(self, key: str) -> None:
         path = self.path(key)
-        self.context.rm(path)
+        if path.is_dir():
+            self.context.rmdir(path)
+        else:
+            self.context.rm(path)
 
     @abstractmethod
     def save(self, obj: T, key: str) -> None:

@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Iterator, TypeVar
+from typing import TYPE_CHECKING, Collection, Iterator, TypeVar
 
-from automl_common.backend.accessors import ModelAccessor
+from automl_common.backend.accessors.model_accessor import ModelAccessor
 from automl_common.backend.contexts import PathLike
 from automl_common.backend.stores.store import StoreView
 from automl_common.model import Model
@@ -30,11 +30,22 @@ class ModelStore(StoreView[ModelAccessor[ModelT]]):
         / ...
     """
 
-    def __init__(self, dir: PathLike, backend: Backend):
-        super().__init__(dir=dir, context=backend.context)
+    def __init__(
+        self,
+        dir: PathLike,
+        backend: Backend[ModelT],
+    ):
+        """
+        Parameters
+        ----------
+        dir: PathLike
+            The directory to check in
 
+        backend: Backend[ModelT]
+            The backend to use
+        """
+        super().__init__(dir=dir, context=backend.context)
         self.backend = backend
-        self.load
 
     def __iter__(self) -> Iterator[str]:
         return iter(self.context.listdir(self.dir))
@@ -56,4 +67,52 @@ class ModelStore(StoreView[ModelAccessor[ModelT]]):
             A wrapper around a model in a directory
         """
         path = self.path(key)
-        return ModelAccessor(dir=path, backend=self.backend)
+        return ModelAccessor[ModelT](dir=path, context=self.context)
+
+
+class FilteredModelStore(ModelStore[ModelT]):
+    """A ModelStore additionally filtered out by identifiers"""
+
+    def __init__(self, dir: PathLike, backend: Backend[ModelT], ids: Collection[str]):
+        """
+        Parameters
+        ----------
+        dir: PathLike
+            The directory to check in
+
+        backend: Backend
+            The backend to use
+        """
+        super().__init__(dir=dir, backend=backend)
+        self.ids = ids
+
+    def __iter__(self) -> Iterator[str]:
+        return iter(self.ids)
+
+    def __contains__(self, key: object) -> bool:
+        return isinstance(key, str) and key in self.ids
+
+    def __len__(self) -> int:
+        return len(self.ids)
+
+    def load(self, key: str) -> ModelAccessor[ModelT]:
+        """Gets the ModelAccessor for the model associated with a model
+
+        Doesn't actually do any loading but it's used with __getitem__
+        in StoreView.
+
+        Parameters
+        ----------
+        key: str
+            The model identifier
+
+        Returns
+        -------
+        ModelAccessor[Model]
+            A wrapper around a model in a directory
+        """
+        if key not in self.ids:
+            raise ValueError(f"{key} not in identifiers {self.ids}")
+
+        path = self.path(key)
+        return ModelAccessor[ModelT](dir=path, context=self.context)

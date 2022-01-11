@@ -79,11 +79,18 @@ class Backend(Generic[ModelT]):
 
         self.name = name
 
-        models_dir = self.path / "models"
-        self._model_store = ModelStore[ModelT](dir=models_dir, backend=self)
+        self._model_store = ModelStore[ModelT](dir=self.model_dir, backend=self)
+        self._ensembles_store = EnsembleStore(dir=self.ensemble_dir, backend=self)
 
-        ensembles_dir = self.path / "ensembles"
-        self._ensembles_store = EnsembleStore(dir=ensembles_dir, backend=self)
+    @property
+    def model_dir(self) -> Path:
+        """Path to the models dir"""
+        return self.path / "models"
+
+    @property
+    def ensemble_dir(self) -> Path:
+        """Path to the ensembles dir"""
+        return self.path / "ensembles"
 
     @property
     def models(self) -> ModelStore[ModelT]:

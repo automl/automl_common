@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Iterator
 
-from automl_common.backend.accessors import EnsembleAccessor
+from automl_common.backend.accessors.ensemble_accessor import EnsembleAccessor
 from automl_common.backend.contexts import PathLike
 from automl_common.backend.stores.store import StoreView
 

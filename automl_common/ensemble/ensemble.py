@@ -1,9 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, Iterator, List, Mapping, TypeVar
-
-import copy
+from typing import TYPE_CHECKING, Iterator, List, Mapping, TypeVar
 
 import numpy as np
 
@@ -55,15 +53,7 @@ class Ensemble(ABC, Mapping[str, ModelAccessor[ModelT]]):
         return self.backend.models[key]
 
     def __contains__(self, key: object) -> bool:
-        if not isinstance(key, str):
-            return False
-
-        return key in self.identifiers
+        return isinstance(key, str) and key in self.identifiers
 
     def __iter__(self) -> Iterator[str]:
         return iter(self.identifiers)
-
-    def __getstate__(self) -> Any:
-        state = copy.deepcopy(self.__dict__)
-        del state["backend"]
-        return state
