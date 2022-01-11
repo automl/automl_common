@@ -9,6 +9,8 @@ from automl_common.backend.stores.numpy_store import NumpyStore
 class PredictionsStore(NumpyStore):
     """A store for numpy based predictions"""
 
+    pattern = r"predictions_(.*)\.npy"
+
     def path(self, key: str) -> Path:
         """Get the path for predictions with the given key
 
@@ -26,4 +28,5 @@ class PredictionsStore(NumpyStore):
 
     def __iter__(self) -> Iterator[str]:
         files = self.context.listdir(self.dir)
-        return iter(file for file in files if re.match(r"predictions_.*\.npy", file))
+        matches = iter(re.match(self.pattern, file) for file in files)
+        return iter(match.group(1) for match in matches if match is not None)

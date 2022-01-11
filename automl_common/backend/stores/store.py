@@ -29,9 +29,7 @@ class StoreView(ABC, Mapping[str, T]):
         context: Context
             A context object to iteract with a filesystem
         """
-        self.dir
         self.context = context
-        self.dir: Path
 
         if isinstance(dir, Path):
             self.dir = dir

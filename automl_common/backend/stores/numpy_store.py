@@ -35,5 +35,8 @@ class NumpyStore(Store[np.ndarray]):
             The loaded array
         """
         path = self.path(key)
+        if not path.exists():
+            raise KeyError(key)
+
         with self.context.open(path, "rb") as f:
             return np.load(f)
