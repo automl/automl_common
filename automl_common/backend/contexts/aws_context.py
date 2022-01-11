@@ -6,7 +6,7 @@ from automl_common.backend.contexts.context import Context
 class AWSPath(Path):
     """A special Path object for AWS if needed"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         raise NotImplementedError()
 
 

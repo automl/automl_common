@@ -41,9 +41,9 @@ def test_id(request: FixtureRequest) -> str:
 
 
 @fixture(scope="function")
-def tmpfile(request: FixtureRequest, tmpdir: Path) -> Path:
-    """Returns the path to a tmpfile in a tmpdir
+def tmpfile(request: FixtureRequest, tmp_path: Path) -> Path:
+    """Returns the path to a tmpfile in a tmp_path
 
     /tmp/.../.../test_func_name_parametrization/test_func_name_parametrization
     """
-    return tmpdir / test_id(request)
+    return tmp_path / test_id(request)
