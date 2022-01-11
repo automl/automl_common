@@ -12,6 +12,7 @@ from automl_common.backend.stores import (
     EnsembleStore,
     FilteredModelStore,
     ModelStore,
+    NumpyStore,
     PickleStore,
     PredictionsStore,
     Store,
@@ -164,6 +165,32 @@ def predictions_store(tmp_path: Path, context: Context) -> PredictionsStore:
 
 
 @fixture(scope="function")
+def numpy_store(tmp_path: Path, context: Context) -> NumpyStore:
+    """
+    Parameters
+    ----------
+    tmp_path: Path
+        The tmp_path to use
+
+    context: Context
+        The context to use
+
+    Returns
+    -------
+    PredictionsStore
+        A predictions store for testing comes with 3 predictions saved
+        ["train", "test", "val"]
+    """
+    mock = NumpyStore(dir=tmp_path, context=context)
+    for key in ["a", "b", "c"]:
+        path = mock.path(key)
+        with path.open("wb") as f:
+            np.save(f, np.asarray([1, 1, 1]))
+
+    return mock
+
+
+@fixture(scope="function")
 def model_store_view(
     backend: Backend,
     models: List[Model],
@@ -278,6 +305,7 @@ def store(impl: Store) -> Store:
         store,
         mock_store_view,
         model_store_view,
+        numpy_store,
         filtered_model_store_view,
         ensemble_store_view,
     ],

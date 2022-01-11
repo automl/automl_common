@@ -1,3 +1,8 @@
+from typing import Iterator
+
+import re
+from pathlib import Path
+
 import numpy as np
 
 from automl_common.backend.stores.store import Store
@@ -5,6 +10,23 @@ from automl_common.backend.stores.store import Store
 
 class NumpyStore(Store[np.ndarray]):
     """A collection of numpy objects"""
+
+    pattern = r"(.*).npy"
+
+    def path(self, key: str) -> Path:
+        """Get path for the numpy object
+
+        Parameters
+        ----------
+        key: str
+            The object saved under str
+
+        Returns
+        -------
+        Path
+            The path to the numpy array
+        """
+        return self.dir / f"{key}.npy"
 
     def save(self, array: np.ndarray, key: str) -> None:
         """Save a numpy array as key
@@ -40,3 +62,8 @@ class NumpyStore(Store[np.ndarray]):
 
         with self.context.open(path, "rb") as f:
             return np.load(f)
+
+    def __iter__(self) -> Iterator[str]:
+        files = self.context.listdir(self.dir)
+        matches = iter(re.match(self.pattern, file) for file in files)
+        return iter(match.group(1) for match in matches if match is not None)
