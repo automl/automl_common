@@ -32,15 +32,17 @@ setuptools.setup(
     install_requires=requirements,
     extras_require={
         "dev": [
-            "pytest",
-            "pytest-cov",
-            "pytest-cases"
             "pydocstyle",
             "flake8",
             "black",
             "isort",
             "mypy",
             "pre-commit",
+        ],
+        "test": [
+            "pytest",
+            "pytest-cov",
+            "pytest-cases"
         ]
     },
     include_package_data=True,
