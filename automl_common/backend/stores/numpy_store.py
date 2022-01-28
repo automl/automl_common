@@ -39,8 +39,7 @@ class NumpyStore(Store[np.ndarray]):
         key: str
             The key to save it as
         """
-        path = self.path(key)
-        with self.context.open(path, "wb") as f:
+        with self.path(key).open("wb") as f:
             np.save(f, array)
 
     def load(self, key: str) -> np.ndarray:
@@ -56,14 +55,9 @@ class NumpyStore(Store[np.ndarray]):
         Optional[np.ndarray]
             The loaded array
         """
-        path = self.path(key)
-        if not path.exists():
-            raise KeyError(key)
-
-        with self.context.open(path, "rb") as f:
+        with self.path(key).open("rb") as f:
             return np.load(f)
 
     def __iter__(self) -> Iterator[str]:
-        files = self.context.listdir(self.dir)
-        matches = iter(re.match(self.pattern, file) for file in files)
+        matches = iter(re.match(self.pattern, file.name) for file in self.dir.iterdir())
         return iter(match.group(1) for match in matches if match is not None)

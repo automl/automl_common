@@ -1,15 +1,12 @@
-from __future__ import annotations
+from typing import List, Mapping, TypeVar
 
-from typing import TYPE_CHECKING, Dict, TypeVar, cast
+from pathlib import Path
 
 import numpy as np
 
+from automl_common.data.math import weighted_sum
 from automl_common.ensemble.ensemble import Ensemble
 from automl_common.model import Model
-
-if TYPE_CHECKING:
-    from automl_common.backend import Backend
-
 
 ModelT = TypeVar("ModelT", bound=Model)
 
@@ -19,20 +16,28 @@ class WeightedEnsemble(Ensemble[ModelT]):
 
     def __init__(
         self,
-        backend: Backend,
-        weighted_identifiers: Dict[str, float],
+        model_dir: Path,
+        weighted_identifiers: Mapping[str, float],
     ):
         """
         Parameters
         ----------
-        backend: Backend
+        model_dir: Path
             The backend object to use
 
-        weighted_identifiers: Dict[str, float]
-            A dicitonary from model identifiers to their weights
+        weighted_identifiers: Mapping[str, float]
+            A mapping from model identifiers to their weights
         """
-        super().__init__(backend=backend, identifiers=list(weighted_identifiers.keys()))
+        super().__init__(
+            model_dir=model_dir,
+            identifiers=list(weighted_identifiers.keys()),
+        )
         self.weighted_identifiers = weighted_identifiers
+
+    @property
+    def weights(self) -> List[float]:
+        """The weights of this ensemble"""
+        return list(self.weighted_identifiers.values())
 
     def weight(self, identifier: str) -> float:
         """Get the weight of a specific model
@@ -62,11 +67,5 @@ class WeightedEnsemble(Ensemble[ModelT]):
         np.ndarray
             The predictions
         """
-        weighted_prediction = sum(
-            weight * self[id].load().predict(x)
-            for id, weight in self.weighted_identifiers.items()
-            if weight > 0
-        )
-
-        # The models don't return scalers so we can be sure it's np.ndarray
-        return cast(np.ndarray, weighted_prediction)
+        predictions = iter(self.models[id].load().predict(x) for id in self.identifiers)
+        return weighted_sum(self.weights, predictions)

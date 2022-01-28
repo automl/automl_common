@@ -1,16 +1,15 @@
-from __future__ import annotations
+from typing import TypeVar
 
-from typing import TYPE_CHECKING, Iterator
+from pathlib import Path
 
 from automl_common.backend.accessors.ensemble_accessor import EnsembleAccessor
-from automl_common.backend.contexts import PathLike
 from automl_common.backend.stores.store import StoreView
+from automl_common.model import Model
 
-if TYPE_CHECKING:
-    from automl_common.backend.backend import Backend
+ModelT = TypeVar("ModelT", bound=Model)
 
 
-class EnsembleStore(StoreView[EnsembleAccessor]):
+class EnsembleStore(StoreView[EnsembleAccessor[ModelT]]):
     """A store of linking keys to EnsembleAccessor
 
     Manages a directory:
@@ -26,24 +25,27 @@ class EnsembleStore(StoreView[EnsembleAccessor]):
         / ...
     """
 
-    def __init__(self, dir: PathLike, backend: Backend):
+    def __init__(self, dir: Path, model_dir: Path):
         """
         Parameters
         ----------
-        dir: PathLike
+        dir: Path
             The path to where the ensembles are stored
 
-        backend: Backend
-            The backend to use. This is not a simple Context as the EnsembleStore
-            must be able to access Models directly with an id.
+        model_dir: Path
+            The path to where the models are stored
         """
-        super().__init__(dir, backend.context)
-        self.backend = backend
+        super().__init__(dir)
 
-    def __iter__(self) -> Iterator[str]:
-        return iter(self.context.listdir(self.dir))
+        if not model_dir.exists():
+            model_dir.mkdir()
 
-    def load(self, key: str) -> EnsembleAccessor:
+        self.model_dir = model_dir
+
+    def __getitem__(self, key: str) -> EnsembleAccessor[ModelT]:
+        return self.load(key)
+
+    def load(self, key: str) -> EnsembleAccessor[ModelT]:
         """Load the EnsembleAccessor
 
         Doesn't actually do any loading but it's used with __getitem__
@@ -60,4 +62,4 @@ class EnsembleStore(StoreView[EnsembleAccessor]):
             A backendwrapper around an Ensemble
         """
         path = self.path(key)
-        return EnsembleAccessor(dir=path, backend=self.backend)
+        return EnsembleAccessor[ModelT](dir=path, model_dir=self.model_dir)

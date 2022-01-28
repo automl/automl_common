@@ -27,7 +27,7 @@ exclude_lines = [
 [tool.isort]
 py_version = "37"
 profile = "black" # Play nicely with black
-src_paths = ["src", "test"]
+src_paths = ["automl_common", "test"]
 known_types = ["typing", "abc"] # We put these in their own section "types"
 known_test = ["test"]
 known_first_party = ["automl_common"]

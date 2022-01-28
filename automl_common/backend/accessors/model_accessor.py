@@ -1,25 +1,19 @@
-from __future__ import annotations
+from typing import TypeVar
 
-from typing import TYPE_CHECKING, Generic, TypeVar
-
-import pickle
 from pathlib import Path
 
-from automl_common.backend.contexts import Context
+from automl_common.backend.accessors.accessor import Accessor
 from automl_common.backend.stores.predictions_store import PredictionsStore
+from automl_common.model import Model
 
-if TYPE_CHECKING:
-    from automl_common.backend.backend import PathLike
-
-
-Model = TypeVar("Model")
+ModelT = TypeVar("ModelT", bound=Model)
 
 
 # TODO assuming a picklable Model
 #   Trying to parametrize the saveing and loading functions would
 #   lead to any framework using automl_common to not be picklalbe
 #   due to lambda's, unknown functions etc..
-class ModelAccessor(Generic[Model]):
+class ModelAccessor(Accessor[ModelT]):
     """Access state of a Model with a directory on a filesystem
 
     Manages a directory:
@@ -31,74 +25,22 @@ class ModelAccessor(Generic[Model]):
         / ...
     """
 
-    def __init__(
-        self,
-        dir: PathLike,
-        context: Context,
-    ):
+    def __init__(self, dir: Path):
         """
         Parameters
         ----------
-        dir: PathLike
+        dir: Path
             The directory to load and store from
-
-        context: Context
-            A context object to iteract with a filesystem
         """
-        self.context = context
-
-        self.dir: Path
-        if isinstance(dir, Path):
-            self.dir = dir
-        else:
-            self.dir = self.context.as_path(dir)
-
-        self.predictions_store = PredictionsStore(dir, self.context)
+        super().__init__(dir)
+        self.predictions_store = PredictionsStore(self.dir)
 
     @property
     def path(self) -> Path:
         """Path to the model object"""
-        return self.dir / "model"
+        return self.dir / "model.pkl"
 
     @property
     def predictions(self) -> PredictionsStore:
-        """Return the predictions store for this model
-
-        Returns
-        -------
-        PredictionsStore
-            A store of predicitons for the model encapsulated by this ModelBackend
-
-        """
+        """The predictions store for this ensemble"""
         return self.predictions_store
-
-    def exists(self) -> bool:
-        """
-        Returns
-        -------
-        bool
-            Whether a saved model exists or not
-        """
-        return self.context.exists(self.path)
-
-    def load(self) -> Model:
-        """Get the model in this model store
-
-        Returns
-        -------
-        Model
-            The loaded model
-        """
-        with self.context.open(self.path, "rb") as f:
-            return pickle.load(f)
-
-    def save(self, model: Model) -> None:
-        """Save the model
-
-        Parameters
-        ----------
-        model: Model
-            The model to save
-        """
-        with self.context.open(self.path, "wb") as f:
-            pickle.dump(model, f)

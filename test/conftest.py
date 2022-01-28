@@ -1,27 +1,65 @@
-import os
+from typing import Iterator, List, Optional
+
 import re
 from pathlib import Path
 
 from pytest import FixtureRequest
-from pytest_cases import fixture
 
 # Load in other pytest modules, in this case fixtures
-here = os.path.dirname(os.path.realpath(__file__))
+here = Path(__file__)
 
 pytest_plugins = []
 
 
-def _as_module(root: str, path: str) -> str:
-    path = os.path.join(root, path)
-    path = path.replace(here, "")
-    path = path.replace(".py", "")
-    path = path.replace(os.path.sep, ".")[1:]
-    return "test." + path
+def walk(
+    path: Path,
+    include: Optional[str] = None,
+) -> Iterator[Path]:
+    """Yeilds all files, iterating over directory"""
+    for p in path.iterdir():
+        if p.is_dir():
+            if include is None or re.match(include, p.name):
+                yield from walk(p, include)
+        else:
+            yield p.resolve()
 
 
-for root, dirs, files in os.walk(here, topdown=True):
-    dirs[:] = [d for d in dirs if d.startswith("test")]
-    pytest_plugins += [_as_module(root, f) for f in files if f.endswith("fixtures.py")]
+def is_fixture(path: Path) -> bool:
+    """Whether a path is a fixture"""
+    return path.name.endswith("fixtures.py")
+
+
+def is_factory(path: Path) -> bool:
+    """Whether a path is a factory"""
+    return path.name.endswith("factory.py")
+
+
+def as_module(path: Path) -> str:
+    """Convert a path to a module as seen from here"""
+    root = here.parent.parent
+    parts = path.relative_to(root).parts
+    return ".".join(parts).replace(".py", "")
+
+
+def fixture_modules() -> List[str]:
+    """Get all fixture modules"""
+    return [
+        as_module(path)
+        for path in walk(here.parent, include=r"test_(.*)")
+        if is_fixture(path)
+    ]
+
+
+def factory_modules() -> List[str]:
+    """Get all fixture modules"""
+    return [
+        as_module(path)
+        for path in walk(here.parent, include=r"test_(.*)")
+        if is_factory(path)
+    ]
+
+
+pytest_plugins += fixture_modules() + factory_modules()
 
 
 def test_id(request: FixtureRequest) -> str:
@@ -38,12 +76,3 @@ def test_id(request: FixtureRequest) -> str:
         .replace("[", "_")
         .replace("]", "")
     )
-
-
-@fixture(scope="function")
-def tmpfile(request: FixtureRequest, tmp_path: Path) -> Path:
-    """Returns the path to a tmpfile in a tmp_path
-
-    /tmp/.../.../test_func_name_parametrization/test_func_name_parametrization
-    """
-    return tmp_path / test_id(request)

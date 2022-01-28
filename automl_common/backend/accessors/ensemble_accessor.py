@@ -1,29 +1,19 @@
-from __future__ import annotations
+from typing import Iterator, List, Mapping, Optional, TypeVar
 
-from typing import TYPE_CHECKING, Iterator, List, Mapping, Optional, TypeVar
-
-import pickle
 from pathlib import Path
 
+from automl_common.backend.accessors.accessor import Accessor
 from automl_common.backend.accessors.model_accessor import ModelAccessor
 from automl_common.backend.stores.model_store import FilteredModelStore
 from automl_common.backend.stores.predictions_store import PredictionsStore
 from automl_common.ensemble.ensemble import Ensemble
 from automl_common.model import Model
 
-if TYPE_CHECKING:
-    from automl_common.backend import Backend, PathLike
-
-
 ModelT = TypeVar("ModelT", bound=Model)
 
 
-class EnsembleAccessor(Mapping[str, ModelAccessor[ModelT]]):
-    """The state of an Ensemble with a directory on a filesystem.
-
-    As automl_common manages ensembling in general, we can keep
-    these as picklable items and hence implement what it means
-    to load and save an ensemble.
+class EnsembleAccessor(Mapping[str, ModelAccessor[ModelT]], Accessor[Ensemble[ModelT]]):
+    """A wrapper to help with accessing an ensemble and it's models on filesystem
 
     Manages a directory:
     /<path>
@@ -32,48 +22,36 @@ class EnsembleAccessor(Mapping[str, ModelAccessor[ModelT]]):
         / predictions_val.npy
         / ensemble
         / ...
-    Also uses
     """
 
     def __init__(
         self,
-        dir: PathLike,
-        backend: Backend[ModelT],
+        dir: Path,
+        model_dir: Path,
     ):
         """
         Parameters
         ----------
-        dir: PathLike
+        dir: Path
             The directory to load and store from
-
-        context: Context
-            A context object to iteract with a filesystem
         """
-        self.context = backend.context
-        self.backend = backend
+        super().__init__(dir)
+        self.model_dir = model_dir
+        self.predictions_store = PredictionsStore(self.dir)
 
-        self.dir: Path
-        if isinstance(dir, Path):
-            self.dir = dir
-        else:
-            self.dir = self.context.as_path(dir)
-
-        self._predictions_store = PredictionsStore(dir, self.context)
+        # Cached location for ids in the ensemble
         self._ids: Optional[List[str]] = None
 
     @property
     def ids(self) -> List[str]:
         """The list of identifiers associated with this ensemble"""
         if not self._ids:
-            ensemble = self.load()
-            self._ids = list(ensemble.keys())
+            if self.exists():
+                self._ids = list(self.load().models)
+            else:
+                self._ids = []
 
         return self._ids
-
-    @property
-    def predictions(self) -> PredictionsStore:
-        """Access to dictlike view of predicitons saved for this ensemble"""
-        return self._predictions_store
 
     @property
     def models(self) -> FilteredModelStore[ModelT]:
@@ -84,52 +62,40 @@ class EnsembleAccessor(Mapping[str, ModelAccessor[ModelT]]):
         FilteredModelStore
             A model store filtered by the ids of this ensemble
         """
-        return FilteredModelStore(dir=self.dir, backend=self.backend, ids=self.ids)
+        if not self.exists():
+            raise RuntimeError(f"No ensemble saved at {self.path}")
+
+        return FilteredModelStore[ModelT](dir=self.model_dir, ids=self.ids)
 
     @property
     def path(self) -> Path:
         """Path to the ensemble object"""
-        return self.dir / "ensemble"
+        return self.dir / "ensemble.pkl"
 
-    def exists(self) -> bool:
-        """
-        Returns
-        -------
-        bool
-            Whether the ensemble exists or not
-        """
-        return self.path.exists()
-
-    def load(self) -> Ensemble:
-        """Load a stored ensemble
-
-        Returns
-        -------
-        EnsembleT
-            The loaded ensemble
-        """
-        with open(self.path, "rb") as f:
-            return pickle.load(f)
-
-    def save(self, ensemble: Ensemble) -> None:
-        """Save an ensemble
-
-        Parameters
-        ----------
-        ensemlbe: EnsembleT
-            The ensemble object to save
-        """
-        with open(self.path, "wb") as f:
-            pickle.dump(ensemble, f)
+    @property
+    def predictions(self) -> PredictionsStore:
+        """The predictions store for this ensemble"""
+        return self.predictions_store
 
     def __iter__(self) -> Iterator[str]:
         return iter(self.ids)
 
     def __contains__(self, key: object) -> bool:
-        return isinstance(key, str) and self.path.exists()
+        return isinstance(key, str) and key in self.ids
 
     def __getitem__(self, key: str) -> ModelAccessor[ModelT]:
+        if not self.exists():
+            raise KeyError(key)
+
         return self.models[key]
 
     def __len__(self) -> int:
         return len(self.ids)
+
+    def __eq__(self, other: object) -> bool:
+        return (
+            isinstance(other, EnsembleAccessor)
+            and self.dir == other.dir
+            and self.model_dir == other.model_dir
+            and self.ids == other.ids
+        )

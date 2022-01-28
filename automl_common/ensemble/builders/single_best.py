@@ -1,54 +1,84 @@
-from typing import Any, Mapping, Optional
+from typing import Any, Callable, Hashable, Iterable, Mapping, Optional, TypeVar, Union
 
 import numpy as np
 
-from automl_common.metrics import MetricProtocol
+from automl_common.util import as_random_state
+from automl_common.util.types import SupportsEqualty
+
+T = TypeVar("T", bound=SupportsEqualty)  # Metric result type
+ID = TypeVar("ID", bound=Hashable)
 
 
 def single_best(
-    model_predictions: Mapping[str, np.ndarray],
-    y: np.ndarray,
-    metric: MetricProtocol,
+    model_predictions: Mapping[ID, np.ndarray],
+    targets: np.ndarray,
+    metric: Callable[..., T],  # TODO Python 3.10, update params with PEP 612
     metric_args: Optional[Mapping[str, Any]] = None,
-) -> str:
+    best: Union[str, Callable[[Iterable[T]], T]] = "max",
+    random_state: Optional[Union[int, np.random.RandomState]] = None,
+) -> ID:
     """Get an Ensemble consisting of the single best model
 
     Parameters
     ----------
-    model_predictions: Mapping[str, np.ndarray]
-        A Mapping from model ids to their predictions
+    model_predictions: Mapping[ID, np.ndarray]
+        A Mapping from model ids that can be put in a dict to their predictions
 
-    y: np.ndarray
+    targets: np.ndarray
         The targets
 
-    metric: MetricProtocol
-        A metric to asses predictions on. Must take in the following order
-
-        pred: np.ndarray
-            The predictions created by a model
-
-        target: np.ndarray
-            The corresponding targets
-
-        **kwargs
-            Any other values to forward to the metric
-
-        returns: float
-            The score of the model
+    metric: (pred: np.ndarray, target: np.ndarray, ...) -> T
+        The metric to use in calculating which models to add to the ensemble. Must
+        return a `T` that can be compared with `==`. This could be useful for
+        using multiple metric and return a tuple such as `(x, y, z)`.
 
     metric_args: Optional[Mapping[str, Any]] = None
         Arguments to forward to the metric
 
+    best: "min" | "max" | (Iterable[T]) -> T = "max"
+        Select a model member at each stage according to the "min" or "max" of the score
+        when adding the model.
+
+        Optionally, you can pass your own `best` function that accepts the output of
+        `metric` and returns a `T` which supports equality `==`. This could be useful
+        for using multiple metric and return a tuple such as `(x, y, z)`.
+
+    random_state: Optional[Union[int, np.random.RandomState]] = None
+        The random_state to use for breaking ties
+
     Returns
     -------
-    str
-
+    ID
+        The id of the chosen model
     """
+    if len(model_predictions) == 0:
+        raise ValueError("`model_predictions` is empty")
+
+    if not callable(best) and best not in ("max", "min"):
+        raise ValueError("`best` must be either 'max' or 'min' or a Callable")
+
+    # Get the `best` function
+    if callable(best):
+        get_best_val = best
+    elif best == "max":
+        get_best_val = max  # type: ignore
+    elif best == "min":
+        get_best_val = min  # type: ignore
+    else:
+        raise NotImplementedError
+
     metric_args = {} if metric_args is None else metric_args
+
     scores = {
-        id: metric(prediction, y, **metric_args)
+        id: metric(prediction, targets, **metric_args)
         for id, prediction in model_predictions.items()
     }
 
-    best_id = max(scores, key=lambda id: scores[id])
-    return best_id
+    rand = as_random_state(random_state)
+
+    best_val = get_best_val(iter(scores.values()))
+    best_choices = [id for id, score in scores.items() if score == best_val]
+
+    chosen_idx = rand.choice(len(best_choices))
+
+    return best_choices[chosen_idx]

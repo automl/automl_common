@@ -1,35 +1,43 @@
-from __future__ import annotations
-
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Iterator, List, Mapping, TypeVar
+from typing import Collection, Generic, TypeVar
+
+from pathlib import Path
 
 import numpy as np
 
-from automl_common.backend.accessors.model_accessor import ModelAccessor
+from automl_common.backend.stores.model_store import FilteredModelStore
 from automl_common.model import Model
-
-if TYPE_CHECKING:
-    from automl_common.backend import Backend
-
 
 ModelT = TypeVar("ModelT", bound=Model)
 
 
-class Ensemble(ABC, Mapping[str, ModelAccessor[ModelT]]):
+class Ensemble(ABC, Generic[ModelT]):
     """Manages functionality around using multiple models ensembled in some fashion"""
 
-    def __init__(self, backend: Backend[ModelT], identifiers: List[str]):
+    def __init__(self, model_dir: Path, identifiers: Collection[str]):
         """
         Parameters
         ----------
+        model_dir: Path
+            Path to where the models are located
+
         identifiers: List[str]
             The identifiers of the models in the ensemble
-
-        backend: Backend
-            The context to work from
         """
-        self.backend = backend
-        self.identifiers = identifiers
+        if len(identifiers) == 0:
+            raise ValueError("Instantiated ensemble with empty `identifiers`")
+
+        self.identifiers = list(identifiers)
+        self._model_store = FilteredModelStore[ModelT](
+            dir=model_dir,
+            ids=self.identifiers,
+        )
+
+        for id in self.identifiers:
+            if not self.models[id].exists():
+                raise ValueError(
+                    f"No model for id `{id}` found at {self.models[id].path}"
+                )
 
     @abstractmethod
     def predict(self, x: np.ndarray) -> np.ndarray:
@@ -47,13 +55,7 @@ class Ensemble(ABC, Mapping[str, ModelAccessor[ModelT]]):
         """
         ...
 
-    def __getitem__(self, key: str) -> ModelAccessor[ModelT]:
-        if key not in self.identifiers:
-            raise ValueError(f"Model with {key} not in ensemble, {self.identifiers}")
-        return self.backend.models[key]
-
-    def __contains__(self, key: object) -> bool:
-        return isinstance(key, str) and key in self.identifiers
-
-    def __iter__(self) -> Iterator[str]:
-        return iter(self.identifiers)
+    @property
+    def models(self) -> FilteredModelStore[ModelT]:
+        """Store of models in this ensemble"""
+        return self._model_store

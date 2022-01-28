@@ -3,7 +3,7 @@ from typing import Iterator, Mapping, MutableMapping, TypeVar
 
 from pathlib import Path
 
-from automl_common.backend.contexts.context import Context, PathLike
+from automl_common.backend.util.path import rmtree
 
 T = TypeVar("T")
 
@@ -16,30 +16,23 @@ class StoreView(ABC, Mapping[str, T]):
 
     Implementers must satisfy:
     * `load`        - Load an object T given a key
-    * `__iter__`    - Iterate over keys in the store
     """
 
-    def __init__(self, dir: PathLike, context: Context):
+    def __init__(self, dir: Path):
         """
         Parameters
         ----------
-        dir: PathLike
+        dir: Path
             The directory to load and store from
-
-        context: Context
-            A context object to iteract with a filesystem
         """
-        self.context = context
-
-        if isinstance(dir, Path):
-            self.dir = dir
-        else:
-            self.dir = self.context.as_path(dir)
-
-        if not self.context.exists(dir):
-            self.context.mkdir(dir)
+        self.dir = dir
+        if not dir.exists():
+            dir.mkdir()
 
     def __getitem__(self, key: str) -> T:
+        if key not in self:
+            raise KeyError(f"No item with {key} found at {self.path(key)}")
+
         return self.load(key)
 
     def __contains__(self, key: object) -> bool:
@@ -63,9 +56,8 @@ class StoreView(ABC, Mapping[str, T]):
         """
         return self.dir / key
 
-    @abstractmethod
     def __iter__(self) -> Iterator[str]:
-        ...
+        return iter(path.name for path in self.dir.iterdir())
 
     @abstractmethod
     def load(self, key: str) -> T:
@@ -93,18 +85,20 @@ class Store(StoreView[T], MutableMapping[str, T]):
     An extending class must implement the
     * `save`        - Save an object to the store
     * `load`        - Load an object to the store
-    * `__iter__`    - Iterate over keys in the store
     """
 
     def __setitem__(self, key: str, obj: T) -> None:
         self.save(obj, key)
 
     def __delitem__(self, key: str) -> None:
+        if key not in self:
+            raise KeyError(f"No item with {key} found at {self.path(key)}")
+
         path = self.path(key)
         if path.is_dir():
-            self.context.rmdir(path)
+            rmtree(path)
         else:
-            self.context.rm(path)
+            path.unlink()
 
     @abstractmethod
     def save(self, obj: T, key: str) -> None:

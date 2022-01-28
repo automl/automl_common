@@ -41,7 +41,7 @@ class PickleStore(Store[T]):
             The key to save the object under
         """
         path = self.path(key)
-        with self.context.open(path, "wb") as f:
+        with path.open("wb") as f:
             pickle.dump(picklable, f, protocol=pickle.HIGHEST_PROTOCOL)
 
     def load(self, key: str) -> T:
@@ -58,10 +58,9 @@ class PickleStore(Store[T]):
             Loads the pickled object
         """
         path = self.path(key)
-        with self.context.open(path, "rb") as f:
+        with path.open("rb") as f:
             return pickle.load(f)
 
     def __iter__(self) -> Iterator[str]:
-        files = self.context.listdir(self.dir)
-        matches = iter(re.match(self.pattern, file) for file in files)
+        matches = iter(re.match(self.pattern, file.name) for file in self.dir.iterdir())
         return iter(match.group(1) for match in matches if match is not None)

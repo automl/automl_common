@@ -1,241 +1,267 @@
-from typing import Any, Type, Union
+from typing import Type
 
 from pathlib import Path
 
 import pytest
-from pytest_cases import parametrize
+from pytest_cases import filters as ft
+from pytest_cases import parametrize_with_cases
 
-from automl_common.backend.contexts import Context
-from automl_common.backend.stores import PredictionsStore, Store, StoreView
+from automl_common.backend.stores import Store, StoreView
 
-from test.test_backend.test_stores.fixtures import MockStore
+import test.test_backend.test_stores.cases as cases
 
 
-@parametrize("cls", [MockStore, PredictionsStore])  # noqa
-def test_construction(cls: Type[Store], tmp_path: Path, context: Context) -> None:
+@parametrize_with_cases("cls, dir", cases=cases, filter=ft.has_tag("params"))
+def test_construction_ensures_dir_created(cls: Type[StoreView], dir: Path) -> None:
     """
     Parameters
     ----------
-    cls: StoreView
+    cls: Type[StoreView]
         The Store to construct
 
-    tmp_path: Path
+    dir: Path
         The path to give it
 
-    context: Context
-        The context to give it
+    kwargs: Union[Dict[str, Any], None]
+        Any kwargs to forward
 
     Expects
     -------
     * To construct without issues
     """
-    cls(dir=tmp_path, context=context)
+    cls(dir)
+    assert dir.exists()
 
 
-@parametrize("cls", [MockStore, PredictionsStore])  # noqa
-def test_construction_str_path(
-    cls: Type[StoreView],
-    tmp_path: Path,
-    context: Context,
-) -> None:
+@parametrize_with_cases("store", cases=cases, filter=ft.has_tag("populated"))
+def test_get_item(store: StoreView) -> None:
     """
     Parameters
     ----------
-    cls: Store
-        The Store to construct
-
-    tmp_path: Path
-        The path to give it, converted to str
-
-    context: Context
-        The context to give it
+    store: StoreView
+        A store wit populated items
 
     Expects
     -------
-    * It's internal reference is to a Path object
+    * Should be able to retrieve each item stored
     """
-    path = str(tmp_path)
-    store = cls(dir=path, context=context)
-
-    assert isinstance(store.dir, Path)
-
-
-@parametrize("cls", [MockStore, PredictionsStore])  # noqa
-def test_construction_non_existing_path(
-    cls: Type[Store],
-    tmp_path: Path,
-    context: Context,
-) -> None:
-    """
-    Parameters
-    ----------
-    cls: Store
-        The Store to construct
-
-    tmp_path: Path
-        The path from which to make a new dir
-
-    context: Context
-        The context to give it
-
-    Expects
-    -------
-    * It's internal reference is to a Path object
-    """
-    path = tmp_path / "hello"
-    cls(dir=path, context=context)
-
-    assert path.exists()
-
-
-def test_get_item(store_view: StoreView) -> None:
-    """
-    Parameters
-    ----------
-    store_view: StoreView
-        The store_view to test
-
-    Expects
-    -------
-    * Expects keys in iteratr to be able to be retreived without issue
-    """
-    for key in store_view:
-        store_view.__getitem__(key)
-        store_view[key]
-
-
-def test_contains(store_view: StoreView) -> None:
-    """
-    Parameters
-    ----------
-    store_view: StoreView
-        The store_view to test
-
-    Expects
-    -------
-    * Expects all keys advertised through iter will be contained
-    """
-    assert all(key in store_view for key in iter(store_view))
-
-
-@parametrize("bad_key", ["invalid_key1", "invalid_key2", 42, object()])
-def test_contains_with_invalid_key(
-    store_view: StoreView,
-    bad_key: Union[str, Any],
-) -> None:
-    """
-    Parameters
-    ----------
-    store_view: StoreView
-        The store_view to test
-
-    bad_key: Union[str, Any]
-        A bad key that is not contained or non-strings
-
-    Expects
-    -------
-    * Key should not be contained, returning False
-    """
-    assert bad_key not in store_view
-
-
-def test_len(store_view: StoreView) -> None:
-    """
-    Parameters
-    ----------
-    store_view: StoreView
-        The store_view to test
-
-    Expects
-    -------
-    * The len of a store view should be the length of its iter
-    """
-    assert len(store_view) == len(list(iter(store_view)))
-
-
-def test_path(store_view: StoreView) -> None:
-    """
-    Parameters
-    ----------
-    store_view: StoreView
-        The store_view to test
-
-    Expects
-    -------
-    * The path should be a Path object
-    * It should have the key in the end of the path
-    * It should contain the dir in the base of the path
-    """
-    path = store_view.path("key")
-
-    assert isinstance(path, Path)
-    assert "key" in str(path.name)
-    assert str(store_view.dir) in str(path.parent)
-
-
-def test_iter(store_view: StoreView) -> None:
-    """
-    Parameters
-    ----------
-    store_view: StoreView
-        The store_view to test
-
-    Expects
-    -------
-    * Should be able to iterate through store_view multiple times and recieve
-        same result
-    """
-    assert list(store_view) == list(store_view.__iter__())
-
-
-def test_setitem(store: Store) -> None:
-    """
-    Parameters
-    ----------
-    store: Store
-        The store to test
-
-    Expects
-    -------
-    * Should save without issue
-    * The saved item should not be contained
-    * The saved item should show up when iterating
-    """
-    # We do this generically by loading an item, and saving it under a new key
-    key = next(iter(store))
-    obj = store[key]
-
-    del store[key]
-
-    new_key = f"{key}_{key}"
-    store[new_key] = obj
-
-    assert new_key in store
-    assert new_key in list(iter(store))
-
-
-def test_del(store: Store) -> None:
-    """
-    Parameters
-    ----------
-    store: Store
-        The store to test
-
-    Expects
-    -------
-    * Deleting an item should mean it no longer is retrievable, contained or
-        exists at the path
-    """
-    keys = list(store)
-    for key in keys:
-
+    for key in store:
         assert store[key] is not None
+
+
+@parametrize_with_cases("store", cases=cases, filter=ft.has_tag("populated"))
+def test_contains(store: StoreView) -> None:
+    """
+    Parameters
+    ----------
+    store: StoreView
+        A store wit populated items
+
+    Expects
+    -------
+    *
+    """
+    for key in store:
         assert key in store
+
+
+@parametrize_with_cases("store", cases=cases, filter=ft.has_tag("populated"))
+def test_len(store: StoreView) -> None:
+    """
+    Parameters
+    ----------
+    store: StoreView
+        A store wit populated items
+
+    Expects
+    -------
+    * The len of the store should be equal to the length of its iterator
+    """
+    assert len(store) == len(list(iter(store)))
+
+
+@parametrize_with_cases("store", cases=cases, filter=ft.has_tag("populated"))
+def test_key_in_path(store: StoreView) -> None:
+    """
+    Parameters
+    ----------
+    store: StoreView
+        A store wit populated items
+
+    Expects
+    -------
+    * The key should be part of the "name" part of the path
+    """
+    for key in list(store):
+        assert key in store.path(key).name
+
+
+@parametrize_with_cases("store", cases=cases, filter=ft.has_tag("populated"))
+def test_iter_items_have_existing_path(store: StoreView) -> None:
+    """
+    Parameters
+    ----------
+    store: StoreView
+        A store with populated items
+
+    Expects
+    -------
+    * Every key gotten from iter should have a path which exists in the store
+    """
+    for key in store:
         assert store.path(key).exists()
 
+
+@parametrize_with_cases(
+    "store",
+    cases=cases,
+    filter=ft.has_tag("populated") & ft.has_tag("store"),
+)
+def test_set_item(store: Store) -> None:
+    """
+    Parameters
+    ----------
+    store: Store
+        A store with populated items
+
+    Expects
+    -------
+    * Should be able to mutate the object and set an item
+    * The len should increase by 1 for each item entered
+    * The `key` should now be contained in the store
+    * The iterator should now contain the `key`
+    """
+    keys = list(iter(store))
+    for key in keys:
+
+        size = len(store)
+        new_key = f"{key}_{key}"
+
+        assert new_key not in store
+        assert new_key not in iter(store)
+
+        item = store[key]
+        store[new_key] = item
+
+        assert new_key in store
+        assert new_key in iter(store)
+        assert len(store) == size + 1
+
+
+@parametrize_with_cases(
+    "store",
+    cases=cases,
+    filter=ft.has_tag("populated") & ft.has_tag("store"),
+)
+def test_del_item(store: Store) -> None:
+    """
+    Parameters
+    ----------
+    store: Store
+        A store with populated items
+
+    Expects
+    -------
+    * Should be able to mutate the object and delete an item
+    * The len should decrease by 1 for each item entered
+    * The `key` should no longer be contained in the store
+    * The iterator should no longer contain the `key`
+    """
+    keys = list(iter(store))
+
+    for key in keys:
+        size = len(store)
         del store[key]
 
-        with pytest.raises((KeyError, FileNotFoundError)):
-            store[key]
         assert key not in store
-        assert not store.path(key).exists()
+        assert key not in iter(store)
+        assert len(store) == size - 1
+
+
+@parametrize_with_cases(
+    "store",
+    cases=cases,
+    filter=ft.has_tag("unpopulated") & ~ft.has_tag("unstrict_get"),
+)
+def test_get_item_bad_key(store: StoreView) -> None:
+    """
+    Parameters
+    ----------
+    store: StoreView
+        An empty store
+
+    Expects
+    -------
+    * Should get a key error
+    """
+    key = "badkey"
+    with pytest.raises(KeyError):
+        store[key]
+
+
+@parametrize_with_cases("store", cases=cases, filter=ft.has_tag("unpopulated"))
+def test_contains_bad_key(store: StoreView) -> None:
+    """
+    Parameters
+    ----------
+    store: StoreView
+        An empty store
+
+    Expects
+    -------
+    * Should not be contained
+    """
+    key = "badkey"
+    assert key not in store
+
+
+@parametrize_with_cases("store", cases=cases, filter=ft.has_tag("unpopulated"))
+def test_len_unpopulated(store: StoreView) -> None:
+    """
+    Parameters
+    ----------
+    store: StoreView
+        An empty store
+
+    Expects
+    -------
+    * Should have a length of 0
+    """
+    assert len(store) == 0
+
+
+@parametrize_with_cases("store", cases=cases, filter=ft.has_tag("unpopulated"))
+def test_iter_unpopulated(store: StoreView) -> None:
+    """
+    Parameters
+    ----------
+    store: StoreView
+        An empty store
+
+    Expects
+    -------
+    * Should not be able to iter unpopulated store
+    """
+    for key in store:
+        raise AssertionError(f"Store returned iterator with {key} in it")
+
+
+@parametrize_with_cases(
+    "store",
+    cases=cases,
+    filter=ft.has_tag("unpopulated") & ft.has_tag("store"),
+)
+def test_del_item_bad_key(store: Store) -> None:
+    """
+    Parameters
+    ----------
+    store: StoreView
+        An empty store
+
+    Expects
+    -------
+    * Should raise a key error if its no contained
+    """
+    badkey = "badkey"
+    with pytest.raises(KeyError):
+        del store[badkey]

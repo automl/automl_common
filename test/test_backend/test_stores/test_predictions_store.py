@@ -1,15 +1,27 @@
+from typing import Callable
+
+from pathlib import Path
+
+import numpy as np
 from pytest_cases import parametrize
 
 from automl_common.backend.stores import PredictionsStore
 
 
 @parametrize("bad_filename", ["predictions_not.txt", "hello", "here.npy"])
-def test_iter(predictions_store: PredictionsStore, bad_filename: str) -> None:
+def test_iter_with_other_non_predicitons_in_same_dir(
+    path: Path,
+    make_predictions_store: Callable[..., PredictionsStore],
+    bad_filename: str,
+) -> None:
     """
     Parameters
     ----------
-    predictions_store: PredictionsStore
-        The predictions store
+    path: Path
+        Path to the store
+
+    make_predictions_store: Callable
+        A factory to create a predictions store
 
     bad_filename: str
         A file that predictions store should not pick up on
@@ -18,11 +30,15 @@ def test_iter(predictions_store: PredictionsStore, bad_filename: str) -> None:
     -------
     * Should only pick up files starting with `predictions_{key}.npy`
     """
-    context = predictions_store.context
-    dummy = predictions_store.dir / bad_filename
-    with context.open(dummy, "w") as f:
-        f.write("hello")
+    preds = {key: np.array([1]) for key in ["train", "test", "val"]}
 
-    keys = list(iter(predictions_store))
+    store = make_predictions_store(path, preds)
 
-    assert set(keys) == set(["train", "test", "val"])
+    bad_path = store.dir / bad_filename
+    bad_path.write_text("hello")
+
+    keys = list(store.keys())
+
+    # Shouldn't see {bad_filename} in here
+    assert bad_filename not in keys
+    assert set(keys) == set(preds.keys())
