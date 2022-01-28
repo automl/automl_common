@@ -3,3 +3,4 @@ scipy>=0.14.1
 scikit-learn
 dask
 distributed
+typing_extensions

@@ -1,4 +1,4 @@
-from typing import Protocol
+from typing_extensions import Protocol  # TODO: update with Python 3.8
 
 import numpy as np
 
