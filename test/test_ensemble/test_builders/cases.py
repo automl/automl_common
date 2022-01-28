@@ -147,3 +147,55 @@ def case_single_n_models(
     model_predictions[expected] = targets
 
     return model_predictions, targets, metric, best, expected
+
+
+@case(tags=["weighted", "autosklearn"])
+def case_autosklearn_weighted() -> Any:
+    """The same test case as is used in autosklearn"""
+    size = 10
+    targets = np.full((100), 5.5)
+
+    model_predictions = {
+        str(i): np.full((100), i, dtype=np.float32) for i in range(1, 20)
+    }
+
+    for i, preds in enumerate(model_predictions.values(), start=1):
+        preds[i * 5 : (i + 1) * 5] = 5.5 * i
+
+    expected_weights = {
+        "1": 0.1,
+        "2": 0.2,
+        "3": 0.2,
+        "4": 0.1,
+        "5": 0.1,
+        "6": 0.1,
+        "7": 0.1,
+        "8": 0.1,
+    }
+
+    expected_trajectory = [
+        ("3", 3.462296925452813),
+        ("4", 2.679202306657711),
+        ("5", 2.274862633215465),
+        ("2", 2.065717187806695),
+        ("6", 1.787456293171947),
+        ("7", 1.698344782427879),
+        ("2", 1.559451106993111),
+        ("8", 1.531632605261457),
+        ("1", 1.380195012164924),
+        ("3", 1.355498063443839),
+    ]
+
+    best = "min"
+
+    rmse = lambda pred, targets: np.sqrt(np.average((targets - pred) ** 2, axis=0))
+
+    return (
+        model_predictions,
+        targets,
+        rmse,
+        size,
+        best,
+        expected_weights,
+        expected_trajectory,
+    )

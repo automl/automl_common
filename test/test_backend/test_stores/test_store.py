@@ -6,7 +6,7 @@ import pytest
 from pytest_cases import filters as ft
 from pytest_cases import parametrize_with_cases
 
-from automl_common.backend.stores import Store, StoreView
+from automl_common.backend.stores.store import Store, StoreView
 
 import test.test_backend.test_stores.cases as cases
 

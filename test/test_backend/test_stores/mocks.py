@@ -15,7 +15,7 @@ class MockDirStore(Store[str]):
         item_path = self.path(key) / "item"
         return item_path.read_text()
 
-    def save(self, item: str, key: str) -> str:
+    def save(self, item: str, key: str) -> None:
         """Save a str"""
         dir = self.dir / str(key)
         if not dir.exists():

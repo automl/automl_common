@@ -76,6 +76,9 @@ def weighted_ensemble_caruana(
         A dictionary mapping from id's to values genrated from adding a model at each
         time step.
     """
+    if not size > 0:
+        raise ValueError("`size` must be positive")
+
     if len(model_predictions) == 0:
         raise ValueError("`model_predictions` is empty")
 
@@ -98,8 +101,7 @@ def weighted_ensemble_caruana(
     predictions = list(model_predictions.values())
 
     dtype = predictions[0].dtype
-
-    if np.issubdtype(predictions[0].dtype, np.integer):
+    if np.issubdtype(dtype, np.integer):
         dtype = np.float64
         logger.warning(
             f"Predictions were {predictions[0].dtype}, converting to {dtype} to"
@@ -118,7 +120,7 @@ def weighted_ensemble_caruana(
     def value_if_added(_pred: np.ndarray) -> T:
         # Get the value if the model was added to the current set of predicitons
         np.add(current, _pred, out=buffer)
-        np.divide(buffer, len(ensemble) + 1, out=buffer)
+        np.multiply(buffer, (1.0 / float(len(ensemble) + 1)), out=buffer)
         return metric(buffer, targets, **kwargs)
 
     for i in range(size):
@@ -127,7 +129,6 @@ def weighted_ensemble_caruana(
 
         # Get the choices that produce the best value
         best_val = get_best_val(iter(scores.values()))
-        print(scores, best_val)
         best_choices = [id for id, score in scores.items() if score == best_val]
 
         # Select one
@@ -139,7 +140,7 @@ def weighted_ensemble_caruana(
 
         # Record it's addition and the over all trajectory of loss
         ensemble.append(chosen)
-        trajectory.append((chosen, scores[chosen]))
+        trajectory.append((chosen, best_val))
 
         # In the case of only one model, have calculated it's loss
         # and it's the only available model to add to the ensemble

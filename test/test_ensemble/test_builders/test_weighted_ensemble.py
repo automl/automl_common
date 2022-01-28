@@ -6,6 +6,7 @@ from typing import (
     Mapping,
     Optional,
     Sequence,
+    Tuple,
     TypeVar,
     Union,
 )
@@ -22,10 +23,11 @@ from automl_common.util.types import SupportsEqualty
 import test.test_ensemble.test_builders.cases as cases
 
 T = TypeVar("T", bound=SupportsEqualty)
+ID = TypeVar("ID", bound=Hashable)
 
 
 @parametrize("predictions", [{}])
-def test_predictions_empty_dict(predictions: Mapping[Hashable, np.ndarray]) -> None:
+def test_predictions_empty_dict(predictions: Mapping[ID, np.ndarray]) -> None:
     """
     Parameters
     ----------
@@ -67,12 +69,33 @@ def test_bad_best_arg(best: str) -> None:
         )
 
 
-@parametrize("metric_args", [{"a": "apple", "b": "banana"}, None, {}])
-def test_forward_metric_args(metric_args: Optional[Mapping[Hashable, Any]]) -> None:
+@parametrize("size", [-5, -1, 0])
+def test_bad_size(size: int) -> None:
     """
     Parameters
     ----------
-    metric_args: Mapping[Hashable, Any]
+    size: int
+        A bad size argument
+
+    Expects
+    -------
+    * Should not be able to fit an ensemble of size 0
+    """
+    with pytest.raises(ValueError, match="`size` must be"):
+        weighted_ensemble_caruana(
+            model_predictions={"a": np.asarray([])},
+            targets=np.asarray([]),
+            size=size,
+            metric=lambda x, y: 42,
+        )
+
+
+@parametrize("metric_args", [{"a": "apple", "b": "banana"}, None, {}])
+def test_forward_metric_args(metric_args: Optional[Mapping[str, Any]]) -> None:
+    """
+    Parameters
+    ----------
+    metric_args: Mapping[str, Any]
         Arguments to forward to a metric
 
     Expects
@@ -106,18 +129,19 @@ def test_forward_metric_args(metric_args: Optional[Mapping[Hashable, Any]]) -> N
     has_tag="weighted",
 )
 def test_weighted_ensemble_is_chosen(
-    model_predictions: Mapping[Hashable, np.ndarray],
+    model_predictions: Mapping[ID, np.ndarray],
     targets: np.ndarray,
     metric: Callable[..., T],
     size: int,
     best: Union[str, Callable[[Iterable[T]], T]],
-    expected_weights: Mapping[Hashable, float],
-    expected_trajectory: Sequence[float],
+    expected_weights: Mapping[ID, float],
+    expected_trajectory: Sequence[Tuple[ID, float]],
+    random_state: Optional[int] = None,
 ) -> None:
     """
     Parameters
     ----------
-    model_predictions: Mapping[Hashable, np.ndarray]
+    model_predictions: Mapping[ID, np.ndarray]
         The model predicitons
 
     target: np.ndarray
@@ -132,7 +156,7 @@ def test_weighted_ensemble_is_chosen(
     best: Union[str, Callable[Iterable[T]], T]
         How to select the best from the scores generated
 
-    expected_weights: Mapping[Hashable, float]
+    expected_weights: Mapping[ID, float]
         The expected id to be selected
 
     expected_trajectory: Iterable[T]
@@ -151,15 +175,13 @@ def test_weighted_ensemble_is_chosen(
         size=size,
         metric=metric,
         best=best,
+        random_state=random_state,
     )
 
+    model_traj, perf_traj = zip(*expected_trajectory)
+    expected_model_traj, expected_perf_traj = zip(*expected_trajectory)
+
     assert weights == expected_weights
-    assert all(a == b for a, b in zip(trajectory, expected_trajectory))
+    assert model_traj == expected_model_traj
 
-
-def test_size_0():
-    pass
-
-
-def test_conversion():
-    pass
+    np.testing.assert_array_almost_equal(perf_traj, expected_perf_traj)

@@ -4,7 +4,7 @@ from pathlib import Path
 
 from pytest_cases import fixture
 
-from automl_common.backend.stores import ModelStore
+from automl_common.backend.stores.model_store import ModelStore
 from automl_common.ensemble import SingleEnsemble, UniformEnsemble, WeightedEnsemble
 from automl_common.model import Model
 

@@ -5,7 +5,7 @@ from pathlib import Path
 import numpy as np
 from pytest_cases import parametrize
 
-from automl_common.backend.stores import PredictionsStore
+from automl_common.backend.stores.predictions_store import PredictionsStore
 
 
 @parametrize("bad_filename", ["predictions_not.txt", "hello", "here.npy"])

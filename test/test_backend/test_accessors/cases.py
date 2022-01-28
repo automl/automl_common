@@ -13,7 +13,8 @@ from pathlib import Path
 import numpy as np
 from pytest_cases import case
 
-from automl_common.backend.accessors import EnsembleAccessor, ModelAccessor
+from automl_common.backend.accessors.ensemble_accessor import EnsembleAccessor
+from automl_common.backend.accessors.model_accessor import ModelAccessor
 from automl_common.ensemble import Ensemble
 from automl_common.model import Model
 

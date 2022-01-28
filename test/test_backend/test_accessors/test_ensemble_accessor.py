@@ -6,7 +6,7 @@ import pytest
 from pytest_cases import filters as ft
 from pytest_cases import parametrize_with_cases
 
-from automl_common.backend.accessors import EnsembleAccessor
+from automl_common.backend.accessors.ensemble_accessor import EnsembleAccessor
 from automl_common.ensemble import Ensemble
 from automl_common.model import Model
 
