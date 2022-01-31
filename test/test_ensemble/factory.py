@@ -1,4 +1,4 @@
-from typing import Callable, Mapping, Optional, Sequence, Union
+from typing import Callable, Mapping, Optional, Sequence, TypeVar, Union
 
 from pathlib import Path
 
@@ -10,10 +10,12 @@ from automl_common.model import Model
 
 from test.test_ensemble.mocks import MockEnsemble
 
+MT = TypeVar("MT", bound=Model)
 
-def store_models(path: Path, models: Mapping[str, Model]) -> None:
+
+def store_models(path: Path, models: Mapping[str, MT]) -> None:
     """Stores models at path"""
-    store = ModelStore[Model](path)
+    store = ModelStore[MT](path)
     for id, model in models.items():
         store[id].save(model)
 
@@ -28,7 +30,7 @@ def make_ensemble() -> Callable[..., MockEnsemble]:
 
     def _make(
         model_dir: Path,
-        models: Union[Sequence[str], Mapping[str, Model]],
+        models: Union[Sequence[str], Mapping[str, MT]],
     ) -> MockEnsemble:
         if isinstance(models, Mapping):
             store_models(model_dir, models)
@@ -43,7 +45,7 @@ def make_ensemble() -> Callable[..., MockEnsemble]:
 
 
 @fixture(scope="function")
-def make_weighted_ensemble() -> Callable[..., WeightedEnsemble[Model]]:
+def make_weighted_ensemble() -> Callable[..., WeightedEnsemble[MT]]:
     """Create weighted ensemble objects
 
     ensemble = make_weighted_ensemble(model_dir=path, models={"a": 0.2, ... })
@@ -53,18 +55,18 @@ def make_weighted_ensemble() -> Callable[..., WeightedEnsemble[Model]]:
     def _make(
         model_dir: Path,
         weighted_ids: Mapping[str, float],
-        models: Optional[Mapping[str, Model]] = None,
-    ) -> WeightedEnsemble[Model]:
+        models: Optional[Mapping[str, MT]] = None,
+    ) -> WeightedEnsemble[MT]:
         if models is not None:
             store_models(model_dir, models)
 
-        return WeightedEnsemble[Model](model_dir, weighted_identifiers=weighted_ids)
+        return WeightedEnsemble[MT](model_dir, weighted_ids=weighted_ids)
 
     return _make
 
 
 @fixture(scope="function")
-def make_uniform_ensemble() -> Callable[..., UniformEnsemble[Model]]:
+def make_uniform_ensemble() -> Callable[..., UniformEnsemble[MT]]:
     """Create mock ensemble objects
 
     ensemble = make_uniform_ensemble(model_dir=path, models=["a", "b", "c"])
@@ -73,19 +75,19 @@ def make_uniform_ensemble() -> Callable[..., UniformEnsemble[Model]]:
 
     def _make(
         model_dir: Path,
-        models: Union[Sequence[str], Mapping[str, Model]],
-    ) -> UniformEnsemble[Model]:
+        models: Union[Sequence[str], Mapping[str, MT]],
+    ) -> UniformEnsemble[MT]:
         if isinstance(models, Mapping):
             store_models(model_dir, models)
             models = list(models.keys())
 
-        return UniformEnsemble[Model](model_dir, models)
+        return UniformEnsemble[MT](model_dir, models)
 
     return _make
 
 
 @fixture(scope="function")
-def make_single_ensemble() -> Callable[..., SingleEnsemble[Model]]:
+def make_single_ensemble() -> Callable[..., SingleEnsemble[MT]]:
     """Create mock ensemble objects
 
     ensemble = make_single_ensemble(model_dir=path, model_id="a")
@@ -95,11 +97,11 @@ def make_single_ensemble() -> Callable[..., SingleEnsemble[Model]]:
     def _make(
         model_dir: Path,
         model_id: str,
-        model: Optional[Model] = None,
-    ) -> SingleEnsemble[Model]:
+        model: Optional[MT] = None,
+    ) -> SingleEnsemble[MT]:
         if model is not None:
             store_models(model_dir, {model_id: model})
 
-        return SingleEnsemble[Model](model_dir, model_id)
+        return SingleEnsemble[MT](model_dir, model_id)
 
     return _make

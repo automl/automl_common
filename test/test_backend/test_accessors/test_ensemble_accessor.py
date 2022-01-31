@@ -27,7 +27,7 @@ def test_construction(path: Path) -> None:
     """
     dir = path / "ensemble"
     model_dir = path / "models"
-    accessor = EnsembleAccessor[Model](dir, model_dir)
+    accessor = EnsembleAccessor[Ensemble, Model](dir, model_dir)
     assert accessor._ids is None
 
 

@@ -1,3 +1,5 @@
+from typing import Callable
+
 from pathlib import Path
 
 from pytest_cases import fixture
@@ -6,7 +8,7 @@ from automl_common.backend import Backend
 
 
 @fixture(scope="function")
-def make_backend() -> Backend:
+def make_backend() -> Callable[[Path], Backend]:
     """
     Parameters
     ----------

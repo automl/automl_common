@@ -9,10 +9,11 @@ from automl_common.backend.stores.predictions_store import PredictionsStore
 from automl_common.ensemble.ensemble import Ensemble
 from automl_common.model import Model
 
-ModelT = TypeVar("ModelT", bound=Model)
+MT = TypeVar("MT", bound=Model)
+ET = TypeVar("ET", bound=Ensemble)  # Ensemble Type
 
 
-class EnsembleAccessor(Mapping[str, ModelAccessor[ModelT]], Accessor[Ensemble[ModelT]]):
+class EnsembleAccessor(Accessor[ET], Mapping[str, ModelAccessor[MT]]):
     """A wrapper to help with accessing an ensemble and it's models on filesystem
 
     Manages a directory:
@@ -44,17 +45,14 @@ class EnsembleAccessor(Mapping[str, ModelAccessor[ModelT]], Accessor[Ensemble[Mo
 
     @property
     def ids(self) -> List[str]:
-        """The list of identifiers associated with this ensemble"""
-        if not self._ids:
-            if self.exists():
-                self._ids = list(self.load().models)
-            else:
-                self._ids = []
+        """The model ids of models in this ensemble"""
+        if not self.exists():
+            return []
 
-        return self._ids
+        return self.load().ids
 
     @property
-    def models(self) -> FilteredModelStore[ModelT]:
+    def models(self) -> FilteredModelStore[MT]:
         """Return the models contained in this ensemble
 
         Returns
@@ -63,9 +61,9 @@ class EnsembleAccessor(Mapping[str, ModelAccessor[ModelT]], Accessor[Ensemble[Mo
             A model store filtered by the ids of this ensemble
         """
         if not self.exists():
-            raise RuntimeError(f"No ensemble saved at {self.path}")
+            raise RuntimeError(f"No saved ensemble found at {self.path}")
 
-        return FilteredModelStore[ModelT](dir=self.model_dir, ids=self.ids)
+        return FilteredModelStore[MT](dir=self.model_dir, ids=self.ids)
 
     @property
     def path(self) -> Path:
@@ -83,7 +81,7 @@ class EnsembleAccessor(Mapping[str, ModelAccessor[ModelT]], Accessor[Ensemble[Mo
     def __contains__(self, key: object) -> bool:
         return isinstance(key, str) and key in self.ids
 
-    def __getitem__(self, key: str) -> ModelAccessor[ModelT]:
+    def __getitem__(self, key: str) -> ModelAccessor[MT]:
         if not self.exists():
             raise KeyError(key)
 

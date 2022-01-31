@@ -10,11 +10,12 @@ from automl_common.backend.accessors.model_accessor import ModelAccessor
 from automl_common.ensemble import Ensemble
 from automl_common.model import Model
 
-ModelT = TypeVar("ModelT", bound=Model)
+MT = TypeVar("MT", bound=Model)
+ET = TypeVar("ET", bound=Ensemble)
 
 
 @fixture(scope="function")
-def make_model_accessor() -> Callable[..., ModelAccessor]:
+def make_model_accessor() -> Callable[..., ModelAccessor[MT]]:
     """Factory function to make a model accessor
 
     accessor = make_model_accessor(dir, model=model, predictions={"train":...})
@@ -22,10 +23,10 @@ def make_model_accessor() -> Callable[..., ModelAccessor]:
 
     def _make(
         dir: Path,
-        model: Optional[ModelT] = None,
+        model: Optional[MT] = None,
         predictions: Optional[Mapping[str, np.ndarray]] = None,
-    ):
-        accessor = ModelAccessor[ModelT](dir=dir)
+    ) -> ModelAccessor[MT]:
+        accessor = ModelAccessor[MT](dir=dir)
 
         if model is not None:
             accessor.save(model)
@@ -40,7 +41,7 @@ def make_model_accessor() -> Callable[..., ModelAccessor]:
 
 
 @fixture(scope="function")
-def make_ensemble_accessor() -> Callable[..., EnsembleAccessor[ModelT]]:
+def make_ensemble_accessor() -> Callable[..., EnsembleAccessor[ET, MT]]:
     """Factory function to make an ensemble accessor
 
     accessor = make_ensemble_accessor(
@@ -54,10 +55,10 @@ def make_ensemble_accessor() -> Callable[..., EnsembleAccessor[ModelT]]:
     def _make(
         dir: Path,
         model_dir: Path,
-        ensemble: Optional[Ensemble[ModelT]] = None,
+        ensemble: Optional[ET] = None,
         predictions: Optional[Mapping[str, np.ndarray]] = None,
-    ) -> EnsembleAccessor[ModelT]:
-        accessor = EnsembleAccessor[ModelT](dir=dir, model_dir=model_dir)
+    ) -> EnsembleAccessor[ET, MT]:
+        accessor = EnsembleAccessor[ET, MT](dir=dir, model_dir=model_dir)
 
         if ensemble is not None:
             accessor.save(ensemble)

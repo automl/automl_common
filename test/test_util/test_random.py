@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Any, Union
 
 import numpy as np
 import pytest
@@ -24,7 +24,7 @@ def test_as_random_state(seed: Union[int, np.random.RandomState, None]) -> None:
 
 
 @parametrize("bad_seed", [object(), 0.1])
-def test_as_random_state_bad_seed(bad_seed: Union[object, float]) -> None:
+def test_as_random_state_bad_seed(bad_seed: Any) -> None:
     """
     Parameters
     ----------

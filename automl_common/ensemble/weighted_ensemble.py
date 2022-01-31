@@ -1,23 +1,24 @@
-from typing import List, Mapping, TypeVar
+from typing import Iterator, Mapping, TypeVar
 
 from pathlib import Path
 
 import numpy as np
 
+from automl_common.backend.stores.model_store import FilteredModelStore
 from automl_common.data.math import weighted_sum
 from automl_common.ensemble.ensemble import Ensemble
 from automl_common.model import Model
 
-ModelT = TypeVar("ModelT", bound=Model)
+MT = TypeVar("MT", bound=Model)
 
 
-class WeightedEnsemble(Ensemble[ModelT]):
+class WeightedEnsemble(Ensemble[MT]):
     """An ensemble that uses weights"""
 
     def __init__(
         self,
         model_dir: Path,
-        weighted_identifiers: Mapping[str, float],
+        weighted_ids: Mapping[str, float],
     ):
         """
         Parameters
@@ -25,34 +26,21 @@ class WeightedEnsemble(Ensemble[ModelT]):
         model_dir: Path
             The backend object to use
 
-        weighted_identifiers: Mapping[str, float]
-            A mapping from model identifiers to their weights
+        weighted_ids: Mapping[str, float]
+            A mapping from model ids to their weights
         """
-        super().__init__(
-            model_dir=model_dir,
-            identifiers=list(weighted_identifiers.keys()),
+        self.model_dir = model_dir
+        self._weighted_ids = weighted_ids
+
+        self._store = FilteredModelStore[MT](
+            dir=self.model_dir,
+            ids=list(weighted_ids.keys()),
         )
-        self.weighted_identifiers = weighted_identifiers
 
     @property
-    def weights(self) -> List[float]:
+    def weights(self) -> Mapping[str, float]:
         """The weights of this ensemble"""
-        return list(self.weighted_identifiers.values())
-
-    def weight(self, identifier: str) -> float:
-        """Get the weight of a specific model
-
-        Parameters
-        ----------
-        key: str
-            The identifier of a particular model
-
-        Returns
-        -------
-        float
-            The models weight in the ensemble
-        """
-        return self.weighted_identifiers[identifier]
+        return self._weighted_ids
 
     def predict(self, x: np.ndarray) -> np.ndarray:
         """Predictions of the ensemble on features x
@@ -67,5 +55,12 @@ class WeightedEnsemble(Ensemble[ModelT]):
         np.ndarray
             The predictions
         """
-        predictions = iter(self.models[id].load().predict(x) for id in self.identifiers)
-        return weighted_sum(self.weights, predictions)
+        ids, weights = zip(*self.weights.items())
+        predictions = iter(self[id].predict(x) for id in ids)
+        return weighted_sum(weights, predictions)
+
+    def __getitem__(self, model_id: str) -> MT:
+        return self._store[model_id].load()
+
+    def __iter__(self) -> Iterator[str]:
+        return iter(list(self._weighted_ids.keys()))

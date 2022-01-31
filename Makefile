@@ -48,6 +48,7 @@ check-pydocstyle:
 
 check-mypy:
 	$(MYPY) automl_common || :
+	$(MYPY) test || :
 
 check-flake8:
 	$(FLAKE8) automl_common || :

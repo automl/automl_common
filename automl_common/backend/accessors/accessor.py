@@ -76,6 +76,3 @@ class Accessor(ABC, Generic[T]):
             rmtree(self.dir)
         else:
             self.path.unlink()
-
-    def __eq__(self, other: object) -> bool:
-        return isinstance(other, Accessor) and self.dir == other.dir

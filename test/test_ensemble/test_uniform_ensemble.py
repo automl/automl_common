@@ -34,11 +34,11 @@ def test_uniform_ensemble_distributes_weight(uniform_ensemble: UniformEnsemble) 
     * Weights should add up to 1
     * Each weight should be 1/n
     """
-    weights = uniform_ensemble.weights
+    weights = list(uniform_ensemble.weights.values())
 
     assert all(w == weights[0] for w in weights)
 
     assert isclose(sum(weights), 1)
 
-    expected = 1.0 / len(uniform_ensemble.models)
+    expected = 1.0 / len(weights)
     assert all(isclose(w, expected) for w in weights)

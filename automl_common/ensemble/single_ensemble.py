@@ -2,17 +2,16 @@ from typing import TypeVar
 
 from pathlib import Path
 
-from automl_common.backend.accessors.model_accessor import ModelAccessor
 from automl_common.ensemble.weighted_ensemble import WeightedEnsemble
 from automl_common.model import Model
 
-ModelT = TypeVar("ModelT", bound=Model)
+MT = TypeVar("MT", bound=Model)
 
 
-class SingleEnsemble(WeightedEnsemble[ModelT]):
+class SingleEnsemble(WeightedEnsemble[MT]):
     """An ensemble of just a single model"""
 
-    def __init__(self, model_dir: Path, identifier: str):
+    def __init__(self, model_dir: Path, model_id: str):
         """
         Parameters
         ----------
@@ -22,15 +21,16 @@ class SingleEnsemble(WeightedEnsemble[ModelT]):
         identifier: str
             The identifier of the single model
         """
-        if identifier == "":
+        if model_id == "":
             raise ValueError("Found empty string as identifier for SingleEnsemble")
 
         super().__init__(
             model_dir=model_dir,
-            weighted_identifiers={identifier: 1.0},
+            weighted_ids={model_id: 1.0},
         )
+        self.model_id = model_id
 
     @property
-    def model(self) -> ModelAccessor[ModelT]:
+    def model(self) -> MT:
         """Returns the single model in the ensemble"""
-        return next(iter(self.models.values()))
+        return self[self.model_id]

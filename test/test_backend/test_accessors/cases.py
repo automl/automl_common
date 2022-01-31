@@ -6,7 +6,7 @@ tags:
     "populated" - Populated with an ensemble/model
 """
 
-from typing import Callable, Mapping, Optional, Tuple, TypeVar
+from typing import Callable, Mapping, Tuple, TypeVar
 
 from pathlib import Path
 
@@ -18,16 +18,8 @@ from automl_common.backend.accessors.model_accessor import ModelAccessor
 from automl_common.ensemble import Ensemble
 from automl_common.model import Model
 
-ModelT = TypeVar("ModelT", bound=Model)
-
-ModelAccessorFactory = Callable[
-    [Path, Optional[ModelT], Optional[Mapping[str, np.ndarray]]],
-    ModelAccessor[ModelT],
-]
-EnsembleAccessorFactory = Callable[
-    [Path, Path, Optional[Ensemble[ModelT]], Optional[Mapping[str, np.ndarray]]],
-    Ensemble[ModelT],
-]
+MT = TypeVar("MT", bound=Model)
+ET = TypeVar("ET", bound=Ensemble)
 
 
 def _predictions() -> Mapping[str, np.ndarray]:
@@ -41,8 +33,8 @@ def _dirs(path: Path) -> Tuple[Path, Path]:
 @case(tags=["predictions", "model"])
 def case_unpopulated_model_accessor_with_predictions(
     path: Path,
-    make_model_accessor: ModelAccessorFactory,
-) -> ModelAccessor[ModelT]:
+    make_model_accessor: Callable[..., ModelAccessor[MT]],
+) -> ModelAccessor[MT]:
     """A ModelAccessor with no model and predictions stored"""
     return make_model_accessor(path, predictions=_predictions())
 
@@ -50,9 +42,9 @@ def case_unpopulated_model_accessor_with_predictions(
 @case(tags=["populated", "predictions", "model"])
 def case_populated_model_accessor_with_predictions(
     path: Path,
-    make_model_accessor: ModelAccessorFactory,
+    make_model_accessor: Callable[..., ModelAccessor[MT]],
     make_model: Callable[..., Model],
-) -> ModelAccessor[ModelT]:
+) -> ModelAccessor[MT]:
     """A ModelAccessor with a model and predictions"""
     return make_model_accessor(path, model=make_model(), predictions=_predictions())
 
@@ -60,8 +52,8 @@ def case_populated_model_accessor_with_predictions(
 @case(tags=["model"])
 def case_unpopulated_model_accessor(
     path: Path,
-    make_model_accessor: ModelAccessorFactory,
-) -> ModelAccessor[ModelT]:
+    make_model_accessor: Callable[..., ModelAccessor[MT]],
+) -> ModelAccessor[MT]:
     """A ModelAccessor with no model and no predictions"""
     return make_model_accessor(path)
 
@@ -69,9 +61,9 @@ def case_unpopulated_model_accessor(
 @case(tags=["populated", "model"])
 def case_populated_model_accessor(
     path: Path,
-    make_model_accessor: ModelAccessorFactory,
+    make_model_accessor: Callable[..., ModelAccessor[MT]],
     make_model: Callable[..., Model],
-) -> ModelAccessor[ModelT]:
+) -> ModelAccessor[MT]:
     """A ModelAccessor with a model and no predictions"""
     return make_model_accessor(path, model=make_model())
 
@@ -79,8 +71,8 @@ def case_populated_model_accessor(
 @case(tags=["predictions", "ensemble"])
 def case_unpopulated_ensemble_accessor_with_predictions(
     path: Path,
-    make_ensemble_accessor: EnsembleAccessorFactory,
-) -> EnsembleAccessor[ModelT]:
+    make_ensemble_accessor: Callable[..., EnsembleAccessor[ET, MT]],
+) -> EnsembleAccessor[ET, MT]:
     """An EnsembleAccessor with no ensemble and with predictions"""
     ensemble_dir, model_dir = _dirs(path)
     return make_ensemble_accessor(
@@ -91,10 +83,10 @@ def case_unpopulated_ensemble_accessor_with_predictions(
 @case(tags=["populated", "predictions", "ensemble"])
 def case_populated_ensemble_accessor_with_predictions(
     path: Path,
-    make_ensemble_accessor: EnsembleAccessorFactory,
-    make_ensemble: Callable[..., Ensemble[ModelT]],
+    make_ensemble_accessor: Callable[..., EnsembleAccessor[ET, MT]],
+    make_ensemble: Callable[..., Ensemble[MT]],
     make_model: Callable[..., Model],
-) -> EnsembleAccessor[ModelT]:
+) -> EnsembleAccessor[ET, MT]:
     """An EnsembleAccessor with an ensemble and with predictions"""
     ensemble_dir, model_dir = _dirs(path)
     ensemble = make_ensemble(model_dir, models={id: make_model() for id in "abc"})
@@ -109,8 +101,8 @@ def case_populated_ensemble_accessor_with_predictions(
 @case(tags=["ensemble"])
 def case_unpopulated_ensemble_accessor(
     path: Path,
-    make_ensemble_accessor: EnsembleAccessorFactory,
-) -> EnsembleAccessor[ModelT]:
+    make_ensemble_accessor: Callable[..., EnsembleAccessor[ET, MT]],
+) -> EnsembleAccessor[ET, MT]:
     """An EnsembleAccessor with no ensemble and no predictions"""
     ensemble_dir, model_dir = _dirs(path)
     return make_ensemble_accessor(dir=ensemble_dir, model_dir=model_dir)
@@ -119,10 +111,10 @@ def case_unpopulated_ensemble_accessor(
 @case(tags=["populated", "ensemble"])
 def case_populated_ensemble_accessor(
     path: Path,
-    make_ensemble_accessor: EnsembleAccessorFactory,
-    make_ensemble: Callable[..., Ensemble[ModelT]],
+    make_ensemble_accessor: Callable[..., EnsembleAccessor[ET, MT]],
+    make_ensemble: Callable[..., Ensemble[MT]],
     make_model: Callable[..., Model],
-) -> EnsembleAccessor[ModelT]:
+) -> EnsembleAccessor[ET, MT]:
     """An EnsembleAccessor with an ensemble and no predictions"""
     ensemble_dir, model_dir = _dirs(path)
     ensemble = make_ensemble(model_dir, models={id: make_model() for id in "abc"})
