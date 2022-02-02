@@ -1,5 +1,8 @@
 from typing import TypeVar
 
+from pathlib import Path
+
+import pytest
 from pytest_cases import filters as ft
 from pytest_cases import parametrize_with_cases
 
@@ -9,6 +12,21 @@ from automl_common.model import Model
 import test.test_ensemble.cases as cases
 
 MT = TypeVar("MT", bound=Model)
+
+
+def test_empty_model_id(path: Path) -> None:
+    """
+    Parameters
+    ----------
+    path : Path
+        A dummy path to use
+
+    Expects
+    -------
+    * Should raise a value error if the model_id is an empty string
+    """
+    with pytest.raises(ValueError):
+        SingleEnsemble(path, model_id="")
 
 
 @parametrize_with_cases(

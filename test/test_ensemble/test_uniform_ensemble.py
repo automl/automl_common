@@ -3,9 +3,25 @@ from typing import Callable
 from math import isclose
 from pathlib import Path
 
+import pytest
 from pytest_cases import parametrize, parametrize_with_cases
 
 from automl_common.ensemble import UniformEnsemble
+
+
+def test_empty_ids(path: Path) -> None:
+    """
+    Parameters
+    ----------
+    path : Path
+        A dummy path to use
+
+    Expects
+    -------
+    * Should raise a value error if the ids is empty
+    """
+    with pytest.raises(ValueError):
+        UniformEnsemble(path, ids=[])
 
 
 @parametrize("n", [1, 3, 10])

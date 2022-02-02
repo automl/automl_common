@@ -29,6 +29,9 @@ class WeightedEnsemble(Ensemble[MT]):
         weighted_ids: Mapping[str, float]
             A mapping from model ids to their weights
         """
+        if len(weighted_ids) == 0:
+            raise ValueError("Instantiated ensemble with empty `weighted_ids`")
+
         self.model_dir = model_dir
         self._weighted_ids = weighted_ids
 

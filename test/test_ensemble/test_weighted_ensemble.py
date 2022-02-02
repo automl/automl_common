@@ -1,12 +1,29 @@
+from pathlib import Path
 from unittest.mock import patch
 
 import numpy as np
+import pytest
 from pytest_cases import filters as ft
 from pytest_cases import parametrize_with_cases
 
 from automl_common.ensemble import WeightedEnsemble
 
 import test.test_ensemble.cases as cases
+
+
+def test_empty_ids(path: Path) -> None:
+    """
+    Parameters
+    ----------
+    path : Path
+        A dummy path to use
+
+    Expects
+    -------
+    * Should raise a value error if the ids is empty
+    """
+    with pytest.raises(ValueError):
+        WeightedEnsemble(path, weighted_ids={})
 
 
 @parametrize_with_cases(
