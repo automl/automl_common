@@ -5,31 +5,36 @@ import numpy as np
 
 def weighted_sum(
     weights: Iterable[float],
-    predictions: Iterable[np.ndarray],
+    arrays: Iterable[np.ndarray],
 ) -> np.ndarray:
-    """Computes a weighted sum of predictions
+    """Computes a weighted sum of arrays
 
     Tries to be performant over using a generic `sum` by storing into a single array
+
+    Note:
+    -----
+    We do no validation of lengths, this is introduced in Python 3.10
 
     Parameters
     ----------
     weights: Iterable[float]
         The weights to apply
 
-    predictions: Iterable[np.ndarray]
-        The predictions to sum together
+    arrays: Iterable[np.ndarray]
+        The arrays to sum together
 
     Returns
     -------
     np.ndarray
-        The weighted sum of the predictions
+        The weighted sum of the arrays
     """
-    weight = next(iter(weights))
-    pred = next(iter(predictions))
+    iterator = zip(iter(weights), iter(arrays))
 
-    buff = weight * pred.copy()
+    # Do the first one to get an outputnlocation
+    weight, arr = next(iterator)
+    buff = weight * arr.copy()
 
-    for weight, pred in zip(weights, predictions):
-        np.add(buff, weight * pred, out=buff)
+    for weight, arr in iterator:
+        np.add(buff, weight * arr, out=buff)
 
     return buff
