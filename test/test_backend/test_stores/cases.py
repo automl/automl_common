@@ -7,7 +7,7 @@ tags:
     "unstrict_get" - If the __getitem__ method doesn't raise a KeyError if file doesn't
         exist. This happens with ModelStore and EnsembleStore.
     "<type>" - The type of store returned
-        ["numpy", "predictions", "filtered_model", "model", "pickle", "mock_dir"]
+        ["numpy", "predictions", "model", "pickle", "mock_dir"]
 """
 
 from typing import Callable, Tuple, Type
@@ -18,7 +18,7 @@ import numpy as np
 from pytest_cases import case, parametrize
 
 from automl_common.backend.stores.ensemble_store import EnsembleStore
-from automl_common.backend.stores.model_store import FilteredModelStore, ModelStore
+from automl_common.backend.stores.model_store import ModelStore
 from automl_common.backend.stores.numpy_store import NumpyStore
 from automl_common.backend.stores.pickle_store import PickleStore
 from automl_common.backend.stores.predictions_store import PredictionsStore
@@ -27,7 +27,7 @@ from automl_common.backend.stores.store import StoreView
 from test.test_backend.test_stores.mocks import MockDirStore
 
 # Types used for the construction cases
-# For the remaining types, i.e. FilteredModelStore, EnsembleStore
+# For the remaining types, i.e. EnsembleStore
 # thos are handled seperatly as they define their own init
 PARAMS_CASE_TYPES = [
     ModelStore,
@@ -110,26 +110,6 @@ def case_model_store_unpopulated(
 ) -> ModelStore:
     """An unpopulated model store"""
     return make_model_store(dir=path)
-
-
-@case(tags=["populated", "unstrict_get", "filtered_model"])
-def case_filtered_model_store_populated(
-    path: Path,
-    make_filtered_model_store: Callable,
-    make_model: Callable,
-) -> FilteredModelStore:
-    """A populated filtered model store"""
-    models = {id: make_model() for id in "abc"}
-    return make_filtered_model_store(dir=path, models=models)
-
-
-@case(tags=["unpopulated", "unstrict_get", "filtered_model"])
-def case_filtered_model_store_unpopulated(
-    path: Path,
-    make_filtered_model_store: Callable,
-) -> FilteredModelStore:
-    """An unpopulated filtered model store"""
-    return make_filtered_model_store(dir=path, models=["a", "b", "c"])
 
 
 @case(tags=["populated", "pickle"])

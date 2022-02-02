@@ -4,7 +4,7 @@ from pathlib import Path
 
 from automl_common.backend.accessors.accessor import Accessor
 from automl_common.backend.accessors.model_accessor import ModelAccessor
-from automl_common.backend.stores.model_store import FilteredModelStore
+from automl_common.backend.stores.model_store import ModelStore
 from automl_common.backend.stores.predictions_store import PredictionsStore
 from automl_common.ensemble.ensemble import Ensemble
 from automl_common.model import Model
@@ -52,18 +52,18 @@ class EnsembleAccessor(Accessor[ET], Mapping[str, ModelAccessor[MT]]):
         return self.load().ids
 
     @property
-    def models(self) -> FilteredModelStore[MT]:
+    def models(self) -> ModelStore[MT]:
         """Return the models contained in this ensemble
 
         Returns
         -------
-        FilteredModelStore
+        ModelStore
             A model store filtered by the ids of this ensemble
         """
         if not self.exists():
             raise RuntimeError(f"No saved ensemble found at {self.path}")
 
-        return FilteredModelStore[MT](dir=self.model_dir, ids=self.ids)
+        return ModelStore[MT](dir=self.model_dir, ids=self.ids)
 
     @property
     def path(self) -> Path:

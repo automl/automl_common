@@ -1,4 +1,4 @@
-from typing import Collection, Iterator, TypeVar
+from typing import Collection, Iterator, Optional, TypeVar
 
 from pathlib import Path
 
@@ -25,6 +25,29 @@ class ModelStore(StoreView[ModelAccessor[ModelT]]):
         / ...
     """
 
+    def __init__(self, dir: Path, ids: Optional[Collection[str]] = None):
+        """
+        Parameters
+        ----------
+        dir : Path
+            The path to the directory
+
+        ids : Optional[Collection[str]] = None
+            An optional set of ids to filter by
+        """
+        if ids is not None and len(ids) == 0:
+            raise ValueError("Can't have empty `ids` on a ModelStore")
+
+        super().__init__(dir)
+        self.ids = ids
+
+    def __iter__(self) -> Iterator[str]:
+        iterator = super().__iter__()
+        if self.ids is None:
+            return iterator
+        else:
+            return iter(id for id in iterator if id in self.ids)
+
     def __getitem__(self, key: str) -> ModelAccessor[ModelT]:
         """Gets the ModelAccessor for the model associated with a model
 
@@ -38,57 +61,12 @@ class ModelStore(StoreView[ModelAccessor[ModelT]]):
         ModelAccessor[Model]
             A wrapper around a model in a directory
         """
-        return self.load(key)
+        if self.ids is not None and key not in self.ids:
+            raise KeyError(f"{key} not in identifiers {self.ids}")
 
-    def load(self, key: str) -> ModelAccessor[ModelT]:
-        """Gets the ModelAccessor for the model associated with a model
-
-        Doesn't actually do any loading but it's used with __getitem__
-        in StoreView.
-
-        Parameters
-        ----------
-        key: str
-            The model identifier
-
-        Returns
-        -------
-        ModelAccessor[Model]
-            A wrapper around a model in a directory
-        """
         path = self.path(key)
         return ModelAccessor(dir=path)
 
-
-class FilteredModelStore(ModelStore[ModelT]):
-    """A ModelStore additionally filtered out by identifiers"""
-
-    def __init__(self, dir: Path, ids: Collection[str]):
-        """
-        Parameters
-        ----------
-        dir: Path
-            The directory to check in
-
-        ids: Collection[str]
-            The ids to filter by
-        """
-        if len(ids) == 0:
-            raise ValueError("Can't have FilteredModelStore with no ids")
-
-        self.ids = ids
-        super().__init__(dir=dir)
-
-    def __iter__(self) -> Iterator[str]:
-        existing = {path.name for path in self.dir.iterdir()}
-        return iter(id for id in self.ids if id in existing)
-
-    def __getitem__(self, key: str) -> ModelAccessor[ModelT]:
-        if key not in self.ids:
-            raise KeyError(f"{key} not in identifiers {self.ids}")
-
-        return super().__getitem__(key)
-
     def load(self, key: str) -> ModelAccessor[ModelT]:
         """Gets the ModelAccessor for the model associated with a model
 
@@ -105,7 +83,8 @@ class FilteredModelStore(ModelStore[ModelT]):
         ModelAccessor[Model]
             A wrapper around a model in a directory
         """
-        if key not in self.ids:
+        if self.ids is not None and key not in self.ids:
             raise ValueError(f"{key} not in identifiers {self.ids}")
 
-        return super().load(key)
+        path = self.path(key)
+        return ModelAccessor(dir=path)

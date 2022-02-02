@@ -246,6 +246,22 @@ def test_iter_unpopulated(store: StoreView) -> None:
         raise AssertionError(f"Store returned iterator with {key} in it")
 
 
+@parametrize_with_cases("store", cases=cases, filter=ft.has_tag("populated"))
+def test_load(store: StoreView) -> None:
+    """
+    Parameters
+    ----------
+    store: StoreView
+        An empty store
+
+    Expects
+    -------
+    * Should be able to load each item it iterates through
+    """
+    for key in store:
+        assert store.load(key) is not None
+
+
 @parametrize_with_cases(
     "store",
     cases=cases,

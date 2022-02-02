@@ -97,9 +97,9 @@ def test_models_populated(accessor: EnsembleAccessor) -> None:
 
     Expects
     -------
-    * Should return a FilteredModelStore with the id's in the ensemble
+    * Should return a ModelStore with the id's in the ensemble
     """
-    assert list(accessor.models) == accessor.ids
+    assert set(accessor.models) == set(accessor.ids)
 
 
 @parametrize_with_cases(

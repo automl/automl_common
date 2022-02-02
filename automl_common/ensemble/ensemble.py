@@ -1,10 +1,9 @@
-from __future__ import annotations
-
 from abc import ABC, abstractmethod
 from typing import Any, Iterator, List, Mapping, TypeVar
 
 import numpy as np
 
+from automl_common.backend.stores.model_store import ModelStore
 from automl_common.model import Model
 
 MT = TypeVar("MT", bound=Model)
@@ -12,6 +11,9 @@ MT = TypeVar("MT", bound=Model)
 
 class Ensemble(ABC, Mapping[str, MT]):
     """Manages functionality around using multiple models ensembled in some fashion"""
+
+    def __init__(self, model_store: ModelStore[MT]):
+        self.model_store = model_store
 
     @abstractmethod
     def predict(self, x: np.ndarray) -> np.ndarray:

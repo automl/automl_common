@@ -4,7 +4,7 @@ from pathlib import Path
 
 import numpy as np
 
-from automl_common.backend.stores.model_store import FilteredModelStore
+from automl_common.backend.stores.model_store import ModelStore
 from automl_common.data.math import weighted_sum
 from automl_common.ensemble.ensemble import Ensemble
 from automl_common.model import Model
@@ -35,7 +35,7 @@ class WeightedEnsemble(Ensemble[MT]):
         self.model_dir = model_dir
         self._weighted_ids = weighted_ids
 
-        self._store = FilteredModelStore[MT](
+        self._store = ModelStore[MT](
             dir=self.model_dir,
             ids=list(weighted_ids.keys()),
         )

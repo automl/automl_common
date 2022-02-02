@@ -1,4 +1,4 @@
-from typing import Any, Callable, Collection, Mapping, Optional, TypeVar, Union
+from typing import Any, Callable, Collection, Mapping, Optional, TypeVar
 
 from pathlib import Path
 
@@ -6,7 +6,7 @@ import numpy as np
 from pytest_cases import fixture
 
 from automl_common.backend.stores.ensemble_store import EnsembleStore
-from automl_common.backend.stores.model_store import FilteredModelStore, ModelStore
+from automl_common.backend.stores.model_store import ModelStore
 from automl_common.backend.stores.numpy_store import NumpyStore
 from automl_common.backend.stores.pickle_store import PickleStore
 from automl_common.backend.stores.predictions_store import PredictionsStore
@@ -126,54 +126,18 @@ def make_model_store() -> Callable[..., ModelStore[MT]]:
     def _make(
         dir: Path,
         models: Optional[Mapping[str, MT]] = None,
+        ids: Optional[Collection[str]] = None,
     ) -> ModelStore[MT]:
+        # Make a store unrestricted by ids
         store = ModelStore[MT](dir=dir)
         if models is not None:
             for key, model in models.items():
                 store[key].save(model)
 
-        return store
-
-    return _make
-
-
-@fixture(scope="function")
-def make_filtered_model_store() -> Callable[..., FilteredModelStore[MT]]:
-    """Make a FilteredModelStore
-
-    Parameters
-    ----------
-    dir: Path
-        Path to the model store
-
-    models: Collection[str] | Mapping[str, Model]
-        Mapping of {key: Model} to place in the filtered model store
-
-    extra: Optional[Mapping[str, Model]] = None
-        Mapping of {key: Model} to stick in the store outside of filtered model store
-
-    Returns
-    -------
-    FilteredModelStore
-    """
-
-    def _make(
-        dir: Path,
-        models: Union[Collection[str], Mapping[str, MT]],
-        extra: Optional[Mapping[str, MT]] = None,
-    ) -> FilteredModelStore[MT]:
-        ids = list(models)
-
-        model_store = ModelStore[MT](dir=dir)
-        if isinstance(models, Mapping):
-            for key, obj in models.items():
-                model_store[key].save(obj)
-
-        if extra is not None:
-            for key, obj in extra.items():
-                model_store[key].save(obj)
-
-        return FilteredModelStore[MT](dir=dir, ids=ids)
+        if ids is not None:
+            return ModelStore[MT](dir=dir, ids=ids)
+        else:
+            return ModelStore[MT](dir=dir, ids=ids)
 
     return _make
 

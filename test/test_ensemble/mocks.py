@@ -4,7 +4,7 @@ from pathlib import Path
 
 import numpy as np
 
-from automl_common.backend.stores.model_store import FilteredModelStore
+from automl_common.backend.stores.model_store import ModelStore
 from automl_common.ensemble import Ensemble
 from automl_common.model import Model
 
@@ -29,7 +29,7 @@ class MockEnsemble(Ensemble[Model]):
         return x
 
     def __getitem__(self, model_id: str) -> Model:
-        store = FilteredModelStore[Model](self.model_dir, ids=self.ids)
+        store = ModelStore[Model](self.model_dir, ids=self.ids)
         return store[model_id].load()
 
     def __iter__(self) -> Iterator[str]:
