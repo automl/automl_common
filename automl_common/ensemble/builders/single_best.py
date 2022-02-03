@@ -1,4 +1,14 @@
-from typing import Any, Callable, Hashable, Iterable, Mapping, Optional, TypeVar, Union
+from typing import (
+    Any,
+    Callable,
+    Hashable,
+    Iterable,
+    Mapping,
+    Optional,
+    Tuple,
+    TypeVar,
+    Union,
+)
 
 import numpy as np
 
@@ -10,7 +20,7 @@ ID = TypeVar("ID", bound=Hashable)
 
 
 def single_best(
-    model_predictions: Mapping[ID, np.ndarray],
+    model_predictions: Iterable[Tuple[ID, np.ndarray]],
     targets: np.ndarray,
     metric: Callable[..., T],  # TODO Python 3.10, update params with PEP 612
     metric_args: Optional[Mapping[str, Any]] = None,
@@ -21,8 +31,8 @@ def single_best(
 
     Parameters
     ----------
-    model_predictions: Mapping[ID, np.ndarray]
-        A Mapping from model ids that can be put in a dict to their predictions
+    model_predictions: Iterable[Tuple[ID, np.ndarray]]
+        A interable of model ids and predictions
 
     targets: np.ndarray
         The targets
@@ -51,9 +61,6 @@ def single_best(
     ID
         The id of the chosen model
     """
-    if len(model_predictions) == 0:
-        raise ValueError("`model_predictions` is empty")
-
     if not callable(best) and best not in ("max", "min"):
         raise ValueError("`best` must be either 'max' or 'min' or a Callable")
 
@@ -71,8 +78,11 @@ def single_best(
 
     scores = {
         id: metric(prediction, targets, **metric_args)
-        for id, prediction in model_predictions.items()
+        for id, prediction in model_predictions
     }
+
+    if len(scores) == 0:
+        raise ValueError("`model_predictions` was empty")
 
     rand = as_random_state(random_state)
 

@@ -1,5 +1,4 @@
 from typing import (
-    Any,
     Callable,
     Hashable,
     Iterable,
@@ -10,8 +9,6 @@ from typing import (
     TypeVar,
     Union,
 )
-
-from unittest.mock import MagicMock
 
 import numpy as np
 import pytest
@@ -88,38 +85,6 @@ def test_bad_size(size: int) -> None:
             size=size,
             metric=lambda x, y: 42,
         )
-
-
-@parametrize("metric_args", [{"a": "apple", "b": "banana"}, None, {}])
-def test_forward_metric_args(metric_args: Optional[Mapping[str, Any]]) -> None:
-    """
-    Parameters
-    ----------
-    metric_args: Mapping[str, Any]
-        Arguments to forward to a metric
-
-    Expects
-    -------
-    * Should raise an error about a bad "best" parameter
-    """
-    mock_metric = MagicMock()
-    mock_metric.return_value = 42
-
-    model_predictions = {"a": np.asarray([1, 2, 3])}
-    targets = np.asarray([1, 2, 3])
-    weighted_ensemble_caruana(
-        model_predictions=model_predictions,
-        targets=targets,
-        size=1,
-        metric=mock_metric,
-        metric_args=metric_args,
-    )
-
-    # We convert None to an empty dict for consitency
-    if metric_args is None:
-        assert mock_metric.call_args.kwargs == {}
-    else:
-        assert mock_metric.call_args.kwargs == metric_args
 
 
 @parametrize_with_cases(

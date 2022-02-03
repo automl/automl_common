@@ -1,6 +1,4 @@
-from typing import Any, Callable, Hashable, Iterable, Mapping, Optional, TypeVar, Union
-
-from unittest.mock import MagicMock
+from typing import Callable, Hashable, Iterable, List, Tuple, TypeVar, Union
 
 import numpy as np
 import pytest
@@ -14,19 +12,19 @@ import test.test_ensemble.test_builders.cases as cases
 T = TypeVar("T", bound=SupportsEqualty)
 
 
-@parametrize("predictions", [{}])
-def test_predictions_empty_dict(predictions: Mapping[Hashable, np.ndarray]) -> None:
+@parametrize("predictions", [[]])
+def test_predictions_empty_dict(predictions: List[Tuple[Hashable, np.ndarray]]) -> None:
     """
     Parameters
     ----------
-    predictions: Mapping[str, np.ndarray]
-        An empty dictionary
+    predictions: List
+        An empty List
 
     Expects
     -------
     * Should raise an error about an empty mapping
     """
-    with pytest.raises(ValueError, match="`model_predictions` is empty"):
+    with pytest.raises(ValueError, match="`model_predictions` was empty"):
         single_best(
             model_predictions=predictions,
             targets=np.asarray([]),
@@ -48,49 +46,20 @@ def test_bad_best_arg(best: str) -> None:
     """
     with pytest.raises(ValueError, match="`best` must be"):
         single_best(
-            model_predictions={"a": np.asarray([])},
+            model_predictions=[("a", np.asarray([]))],
             targets=np.asarray([]),
             metric=lambda x, y: 42,
             best=best,
         )
 
 
-@parametrize("metric_args", [{"a": "apple", "b": "banana"}, None, {}])
-def test_forward_metric_args(metric_args: Optional[Mapping[str, Any]]) -> None:
-    """
-    Parameters
-    ----------
-    metric_args: Mapping[Hashable, Any]
-        Arguments to forward to a metric
-
-    Expects
-    -------
-    * Should raise an error about a bad "best" parameter
-    """
-    mock_metric = MagicMock()
-    mock_metric.return_value = 42
-
-    model_predictions = {"a": np.asarray([1, 2, 3])}
-    targets = np.asarray([1, 2, 3])
-    single_best(
-        model_predictions=model_predictions,
-        targets=targets,
-        metric=mock_metric,
-        metric_args=metric_args,
-    )
-
-    # We convert None to an empty dict for consitency
-    if metric_args is None:
-        assert mock_metric.call_args.kwargs == {}
-    else:
-        assert mock_metric.call_args.kwargs == metric_args
-
-
 @parametrize_with_cases(
-    "model_predictions, targets, metric, best, expected", cases=cases, has_tag="single"
+    "model_predictions, targets, metric, best, expected",
+    cases=cases,
+    has_tag="single",
 )
 def test_single_best_is_chosen(
-    model_predictions: Mapping[Hashable, np.ndarray],
+    model_predictions: List[Tuple[Hashable, np.ndarray]],
     targets: np.ndarray,
     metric: Callable[..., T],
     best: Union[str, Callable[[Iterable[T]], T]],
@@ -99,7 +68,7 @@ def test_single_best_is_chosen(
     """
     Parameters
     ----------
-    model_predictions: Mapping[Hashable, np.ndarray]
+    model_predictions: List[Tuple[Hashable, np.ndarray]]
         The model predicitons
 
     target: np.ndarray
@@ -118,10 +87,14 @@ def test_single_best_is_chosen(
     -------
     * Should raise an error about a bad "best" parameter
     """
-    assert expected in model_predictions
+    ids, _ = zip(*model_predictions)
+    assert expected in ids
 
     chosen = single_best(
-        model_predictions=model_predictions, targets=targets, metric=metric, best=best
+        model_predictions=model_predictions,
+        targets=targets,
+        metric=metric,
+        best=best,
     )
 
     assert chosen == expected

@@ -56,7 +56,7 @@ def case_single_one_model_to_choose(
     best: Union[str, Callable[[Iterable[T]], T]]
         How to select the best from the list of scores
     """
-    model_predictions = {"a": np.asarray([1, 1, 1])}
+    model_predictions = [("a", np.asarray([1, 1, 1]))]
     targets = np.asarray([0, 0, 0])
     expected = "a"
 
@@ -139,14 +139,15 @@ def case_single_n_models(
         How to choose the best score
     """
     targets = np.asarray([0, 0, 0])
-    model_predictions = {str(i): np.asarray([1, 1, 0]) for i in range(n)}
+    model_predictions = [(str(i), np.asarray([1, 1, 0])) for i in range(n)]
 
-    expected = np.random.choice(list(model_predictions))
+    chosen = np.random.choice(list(range(n)))
 
     # The expected model is given the targets so they match exactly
-    model_predictions[expected] = targets
+    id, _ = model_predictions[chosen]
+    model_predictions[chosen] = (id, targets)
 
-    return model_predictions, targets, metric, best, expected
+    return model_predictions, targets, metric, best, id
 
 
 @case(tags=["weighted", "autosklearn"])

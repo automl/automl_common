@@ -1,5 +1,4 @@
 from typing import (
-    Any,
     Callable,
     Dict,
     Hashable,
@@ -33,8 +32,7 @@ def weighted_ensemble_caruana(
     model_predictions: Mapping[ID, np.ndarray],
     targets: np.ndarray,
     size: int,
-    metric: Callable[..., T],  # TODO Python 3.10, update params with PEP 612
-    metric_args: Optional[Mapping[str, Any]] = None,
+    metric: Callable[[np.ndarray, np.ndarray], T],
     best: Union[str, Callable[[Iterable[T]], T]] = "max",
     random_state: Optional[Union[int, np.random.RandomState]] = None,
 ) -> Tuple[Dict[ID, float], Trajectory]:
@@ -51,13 +49,10 @@ def weighted_ensemble_caruana(
     size: int
         The size of the ensemble to create
 
-    metric: (pred: np.ndarray, target: np.ndarray, ...) -> T
+    metric: (pred: np.ndarray, target: np.ndarray) -> T
         The metric to use in calculating which models to add to the ensemble. Must
         return a `T` that can be compared with `==`. This could be useful for
         using multiple metric and return a tuple such as `(x, y, z)`.
-
-    metric_args: Optional[Mapping[str, Any]] = None
-        Arguments to forward to the metric
 
     best: "min" | "max" | (Iterable[T]) -> T = "max"
         Select a model member at each stage according to the "min" or "max" of the score
@@ -96,7 +91,6 @@ def weighted_ensemble_caruana(
         raise NotImplementedError
 
     rand = as_random_state(random_state)
-    kwargs = metric_args if metric_args is not None else {}
 
     predictions = list(model_predictions.values())
 
@@ -121,7 +115,7 @@ def weighted_ensemble_caruana(
         # Get the value if the model was added to the current set of predicitons
         np.add(current, _pred, out=buffer)
         np.multiply(buffer, (1.0 / float(len(ensemble) + 1)), out=buffer)
-        return metric(buffer, targets, **kwargs)
+        return metric(buffer, targets)
 
     for i in range(size):
         # Get the value if added for each model
