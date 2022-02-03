@@ -21,8 +21,5 @@ class MockDirStore(Store[str]):
         if not dir.exists():
             dir.mkdir()
 
-        print("saving ", key)
-        print(dir)
-
         item_path = self.path(key) / "item"
         item_path.write_text(item)

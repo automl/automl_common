@@ -6,14 +6,14 @@ from automl_common.backend.accessors.accessor import Accessor
 from automl_common.backend.stores.predictions_store import PredictionsStore
 from automl_common.model import Model
 
-ModelT = TypeVar("ModelT", bound=Model)
+MT = TypeVar("MT", bound=Model)
 
 
 # TODO assuming a picklable Model
 #   Trying to parametrize the saveing and loading functions would
 #   lead to any framework using automl_common to not be picklalbe
 #   due to lambda's, unknown functions etc..
-class ModelAccessor(Accessor[ModelT]):
+class ModelAccessor(Accessor[MT]):
     """Access state of a Model with a directory on a filesystem
 
     Manages a directory:

@@ -1,17 +1,13 @@
 from typing import TypeVar
 
-from pathlib import Path
-
 from automl_common.backend.accessors.ensemble_accessor import EnsembleAccessor
 from automl_common.backend.stores.store import StoreView
 from automl_common.ensemble import Ensemble
-from automl_common.model import Model
 
 ET = TypeVar("ET", bound=Ensemble)  # Ensemble Type
-MT = TypeVar("MT", bound=Model)
 
 
-class EnsembleStore(StoreView[EnsembleAccessor[ET, MT]]):
+class EnsembleStore(StoreView[EnsembleAccessor[ET]]):
     """A store of linking keys to EnsembleAccessor
 
     Manages a directory:
@@ -27,27 +23,10 @@ class EnsembleStore(StoreView[EnsembleAccessor[ET, MT]]):
         / ...
     """
 
-    def __init__(self, dir: Path, model_dir: Path):
-        """
-        Parameters
-        ----------
-        dir: Path
-            The path to where the ensembles are stored
-
-        model_dir: Path
-            The path to where the models are stored
-        """
-        super().__init__(dir)
-
-        if not model_dir.exists():
-            model_dir.mkdir()
-
-        self.model_dir = model_dir
-
-    def __getitem__(self, key: str) -> EnsembleAccessor[ET, MT]:
+    def __getitem__(self, key: str) -> EnsembleAccessor[ET]:
         return self.load(key)
 
-    def load(self, key: str) -> EnsembleAccessor[ET, MT]:
+    def load(self, key: str) -> EnsembleAccessor[ET]:
         """Load the EnsembleAccessor
 
         Doesn't actually do any loading but it's used with __getitem__
@@ -64,4 +43,4 @@ class EnsembleStore(StoreView[EnsembleAccessor[ET, MT]]):
             A backendwrapper around an Ensemble
         """
         path = self.path(key)
-        return EnsembleAccessor[ET, MT](dir=path, model_dir=self.model_dir)
+        return EnsembleAccessor[ET](dir=path)

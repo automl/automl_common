@@ -1,3 +1,5 @@
+from typing import Callable, TypeVar
+
 from pathlib import Path
 from unittest.mock import patch
 
@@ -6,12 +8,16 @@ import pytest
 from pytest_cases import filters as ft
 from pytest_cases import parametrize_with_cases
 
+from automl_common.backend.stores.model_store import ModelStore
 from automl_common.ensemble import WeightedEnsemble
+from automl_common.model import Model
 
 import test.test_ensemble.cases as cases
 
+MT = TypeVar("MT", bound=Model)
 
-def test_empty_ids(path: Path) -> None:
+
+def test_empty_ids(path: Path, make_model_store: Callable[..., ModelStore[MT]]) -> None:
     """
     Parameters
     ----------
@@ -22,8 +28,31 @@ def test_empty_ids(path: Path) -> None:
     -------
     * Should raise a value error if the ids is empty
     """
+    store = make_model_store(path)
     with pytest.raises(ValueError):
-        WeightedEnsemble(path, weighted_ids={})
+        WeightedEnsemble(store, weighted_ids={})
+
+
+def test_with_missing_models(
+    path: Path, make_model_store: Callable[..., ModelStore[MT]]
+) -> None:
+    """
+    Parameters
+    ----------
+    path : Path
+        Path to place the model store at
+
+    make_model_store : Callable[..., ModelStore[MT]]
+        Factory to make a model store
+
+    Expects
+    -------
+    * Should raise an error if constructed with ids of models not in the store
+    """
+    store = make_model_store(path)
+    badkey = "bad"
+    with pytest.raises(ValueError):
+        WeightedEnsemble(store, weighted_ids={badkey: 1.0})
 
 
 @parametrize_with_cases(

@@ -15,6 +15,7 @@ from pytest_cases import case
 
 from automl_common.backend.accessors.ensemble_accessor import EnsembleAccessor
 from automl_common.backend.accessors.model_accessor import ModelAccessor
+from automl_common.backend.stores.model_store import ModelStore
 from automl_common.ensemble import Ensemble
 from automl_common.model import Model
 
@@ -71,28 +72,33 @@ def case_populated_model_accessor(
 @case(tags=["predictions", "ensemble"])
 def case_unpopulated_ensemble_accessor_with_predictions(
     path: Path,
-    make_ensemble_accessor: Callable[..., EnsembleAccessor[ET, MT]],
-) -> EnsembleAccessor[ET, MT]:
+    make_ensemble_accessor: Callable[..., EnsembleAccessor[ET]],
+) -> EnsembleAccessor[ET]:
     """An EnsembleAccessor with no ensemble and with predictions"""
     ensemble_dir, model_dir = _dirs(path)
-    return make_ensemble_accessor(
-        dir=ensemble_dir, model_dir=model_dir, predictions=_predictions()
-    )
+    return make_ensemble_accessor(dir=ensemble_dir, predictions=_predictions())
 
 
 @case(tags=["populated", "predictions", "ensemble"])
 def case_populated_ensemble_accessor_with_predictions(
     path: Path,
-    make_ensemble_accessor: Callable[..., EnsembleAccessor[ET, MT]],
+    make_ensemble_accessor: Callable[..., EnsembleAccessor[ET]],
+    make_model_store: Callable[..., ModelStore[MT]],
     make_ensemble: Callable[..., Ensemble[MT]],
-    make_model: Callable[..., Model],
-) -> EnsembleAccessor[ET, MT]:
+    make_model: Callable[..., MT],
+) -> EnsembleAccessor[ET]:
     """An EnsembleAccessor with an ensemble and with predictions"""
     ensemble_dir, model_dir = _dirs(path)
-    ensemble = make_ensemble(model_dir, models={id: make_model() for id in "abc"})
+    model_store = make_model_store(model_dir)
+
+    ids = ["a", "b", "c"]
+    for id in ids:
+        model_store[id].save(make_model())
+
+    ensemble = make_ensemble(model_store, ids=ids)
+
     return make_ensemble_accessor(
         dir=ensemble_dir,
-        model_dir=model_dir,
         ensemble=ensemble,
         predictions=_predictions(),
     )
@@ -101,25 +107,31 @@ def case_populated_ensemble_accessor_with_predictions(
 @case(tags=["ensemble"])
 def case_unpopulated_ensemble_accessor(
     path: Path,
-    make_ensemble_accessor: Callable[..., EnsembleAccessor[ET, MT]],
-) -> EnsembleAccessor[ET, MT]:
+    make_ensemble_accessor: Callable[..., EnsembleAccessor[ET]],
+) -> EnsembleAccessor[ET]:
     """An EnsembleAccessor with no ensemble and no predictions"""
     ensemble_dir, model_dir = _dirs(path)
-    return make_ensemble_accessor(dir=ensemble_dir, model_dir=model_dir)
+    return make_ensemble_accessor(dir=ensemble_dir)
 
 
 @case(tags=["populated", "ensemble"])
 def case_populated_ensemble_accessor(
     path: Path,
-    make_ensemble_accessor: Callable[..., EnsembleAccessor[ET, MT]],
+    make_ensemble_accessor: Callable[..., EnsembleAccessor[ET]],
     make_ensemble: Callable[..., Ensemble[MT]],
-    make_model: Callable[..., Model],
-) -> EnsembleAccessor[ET, MT]:
+    make_model: Callable[..., MT],
+    make_model_store: Callable[..., ModelStore[MT]],
+) -> EnsembleAccessor[ET]:
     """An EnsembleAccessor with an ensemble and no predictions"""
     ensemble_dir, model_dir = _dirs(path)
-    ensemble = make_ensemble(model_dir, models={id: make_model() for id in "abc"})
+    model_store = make_model_store(model_dir)
+
+    ids = ["a", "b", "c"]
+    for id in ids:
+        model_store[id].save(make_model())
+
+    ensemble = make_ensemble(model_store, ids)
     return make_ensemble_accessor(
         dir=ensemble_dir,
-        model_dir=model_dir,
         ensemble=ensemble,
     )

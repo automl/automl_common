@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, TypeVar
 
 from math import isclose
 from pathlib import Path
@@ -6,10 +6,17 @@ from pathlib import Path
 import pytest
 from pytest_cases import parametrize, parametrize_with_cases
 
+from automl_common.backend.stores.model_store import ModelStore
 from automl_common.ensemble import UniformEnsemble
+from automl_common.model import Model
+
+MT = TypeVar("MT", bound=Model)
 
 
-def test_empty_ids(path: Path) -> None:
+def test_empty_ids(
+    path: Path,
+    make_model_store: Callable[..., ModelStore[MT]],
+) -> None:
     """
     Parameters
     ----------
@@ -20,20 +27,26 @@ def test_empty_ids(path: Path) -> None:
     -------
     * Should raise a value error if the ids is empty
     """
+    store = make_model_store(path)
     with pytest.raises(ValueError):
-        UniformEnsemble(path, ids=[])
+        UniformEnsemble(store, ids=[])
 
 
 @parametrize("n", [1, 3, 10])
 def case_uniform_model(
     path: Path,
     n: int,
-    make_uniform_ensemble: Callable,
-    make_model: Callable,
-) -> UniformEnsemble:
+    make_uniform_ensemble: Callable[..., UniformEnsemble[MT]],
+    make_model_store: Callable[..., ModelStore[MT]],
+    make_model: Callable[..., MT],
+) -> UniformEnsemble[MT]:
     """UniformEnsemble with {1,3,10} models stored"""
-    models = {str(i): make_model() for i in range(n)}
-    return make_uniform_ensemble(path, models)
+    ids = [str(i) for i in range(n)]
+    store = make_model_store(path)
+    for id in ids:
+        store[id].save(make_model())
+
+    return make_uniform_ensemble(store, ids)
 
 
 @parametrize_with_cases("uniform_ensemble", cases=".")

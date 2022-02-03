@@ -41,7 +41,7 @@ def make_model_accessor() -> Callable[..., ModelAccessor[MT]]:
 
 
 @fixture(scope="function")
-def make_ensemble_accessor() -> Callable[..., EnsembleAccessor[ET, MT]]:
+def make_ensemble_accessor() -> Callable[..., EnsembleAccessor[ET]]:
     """Factory function to make an ensemble accessor
 
     accessor = make_ensemble_accessor(
@@ -54,11 +54,10 @@ def make_ensemble_accessor() -> Callable[..., EnsembleAccessor[ET, MT]]:
 
     def _make(
         dir: Path,
-        model_dir: Path,
         ensemble: Optional[ET] = None,
         predictions: Optional[Mapping[str, np.ndarray]] = None,
-    ) -> EnsembleAccessor[ET, MT]:
-        accessor = EnsembleAccessor[ET, MT](dir=dir, model_dir=model_dir)
+    ) -> EnsembleAccessor[ET]:
+        accessor = EnsembleAccessor[ET](dir=dir)
 
         if ensemble is not None:
             accessor.save(ensemble)

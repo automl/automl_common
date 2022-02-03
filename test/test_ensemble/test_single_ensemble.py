@@ -1,4 +1,4 @@
-from typing import TypeVar
+from typing import Callable, TypeVar
 
 from pathlib import Path
 
@@ -6,6 +6,7 @@ import pytest
 from pytest_cases import filters as ft
 from pytest_cases import parametrize_with_cases
 
+from automl_common.backend.stores.model_store import ModelStore
 from automl_common.ensemble import SingleEnsemble
 from automl_common.model import Model
 
@@ -14,7 +15,9 @@ import test.test_ensemble.cases as cases
 MT = TypeVar("MT", bound=Model)
 
 
-def test_empty_model_id(path: Path) -> None:
+def test_empty_model_id(
+    path: Path, make_model_store: Callable[..., ModelStore[MT]]
+) -> None:
     """
     Parameters
     ----------
@@ -25,8 +28,9 @@ def test_empty_model_id(path: Path) -> None:
     -------
     * Should raise a value error if the model_id is an empty string
     """
+    store = make_model_store(path)
     with pytest.raises(ValueError):
-        SingleEnsemble(path, model_id="")
+        SingleEnsemble(store, model_id="")
 
 
 @parametrize_with_cases(

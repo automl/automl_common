@@ -10,8 +10,9 @@ tags:
         ["numpy", "predictions", "model", "pickle", "mock_dir"]
 """
 
-from typing import Callable, Tuple, Type
+from typing import Callable, Tuple, Type, TypeVar
 
+from itertools import chain
 from pathlib import Path
 
 import numpy as np
@@ -23,9 +24,13 @@ from automl_common.backend.stores.numpy_store import NumpyStore
 from automl_common.backend.stores.pickle_store import PickleStore
 from automl_common.backend.stores.predictions_store import PredictionsStore
 from automl_common.backend.stores.store import StoreView
+from automl_common.ensemble.ensemble import Ensemble
+from automl_common.model.model import Model
 
 from test.test_backend.test_stores.mocks import MockDirStore
 
+MT = TypeVar("MT", bound=Model)
+ET = TypeVar("ET", bound=Ensemble)
 # Types used for the construction cases
 # For the remaining types, i.e. EnsembleStore
 # thos are handled seperatly as they define their own init
@@ -60,14 +65,20 @@ def case_params_with_non_constructed_dir(
 
 
 @case(tags=["populated", "store", "numpy"])
-def case_numpy_store_populated(path: Path, make_numpy_store: Callable) -> NumpyStore:
+def case_numpy_store_populated(
+    path: Path,
+    make_numpy_store: Callable[..., NumpyStore],
+) -> NumpyStore:
     """A populated numpy store"""
     items = {id: np.array([[1]]) for id in "abc"}
     return make_numpy_store(dir=path, items=items)
 
 
 @case(tags=["unpopulated", "store", "numpy"])
-def case_numpy_store_unpopulated(path: Path, make_numpy_store: Callable) -> NumpyStore:
+def case_numpy_store_unpopulated(
+    path: Path,
+    make_numpy_store: Callable[..., NumpyStore],
+) -> NumpyStore:
     """An unpopulated numpy store"""
     return make_numpy_store(dir=path)
 
@@ -75,7 +86,7 @@ def case_numpy_store_unpopulated(path: Path, make_numpy_store: Callable) -> Nump
 @case(tags=["populated", "store", "predictions"])
 def case_predictions_store_populated(
     path: Path,
-    make_predictions_store: Callable,
+    make_predictions_store: Callable[..., PredictionsStore],
 ) -> PredictionsStore:
     """A populated predictions store"""
     items = {id: np.array([[1]]) for id in "abc"}
@@ -85,7 +96,7 @@ def case_predictions_store_populated(
 @case(tags=["unpopulated", "store", "predictions"])
 def case_predictions_store_unpopulated(
     path: Path,
-    make_predictions_store: Callable,
+    make_predictions_store: Callable[..., PredictionsStore],
 ) -> PredictionsStore:
     """An unpopulated predictions store"""
     return make_predictions_store(dir=path)
@@ -94,9 +105,9 @@ def case_predictions_store_unpopulated(
 @case(tags=["populated", "unstrict_get", "model"])
 def case_model_store_populated(
     path: Path,
-    make_model_store: Callable,
-    make_model: Callable,
-) -> ModelStore:
+    make_model_store: Callable[..., ModelStore[MT]],
+    make_model: Callable[..., MT],
+) -> ModelStore[MT]:
     """A populated model store"""
     models = {id: make_model() for id in "abc"}
     return make_model_store(dir=path, models=models)
@@ -105,9 +116,9 @@ def case_model_store_populated(
 @case(tags=["unpopulated", "unstrict_get", "model"])
 def case_model_store_unpopulated(
     path: Path,
-    make_model_store: Callable,
-    make_model: Callable,
-) -> ModelStore:
+    make_model_store: Callable[..., ModelStore[MT]],
+    make_model: Callable[..., MT],
+) -> ModelStore[MT]:
     """An unpopulated model store"""
     return make_model_store(dir=path)
 
@@ -115,7 +126,7 @@ def case_model_store_unpopulated(
 @case(tags=["populated", "pickle"])
 def case_pickle_store_populated(
     path: Path,
-    make_pickle_store: Callable,
+    make_pickle_store: Callable[..., PickleStore],
 ) -> PickleStore:
     """An populated pickle store with pickled 42's"""
     return make_pickle_store(path, {id: 42 for id in "abc"})
@@ -124,7 +135,7 @@ def case_pickle_store_populated(
 @case(tags=["unpopulated", "pickle"])
 def case_pickle_store_unpopulated(
     path: Path,
-    make_pickle_store: Callable,
+    make_pickle_store: Callable[..., PickleStore],
 ) -> PickleStore:
     """An unpopulated pickle store"""
     return make_pickle_store(path)
@@ -133,23 +144,23 @@ def case_pickle_store_unpopulated(
 @case(tags=["populated", "unstrict_get", "ensemble"])
 def case_ensemble_store_populated(
     path: Path,
-    make_ensemble_store: Callable,
-    make_ensemble: Callable,
-    make_model: Callable,
-) -> EnsembleStore:
+    make_ensemble_store: Callable[..., EnsembleStore[ET]],
+    make_ensemble: Callable[..., ET],
+    make_model: Callable[..., MT],
+) -> EnsembleStore[ET]:
     """A populated ensemble store"""
     ensemble_dir = path.joinpath("ensembles")
     model_dir = path.joinpath("models")
 
-    ensembles = {
-        str(i): make_ensemble(
-            model_dir=model_dir,
-            models={id: make_model() for id in model_ids},
-        )
-        for i, model_ids in zip(range(3), ["abc", "def", "ghi"])
-    }
+    ids_set = [("a", "b", "c"), ("d", "e", "f"), ("g", "h", "i")]
 
-    return make_ensemble_store(ensemble_dir, model_dir, ensembles)
+    model_store = ModelStore[MT](model_dir)
+    # Put all ids in the a model store
+    for id in chain.from_iterable(ids_set):
+        model_store[id].save(make_model())
+
+    ensembles = {"".join(ids): make_ensemble(model_store, ids) for ids in ids_set}
+    return make_ensemble_store(ensemble_dir, ensembles)
 
 
 @case(tags=["unpopulated", "unstrict_get", "ensemble"])
@@ -158,9 +169,7 @@ def case_ensemble_store_unpopulated(
     make_ensemble_store: Callable,
 ) -> EnsembleStore:
     """An unpopulated ensemble store"""
-    ensemble_dir = path.joinpath("ensembles")
-    model_dir = path.joinpath("models")
-    return make_ensemble_store(ensemble_dir, model_dir=model_dir)
+    return make_ensemble_store(path)
 
 
 @case(tags=["unpopulated", "mock_dir", "store"])

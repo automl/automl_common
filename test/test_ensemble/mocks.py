@@ -1,6 +1,4 @@
-from typing import Collection, Iterator
-
-from pathlib import Path
+from typing import Collection, Iterator, TypeVar
 
 import numpy as np
 
@@ -8,10 +6,12 @@ from automl_common.backend.stores.model_store import ModelStore
 from automl_common.ensemble import Ensemble
 from automl_common.model import Model
 
+MT = TypeVar("MT", bound=Model)
 
-class MockEnsemble(Ensemble[Model]):
-    def __init__(self, model_dir: Path, ids: Collection[str]):
-        self.model_dir = model_dir
+
+class MockEnsemble(Ensemble[MT]):
+    def __init__(self, model_store: ModelStore[MT], ids: Collection[str]):
+        self.model_store = model_store
         self._ids = ids
 
     def predict(self, x: np.ndarray) -> np.ndarray:
@@ -28,9 +28,8 @@ class MockEnsemble(Ensemble[Model]):
         """
         return x
 
-    def __getitem__(self, model_id: str) -> Model:
-        store = ModelStore[Model](self.model_dir, ids=self.ids)
-        return store[model_id].load()
+    def __getitem__(self, model_id: str) -> MT:
+        return self.model_store[model_id].load()
 
     def __iter__(self) -> Iterator[str]:
         return iter(self._ids)

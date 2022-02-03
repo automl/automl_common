@@ -143,7 +143,7 @@ def make_model_store() -> Callable[..., ModelStore[MT]]:
 
 
 @fixture(scope="function")
-def make_ensemble_store() -> Callable[..., EnsembleStore[ET, MT]]:
+def make_ensemble_store() -> Callable[..., EnsembleStore[ET]]:
     """Make an EnsembleStore
 
     Parameters
@@ -167,19 +167,12 @@ def make_ensemble_store() -> Callable[..., EnsembleStore[ET, MT]]:
 
     def _make(
         dir: Path,
-        model_dir: Path,
         ensembles: Optional[Mapping[str, ET]] = None,
-        extra_models: Optional[Mapping[str, MT]] = None,
-    ) -> EnsembleStore[ET, MT]:
-        store = EnsembleStore[ET, MT](dir=dir, model_dir=model_dir)
+    ) -> EnsembleStore[ET]:
+        store = EnsembleStore[ET](dir=dir)
         if ensembles is not None:
             for key, ensemble in ensembles.items():
                 store[key].save(ensemble)
-
-        if extra_models is not None:
-            model_store = ModelStore[MT](dir=model_dir)
-            for key, model in extra_models.items():
-                model_store[key].save(model)
 
         return store
 

@@ -1,6 +1,4 @@
-from typing import Callable, Mapping, Optional, Sequence, TypeVar, Union
-
-from pathlib import Path
+from typing import Callable, Collection, Mapping, TypeVar
 
 from pytest_cases import fixture
 
@@ -13,13 +11,6 @@ from test.test_ensemble.mocks import MockEnsemble
 MT = TypeVar("MT", bound=Model)
 
 
-def store_models(path: Path, models: Mapping[str, MT]) -> None:
-    """Stores models at path"""
-    store = ModelStore[MT](path)
-    for id, model in models.items():
-        store[id].save(model)
-
-
 @fixture(scope="function")
 def make_ensemble() -> Callable[..., MockEnsemble]:
     """Create mock ensemble objects
@@ -28,18 +19,8 @@ def make_ensemble() -> Callable[..., MockEnsemble]:
     ensemble = make_ensemble(model_dir=path, ids={1: Model()})
     """
 
-    def _make(
-        model_dir: Path,
-        models: Union[Sequence[str], Mapping[str, MT]],
-    ) -> MockEnsemble:
-        if isinstance(models, Mapping):
-            store_models(model_dir, models)
-            ids = list(models.keys())
-
-        else:
-            ids = list(models)
-
-        return MockEnsemble(model_dir, ids)
+    def _make(model_store: ModelStore[MT], ids: Collection[str]) -> MockEnsemble:
+        return MockEnsemble(model_store, ids=ids)
 
     return _make
 
@@ -53,14 +34,10 @@ def make_weighted_ensemble() -> Callable[..., WeightedEnsemble[MT]]:
     """
 
     def _make(
-        model_dir: Path,
+        model_store: ModelStore[MT],
         weighted_ids: Mapping[str, float],
-        models: Optional[Mapping[str, MT]] = None,
     ) -> WeightedEnsemble[MT]:
-        if models is not None:
-            store_models(model_dir, models)
-
-        return WeightedEnsemble[MT](model_dir, weighted_ids=weighted_ids)
+        return WeightedEnsemble[MT](model_store, weighted_ids=weighted_ids)
 
     return _make
 
@@ -74,14 +51,10 @@ def make_uniform_ensemble() -> Callable[..., UniformEnsemble[MT]]:
     """
 
     def _make(
-        model_dir: Path,
-        models: Union[Sequence[str], Mapping[str, MT]],
+        model_store: ModelStore[MT],
+        ids: Collection[str],
     ) -> UniformEnsemble[MT]:
-        if isinstance(models, Mapping):
-            store_models(model_dir, models)
-            models = list(models.keys())
-
-        return UniformEnsemble[MT](model_dir, models)
+        return UniformEnsemble[MT](model_store, ids=ids)
 
     return _make
 
@@ -95,13 +68,9 @@ def make_single_ensemble() -> Callable[..., SingleEnsemble[MT]]:
     """
 
     def _make(
-        model_dir: Path,
+        model_store: ModelStore[MT],
         model_id: str,
-        model: Optional[MT] = None,
     ) -> SingleEnsemble[MT]:
-        if model is not None:
-            store_models(model_dir, {model_id: model})
-
-        return SingleEnsemble[MT](model_dir, model_id)
+        return SingleEnsemble[MT](model_store, model_id)
 
     return _make

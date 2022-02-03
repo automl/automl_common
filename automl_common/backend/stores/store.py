@@ -75,6 +75,9 @@ class StoreView(ABC, Mapping[str, T]):
         """
         ...
 
+    def __repr__(self) -> str:
+        return f"Store: {self.dir}"
+
 
 class Store(StoreView[T], MutableMapping[str, T]):
     """An mutable view into state preserved on the filesystem

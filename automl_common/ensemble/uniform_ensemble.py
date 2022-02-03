@@ -1,21 +1,20 @@
-from typing import Sequence, TypeVar
+from typing import Collection, TypeVar
 
-from pathlib import Path
-
+from automl_common.backend.stores.model_store import ModelStore
 from automl_common.ensemble.weighted_ensemble import WeightedEnsemble
 from automl_common.model import Model
 
-ModelT = TypeVar("ModelT", bound=Model)
+MT = TypeVar("MT", bound=Model)
 
 
-class UniformEnsemble(WeightedEnsemble[ModelT]):
+class UniformEnsemble(WeightedEnsemble[MT]):
     """An ensemble of models, each with equal weight"""
 
-    def __init__(self, model_dir: Path, ids: Sequence[str]):
+    def __init__(self, model_store: ModelStore[MT], ids: Collection[str]):
         """
         Parameters
         ----------
-        model_dir: Path
+        model_store: ModelStore[MT]
             The path to the models
 
         ids: Sequence[str]
@@ -26,6 +25,6 @@ class UniformEnsemble(WeightedEnsemble[ModelT]):
 
         weight = 1.0 / len(ids)
         super().__init__(
-            model_dir=model_dir,
+            model_store=model_store,
             weighted_ids={id: weight for id in ids},
         )
