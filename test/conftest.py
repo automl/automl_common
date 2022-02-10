@@ -60,19 +60,3 @@ def factory_modules() -> List[str]:
 
 
 pytest_plugins += fixture_modules() + factory_modules()
-
-
-def test_id(request: FixtureRequest) -> str:
-    """Gets a unique id for all tests, even parameterized tests
-
-    Returns
-    -------
-    str
-        A unique id for the test
-    """
-    return (
-        re.match(r".*::(.*)$", request.node.nodeid)  # type: ignore
-        .group(1)
-        .replace("[", "_")
-        .replace("]", "")
-    )

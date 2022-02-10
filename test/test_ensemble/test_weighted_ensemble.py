@@ -32,6 +32,8 @@ def test_empty_ids(path: Path, make_model_store: Callable[..., ModelStore[MT]]) 
     with pytest.raises(ValueError):
         WeightedEnsemble(store, weighted_ids={})
 
+    return  # pragma: no cover
+
 
 def test_with_missing_models(
     path: Path, make_model_store: Callable[..., ModelStore[MT]]
@@ -54,11 +56,13 @@ def test_with_missing_models(
     with pytest.raises(ValueError):
         WeightedEnsemble(store, weighted_ids={badkey: 1.0})
 
+    return  # pragma: no cover
+
 
 @parametrize_with_cases(
     "ensemble",
     cases=cases,
-    filter=ft.has_tag("weighted") & ft.has_tag("valid"),
+    filter=ft.has_tag("weighted"),
 )
 def test_predict(ensemble: WeightedEnsemble) -> None:
     """
@@ -75,7 +79,9 @@ def test_predict(ensemble: WeightedEnsemble) -> None:
     x = np.asarray([1, 10, 100])
 
     ids, weights = zip(*ensemble.weights.items())
-    expected_predictions = iter(ensemble[id].predict(x) for id in ids)
+
+    # Note sure why coverage gives `line -> exit` not covered
+    expected = iter(ensemble[id].predict(x) for id in ids)  # pragma: no cover
 
     with patch("automl_common.ensemble.weighted_ensemble.weighted_sum") as mock:
         ensemble.predict(x)
@@ -83,5 +89,7 @@ def test_predict(ensemble: WeightedEnsemble) -> None:
         args, kwargs = mock.call_args
         assert list(weights) == list(args[0])
 
-        for passed_pred, expected_pred in zip(args[1], expected_predictions):
-            np.testing.assert_equal(passed_pred, expected_pred)
+        for input, expected in zip(args[1], expected):
+            np.testing.assert_equal(input, expected)
+
+    return

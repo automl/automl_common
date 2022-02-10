@@ -72,7 +72,7 @@ def setup_models(
         assert model_type is not None
         models = {key: model_type() for key in models}
 
-    elif isinstance(models, Mapping):
+    elif isinstance(models, Mapping):  # pragma: no cover
         models = models
 
     else:

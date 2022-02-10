@@ -76,3 +76,6 @@ class Accessor(ABC, Generic[T]):
             rmtree(self.dir)
         else:
             self.path.unlink()
+
+    def __str__(self) -> str:
+        return f"Accessor: {self.dir}"

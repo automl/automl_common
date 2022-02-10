@@ -134,3 +134,20 @@ def test_delete_folder(accessor: Accessor) -> None:
     """
     accessor.delete(folder=True)
     assert not accessor.dir.exists()
+
+
+@parametrize_with_cases("accessor", cases=cases)
+def test_str_has_dir(accessor: Accessor) -> None:
+    """
+    Parameters
+    ----------
+    accessor : Accessor
+        The accessor to test
+
+    Expects
+    -------
+    * The accessor should contain the directory in it's str output
+    """
+    assert str(accessor.dir) in str(accessor)
+
+

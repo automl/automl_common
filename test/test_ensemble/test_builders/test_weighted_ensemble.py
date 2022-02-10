@@ -34,6 +34,8 @@ def test_predictions_empty_dict(predictions: Mapping[str, np.ndarray]) -> None:
             select="min",
         )
 
+    return  # pragma: no cover
+
 
 @parametrize("size", [-5, -1, 0])
 def test_bad_size(size: int) -> None:
@@ -55,6 +57,8 @@ def test_bad_size(size: int) -> None:
             metric=lambda x, y: 42,
             select="min",
         )
+
+    return  # pragma: no cover
 
 
 @parametrize_with_cases(

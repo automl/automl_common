@@ -29,7 +29,7 @@ ET = TypeVar("ET", bound=Ensemble)
 @parametrize("model_type", [MockModel, MockProbabilisticModel])
 def case_mock(
     path: Path,
-    n_models: Tuple[str],
+    n_models: int,
     model_type: Type[MT],
     make_ensemble: Callable[..., MockEnsemble[MT]],
 ) -> MockEnsemble[MT]:
@@ -53,7 +53,7 @@ def case_single(
 @parametrize("model_type", [MockModel, MockProbabilisticModel])
 def case_uniform(
     path: Path,
-    n_models: Tuple[str],
+    n_models: int,
     model_type: Type[MT],
     make_uniform_ensemble: Callable[..., UniformEnsemble[MT]],
 ) -> UniformEnsemble[MT]:
@@ -66,14 +66,14 @@ def case_uniform(
     "n_models, weights",
     [
         (1, [1.0]),
-        (3, {"a": 3.4, "b": -2.1, "c": 14.0}),
+        (3, {"0": 3.4, "1": -2.1, "2": 14.0}),
         (10, [0.1 for _ in range(10)]),
     ],
 )
 @parametrize("model_type", [MockModel, MockProbabilisticModel])
 def case_weighted(
     path: Path,
-    n_models: Tuple[str],
+    n_models: int,
     model_type: Type[MT],
     weights: Union[List[float], Mapping[str, float]],
     make_weighted_ensemble: Callable[..., WeightedEnsemble[MT]],

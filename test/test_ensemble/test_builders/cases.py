@@ -3,7 +3,7 @@ tags:
     {"weighted", "single"} - The type of case it is
 """
 
-from typing import Any, Callable, Mapping, Tuple, TypeVar
+from typing import Any, Callable, TypeVar
 from typing_extensions import Literal  # TODO, remove with Python 3.8
 
 import numpy as np
@@ -12,13 +12,6 @@ from pytest_cases import case, parametrize
 from automl_common.metrics import accuracy, rmse
 
 T = TypeVar("T")
-
-
-def best_multi_out(scores: Mapping[str, Tuple[float, float]]) -> str:
-    """A corresponding best function for multi object"""
-    score = lambda acc, dist: (-acc + dist)
-    aggregated_scores = {id: score(*value) for id, value in scores.items()}
-    return min(aggregated_scores, key=aggregated_scores.__getitem__)
 
 
 @case(tags=["single"])

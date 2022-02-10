@@ -33,6 +33,8 @@ def test_predictions_empty_dict(predictions: List[Tuple[str, np.ndarray]]) -> No
             select="min",
         )
 
+    return  # pragma: no cover
+
 
 @parametrize_with_cases(
     "model_predictions, targets, metric, select, expected",

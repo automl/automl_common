@@ -9,6 +9,7 @@ from pytest_cases import parametrize_with_cases
 from automl_common.backend.stores.store import Store, StoreView
 
 import test.test_backend.test_stores.cases as cases
+from test.test_backend.test_stores.mocks import MockDirStore
 
 
 @parametrize_with_cases("cls, dir", cases=cases, filter=ft.has_tag("params"))
@@ -240,10 +241,9 @@ def test_iter_unpopulated(store: StoreView) -> None:
 
     Expects
     -------
-    * Should not be able to iter unpopulated store
+    * Should produce no items in it's iter
     """
-    for key in store:
-        raise AssertionError(f"Store returned iterator with {key} in it")
+    assert len(list(iter(store))) == 0
 
 
 @parametrize_with_cases("store", cases=cases, filter=ft.has_tag("populated"))
@@ -281,3 +281,27 @@ def test_del_item_bad_key(store: Store) -> None:
     badkey = "badkey"
     with pytest.raises(KeyError):
         del store[badkey]
+
+
+@parametrize_with_cases(
+    "store",
+    cases=cases,
+    filter=ft.has_tag("populated") & ft.has_tag("store"),
+)
+def test_save(store: Store) -> None:
+    """
+    Parameters
+    ----------
+    store : Store
+        The store to test
+
+    Expects
+    -------
+    * Should be able to save an item that was loaded saved
+    """
+    other_key = "banana-bread"
+    key, item = next(iter(store.items()))
+
+    del store[key]
+
+    store[other_key] = item

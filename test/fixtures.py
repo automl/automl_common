@@ -1,5 +1,3 @@
-from typing import Callable
-
 from pathlib import Path
 
 from pytest import FixtureRequest
@@ -16,23 +14,3 @@ def path(request: FixtureRequest, impl: Path) -> Path:
     The should delete themselves after use
     """
     return impl
-
-
-@fixture(scope="function")
-@parametrize("impl", [fixture_ref("tmp_path")])
-def make_path(impl: Path) -> Callable[[str], Path]:
-    """Returns a factory for paths
-
-    def test(make_path: Callable[[str], Path]):
-        path1 = make_path("hello")
-        path2 = make_path("world")
-
-    Will use any kinds of paths included in its @parametrize
-
-    The should delete themselves after use
-    """
-
-    def make(name: str) -> Path:
-        return impl / name
-
-    return make
