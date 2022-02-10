@@ -1,19 +1,20 @@
-from typing import Callable, Hashable, Iterable, List, Tuple, TypeVar, Union
+from typing import Callable, List, Tuple, TypeVar
+from typing_extensions import Literal  # TODO python3.8
 
 import numpy as np
 import pytest
 from pytest_cases import parametrize, parametrize_with_cases
 
 from automl_common.ensemble.builders.single_best import single_best
-from automl_common.util.types import SupportsEqualty
+from automl_common.util.types import Orderable
 
 import test.test_ensemble.test_builders.cases as cases
 
-T = TypeVar("T", bound=SupportsEqualty)
+OrderableT = TypeVar("OrderableT", bound=Orderable)
 
 
 @parametrize("predictions", [[]])
-def test_predictions_empty_dict(predictions: List[Tuple[Hashable, np.ndarray]]) -> None:
+def test_predictions_empty_dict(predictions: List[Tuple[str, np.ndarray]]) -> None:
     """
     Parameters
     ----------
@@ -29,63 +30,43 @@ def test_predictions_empty_dict(predictions: List[Tuple[Hashable, np.ndarray]]) 
             model_predictions=predictions,
             targets=np.asarray([]),
             metric=lambda x, y: 42,
-        )
-
-
-@parametrize("best", ["loss", "score", "hell world", object(), []])
-def test_bad_best_arg(best: str) -> None:
-    """
-    Parameters
-    ----------
-    best: str
-        A bad `best` parameter str
-
-    Expects
-    -------
-    * Should raise an error about a bad "best" parameter
-    """
-    with pytest.raises(ValueError, match="`best` must be"):
-        single_best(
-            model_predictions=[("a", np.asarray([]))],
-            targets=np.asarray([]),
-            metric=lambda x, y: 42,
-            best=best,
+            select="min",
         )
 
 
 @parametrize_with_cases(
-    "model_predictions, targets, metric, best, expected",
+    "model_predictions, targets, metric, select, expected",
     cases=cases,
     has_tag="single",
 )
 def test_single_best_is_chosen(
-    model_predictions: List[Tuple[Hashable, np.ndarray]],
+    model_predictions: List[Tuple[str, np.ndarray]],
     targets: np.ndarray,
-    metric: Callable[..., T],
-    best: Union[str, Callable[[Iterable[T]], T]],
-    expected: Hashable,
+    metric: Callable[[np.ndarray, np.ndarray], OrderableT],
+    select: Literal["min", "max"],
+    expected: str,
 ) -> None:
     """
     Parameters
     ----------
-    model_predictions: List[Tuple[Hashable, np.ndarray]]
+    model_predictions: List[Tuple[str, np.ndarray]]
         The model predicitons
 
     target: np.ndarray
         The targets
 
-    metric: Callable[..., T]
+    metric: Callable[[np.ndarray, np.ndarray], OrderableT]
         The metric to perform between predictions and target
 
-    best: Union[str, Callable[Iterable[T]], T]
+    select: "min" | "max"
         How to select the best from the scores generated
 
-    expected: Hashable
+    expected: str
         The expected id to be selected
 
     Expects
     -------
-    * Should raise an error about a bad "best" parameter
+    * Should chose the expected model
     """
     ids, _ = zip(*model_predictions)
     assert expected in ids
@@ -94,7 +75,7 @@ def test_single_best_is_chosen(
         model_predictions=model_predictions,
         targets=targets,
         metric=metric,
-        best=best,
+        select=select,
     )
 
     assert chosen == expected

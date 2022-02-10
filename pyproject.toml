@@ -69,7 +69,7 @@ disallow_untyped_decorators = true # ... even decorators
 disallow_incomplete_defs = true # ...all types
 
 [[tool.mypy.overrides]]
-module = ["setuptools.*", "smac.*", "dask.*", "ConfigSpace.*"]
+module = ["setuptools.*", "smac.*", "dask.*", "ConfigSpace.*", "sklearn.*"]
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]

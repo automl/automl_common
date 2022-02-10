@@ -1,3 +1,3 @@
-from automl_common.model.model import Model
+from automl_common.model.model import Model, ProbabilisticModel
 
-__all__ = ["Model"]
+__all__ = ["Model", "ProbabilisticModel"]

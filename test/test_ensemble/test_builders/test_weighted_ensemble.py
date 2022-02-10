@@ -1,30 +1,20 @@
-from typing import (
-    Callable,
-    Hashable,
-    Iterable,
-    Mapping,
-    Optional,
-    Sequence,
-    Tuple,
-    TypeVar,
-    Union,
-)
+from typing import Callable, Mapping, Optional, Sequence, Tuple, TypeVar
+from typing_extensions import Literal
 
 import numpy as np
 import pytest
 from pytest_cases import parametrize, parametrize_with_cases
 
 from automl_common.ensemble.builders.weighted_ensemble import weighted_ensemble_caruana
-from automl_common.util.types import SupportsEqualty
+from automl_common.util.types import Orderable
 
 import test.test_ensemble.test_builders.cases as cases
 
-T = TypeVar("T", bound=SupportsEqualty)
-ID = TypeVar("ID", bound=Hashable)
+OrderableT = TypeVar("OrderableT", bound=Orderable)
 
 
 @parametrize("predictions", [{}])
-def test_predictions_empty_dict(predictions: Mapping[ID, np.ndarray]) -> None:
+def test_predictions_empty_dict(predictions: Mapping[str, np.ndarray]) -> None:
     """
     Parameters
     ----------
@@ -41,28 +31,7 @@ def test_predictions_empty_dict(predictions: Mapping[ID, np.ndarray]) -> None:
             size=1,
             targets=np.asarray([]),
             metric=lambda x, y: 42,
-        )
-
-
-@parametrize("best", ["loss", "score", "hell world", object(), []])
-def test_bad_best_arg(best: str) -> None:
-    """
-    Parameters
-    ----------
-    best: str
-        A bad `best` parameter str
-
-    Expects
-    -------
-    * Should raise an error about a bad "best" parameter
-    """
-    with pytest.raises(ValueError, match="`best` must be"):
-        weighted_ensemble_caruana(
-            model_predictions={"a": np.asarray([])},
-            targets=np.asarray([]),
-            size=1,
-            metric=lambda x, y: 42,
-            best=best,
+            select="min",
         )
 
 
@@ -84,44 +53,45 @@ def test_bad_size(size: int) -> None:
             targets=np.asarray([]),
             size=size,
             metric=lambda x, y: 42,
+            select="min",
         )
 
 
 @parametrize_with_cases(
-    "model_predictions, targets, metric, size, best, "
+    "model_predictions, targets, metric, size, select,"
     "expected_weights, expected_trajectory",
     cases=cases,
     has_tag="weighted",
 )
 def test_weighted_ensemble_is_chosen(
-    model_predictions: Mapping[ID, np.ndarray],
+    model_predictions: Mapping[str, np.ndarray],
     targets: np.ndarray,
-    metric: Callable[..., T],
+    metric: Callable[[np.ndarray, np.ndarray], OrderableT],
     size: int,
-    best: Union[str, Callable[[Iterable[T]], T]],
-    expected_weights: Mapping[ID, float],
-    expected_trajectory: Sequence[Tuple[ID, float]],
+    select: Literal["min", "max"],
+    expected_weights: Mapping[str, float],
+    expected_trajectory: Sequence[Tuple[str, float]],
     random_state: Optional[int] = None,
 ) -> None:
     """
     Parameters
     ----------
-    model_predictions: Mapping[ID, np.ndarray]
+    model_predictions: Mapping[str, np.ndarray]
         The model predicitons
 
     target: np.ndarray
         The targets
 
-    metric: Callable[..., T]
+    metric: Callable[[np.ndarray, np.ndarray], OrderableT]
         The metric to perform between predictions and target
 
     size: int
         The size of the weighted ensemble to produce
 
-    best: Union[str, Callable[Iterable[T]], T]
+    select: "min" |  "max"
         How to select the best from the scores generated
 
-    expected_weights: Mapping[ID, float]
+    expected_weights: Mapping[str, float]
         The expected id to be selected
 
     expected_trajectory: Iterable[T]
@@ -139,7 +109,7 @@ def test_weighted_ensemble_is_chosen(
         targets=targets,
         size=size,
         metric=metric,
-        best=best,
+        select=select,
         random_state=random_state,
     )
 

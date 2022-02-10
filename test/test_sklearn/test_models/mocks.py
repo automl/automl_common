@@ -1,9 +1,14 @@
 import numpy as np
 
-from automl_common.model import Model, ProbabilisticModel
+from automl_common.sklearn.model import (
+    Classifier,
+    Predictor,
+    ProbabilisticPredictor,
+    Regressor,
+)
 
 
-class MockModel(Model):
+class MockPredictor(Predictor):
     def predict(self, x: np.ndarray) -> np.ndarray:
         """
         Parameters
@@ -19,7 +24,7 @@ class MockModel(Model):
         return x
 
 
-class MockProbabilisticModel(ProbabilisticModel, MockModel):
+class MockProbabilisticPredictor(ProbabilisticPredictor):
     def __init__(self, n_classes: int = 2):
         assert n_classes > 1
         self.n_classes = n_classes
@@ -38,3 +43,11 @@ class MockProbabilisticModel(ProbabilisticModel, MockModel):
         """
         x = np.random.random((len(x), self.n_classes))
         return x / x.sum(axis=1, keepdims=True)
+
+
+class MockRegressor(MockPredictor, Regressor):
+    pass
+
+
+class MockClassifier(MockProbabilisticPredictor, Classifier):
+    pass

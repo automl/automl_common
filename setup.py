@@ -31,6 +31,9 @@ setuptools.setup(
     platforms=["Linux"],
     install_requires=requirements,
     extras_require={
+        "sklearn": [
+            "scikit-learn",
+        ],
         "dev": [
             "pydocstyle",
             "flake8",
@@ -42,7 +45,8 @@ setuptools.setup(
         "test": [
             "pytest",
             "pytest-cov",
-            "pytest-cases"
+            "pytest-cases",
+            "scikit-learn",  # Used for testing SklearnEnsembles
         ]
     },
     include_package_data=True,

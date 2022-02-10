@@ -6,18 +6,20 @@ tags:
     "populated" - Populated with an ensemble/model
 """
 
-from typing import Callable, Mapping, Tuple, TypeVar
+from typing import Callable, Mapping, Tuple, Type, TypeVar, Union
 
 from pathlib import Path
 
 import numpy as np
-from pytest_cases import case
+from pytest_cases import case, parametrize
 
 from automl_common.backend.accessors.ensemble_accessor import EnsembleAccessor
 from automl_common.backend.accessors.model_accessor import ModelAccessor
 from automl_common.backend.stores.model_store import ModelStore
 from automl_common.ensemble import Ensemble
 from automl_common.model import Model
+
+from test.test_model.mocks import MockModel, MockProbabilisticModel
 
 MT = TypeVar("MT", bound=Model)
 ET = TypeVar("ET", bound=Ensemble)
@@ -80,23 +82,18 @@ def case_unpopulated_ensemble_accessor_with_predictions(
 
 
 @case(tags=["populated", "predictions", "ensemble"])
+@parametrize("models", [1, 5, ("a", "b", "c")])
+@parametrize("model_type", [MockModel, MockProbabilisticModel])
 def case_populated_ensemble_accessor_with_predictions(
     path: Path,
+    models: Union[int, Tuple[str]],
+    model_type: Type[MT],
     make_ensemble_accessor: Callable[..., EnsembleAccessor[ET]],
-    make_model_store: Callable[..., ModelStore[MT]],
     make_ensemble: Callable[..., Ensemble[MT]],
-    make_model: Callable[..., MT],
 ) -> EnsembleAccessor[ET]:
     """An EnsembleAccessor with an ensemble and with predictions"""
     ensemble_dir, model_dir = _dirs(path)
-    model_store = make_model_store(model_dir)
-
-    ids = ["a", "b", "c"]
-    for id in ids:
-        model_store[id].save(make_model())
-
-    ensemble = make_ensemble(model_store, ids=ids)
-
+    ensemble = make_ensemble(models=models, path=model_dir, model_type=model_type)
     return make_ensemble_accessor(
         dir=ensemble_dir,
         ensemble=ensemble,
@@ -115,22 +112,18 @@ def case_unpopulated_ensemble_accessor(
 
 
 @case(tags=["populated", "ensemble"])
+@parametrize("models", [1, 5, ("a", "b", "c")])
+@parametrize("model_type", [MockModel, MockProbabilisticModel])
 def case_populated_ensemble_accessor(
     path: Path,
+    models: Union[int, Tuple[str]],
+    model_type: Type[MT],
     make_ensemble_accessor: Callable[..., EnsembleAccessor[ET]],
     make_ensemble: Callable[..., Ensemble[MT]],
-    make_model: Callable[..., MT],
-    make_model_store: Callable[..., ModelStore[MT]],
 ) -> EnsembleAccessor[ET]:
     """An EnsembleAccessor with an ensemble and no predictions"""
     ensemble_dir, model_dir = _dirs(path)
-    model_store = make_model_store(model_dir)
-
-    ids = ["a", "b", "c"]
-    for id in ids:
-        model_store[id].save(make_model())
-
-    ensemble = make_ensemble(model_store, ids)
+    ensemble = make_ensemble(models=models, path=model_dir, model_type=model_type)
     return make_ensemble_accessor(
         dir=ensemble_dir,
         ensemble=ensemble,

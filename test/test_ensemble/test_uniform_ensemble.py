@@ -4,11 +4,13 @@ from math import isclose
 from pathlib import Path
 
 import pytest
-from pytest_cases import parametrize, parametrize_with_cases
+from pytest_cases import parametrize_with_cases
 
 from automl_common.backend.stores.model_store import ModelStore
 from automl_common.ensemble import UniformEnsemble
 from automl_common.model import Model
+
+import test.test_ensemble.cases as cases
 
 MT = TypeVar("MT", bound=Model)
 
@@ -32,24 +34,7 @@ def test_empty_ids(
         UniformEnsemble(store, ids=[])
 
 
-@parametrize("n", [1, 3, 10])
-def case_uniform_model(
-    path: Path,
-    n: int,
-    make_uniform_ensemble: Callable[..., UniformEnsemble[MT]],
-    make_model_store: Callable[..., ModelStore[MT]],
-    make_model: Callable[..., MT],
-) -> UniformEnsemble[MT]:
-    """UniformEnsemble with {1,3,10} models stored"""
-    ids = [str(i) for i in range(n)]
-    store = make_model_store(path)
-    for id in ids:
-        store[id].save(make_model())
-
-    return make_uniform_ensemble(store, ids)
-
-
-@parametrize_with_cases("uniform_ensemble", cases=".")
+@parametrize_with_cases("uniform_ensemble", cases=cases, has_tag="uniform")
 def test_uniform_ensemble_distributes_weight(uniform_ensemble: UniformEnsemble) -> None:
     """
     Parameters

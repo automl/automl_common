@@ -28,6 +28,7 @@ from automl_common.ensemble.ensemble import Ensemble
 from automl_common.model.model import Model
 
 from test.test_backend.test_stores.mocks import MockDirStore
+from test.test_model.mocks import MockModel, MockProbabilisticModel
 
 MT = TypeVar("MT", bound=Model)
 ET = TypeVar("ET", bound=Ensemble)
@@ -142,24 +143,27 @@ def case_pickle_store_unpopulated(
 
 
 @case(tags=["populated", "unstrict_get", "ensemble"])
+@parametrize("model_type", [MockModel, MockProbabilisticModel])
 def case_ensemble_store_populated(
     path: Path,
+    model_type: Type[MT],
     make_ensemble_store: Callable[..., EnsembleStore[ET]],
     make_ensemble: Callable[..., ET],
-    make_model: Callable[..., MT],
 ) -> EnsembleStore[ET]:
     """A populated ensemble store"""
-    ensemble_dir = path.joinpath("ensembles")
-    model_dir = path.joinpath("models")
+    ensemble_dir = path / "ensembles"
+    model_dir = path / "models"
 
     ids_set = [("a", "b", "c"), ("d", "e", "f"), ("g", "h", "i")]
 
-    model_store = ModelStore[MT](model_dir)
-    # Put all ids in the a model store
-    for id in chain.from_iterable(ids_set):
-        model_store[id].save(make_model())
+    model_store = ModelStore[MT](dir=model_dir)
+    ensembles = {
+        str(i): make_ensemble(
+            models=ids, model_store=model_store, model_type=model_type
+        )
+        for i, ids in enumerate(chain.from_iterable(ids_set))
+    }
 
-    ensembles = {"".join(ids): make_ensemble(model_store, ids) for ids in ids_set}
     return make_ensemble_store(ensemble_dir, ensembles)
 
 
