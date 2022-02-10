@@ -149,5 +149,3 @@ def test_str_has_dir(accessor: Accessor) -> None:
     * The accessor should contain the directory in it's str output
     """
     assert str(accessor.dir) in str(accessor)
-
-
