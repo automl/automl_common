@@ -239,7 +239,7 @@ def make_sklearn_single_regressor_ensemble() -> Callable[..., SingleRegressorEns
 
         # Build models
         if isinstance(models, int):
-            model_dict : Dict[str, RegressorT] = {
+            model_dict: Dict[str, RegressorT] = {
                 str(i): MockRegressor() for i in range(models)  # type: ignore
             }
         else:

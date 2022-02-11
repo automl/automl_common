@@ -12,9 +12,9 @@ import logging
 import numpy as np
 
 from automl_common.backend.stores.model_store import ModelStore
+from automl_common.data.validate import jagged
 from automl_common.ensemble.ensemble import Ensemble as BaseEnsemble
 from automl_common.sklearn.model import Classifier, Predictor, Regressor
-from automl_common.data.validate import jagged
 
 PredictorT = TypeVar("PredictorT", bound=Predictor)
 RegressorT = TypeVar("RegressorT", bound=Regressor)
@@ -26,7 +26,7 @@ SelfT = TypeVar("SelfT", bound="Ensemble")  # TODO Python 3.11 or typing_extensi
 logger = logging.getLogger(__name__)
 
 
-class Ensemble(BaseEnsemble[PredictorT]):
+class Ensemble(Predictor, BaseEnsemble[PredictorT]):
     """An sklearn style ensemble which includes `fit`.
 
     A base class for sklearn style ensembles.
@@ -285,11 +285,11 @@ class Ensemble(BaseEnsemble[PredictorT]):
         return all(hasattr(self, attr) for attr in self._fit_attributes())
 
 
-class RegressorEnsemble(Ensemble[RegressorT]):
+class RegressorEnsemble(Ensemble[RegressorT], Regressor):
     pass
 
 
-class ClassifierEnsemble(Ensemble[ClassifierT]):
+class ClassifierEnsemble(Ensemble[ClassifierT], Classifier):
     def predict_proba(self, x: np.ndarray) -> np.ndarray:
         """Get probability predictions for the data x
 

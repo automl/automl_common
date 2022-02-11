@@ -2,7 +2,7 @@ from typing import Iterable, List, Tuple
 
 import numpy as np
 import pytest
-from pytest_cases import case, parametrize_with_cases, parametrize
+from pytest_cases import case, parametrize, parametrize_with_cases
 
 from automl_common.data.math import majority_vote, weighted_sum
 

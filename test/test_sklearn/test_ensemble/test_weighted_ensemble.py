@@ -43,8 +43,8 @@ def test_trajectory_is_sorted(ensemble: WeightedEnsemble) -> None:
     -------
     * The entries in the trajectory should be sorted
     """
-    traj = ensemble.trajectory
-    assert all(a <= b for (_, a), (_, b) in zip(traj, traj[1:]))
+    scores = [x for _, x in ensemble.trajectory]
+    assert scores == sorted(scores)
 
 
 @parametrize_with_cases(

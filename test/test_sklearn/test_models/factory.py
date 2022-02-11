@@ -12,6 +12,9 @@ def make_classifier() -> Callable[[], MockClassifier]:
     """Classifier = make_classifier()"""
 
     def _make(seed: Union[int, RandomState] = DEFAULT_SEED) -> MockClassifier:
+        if isinstance(seed, RandomState):
+            seed = seed.randint(0, 42)
+
         return MockClassifier(seed=seed)
 
     return _make

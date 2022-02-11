@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import TypeVar
 from typing_extensions import (  # TODO: update with Python 3.8
     Protocol,
     runtime_checkable,
@@ -9,14 +10,17 @@ import numpy as np
 
 from automl_common.model.model import Model
 
+SelfT = TypeVar("SelfT", bound="Estimator", covariant=True)
+
 
 @runtime_checkable
 class Predictor(Model, Protocol):
     ...
 
+
 @runtime_checkable
 class Estimator(Predictor, Protocol):
-    def fit(self, x: np.ndarray, y: np.ndarray) -> Estimator:
+    def fit(self: SelfT, x: np.ndarray, y: np.ndarray) -> SelfT:
         """Fit this estimator
 
         Parameters

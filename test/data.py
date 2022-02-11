@@ -5,8 +5,8 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from automl_common.util.random import as_random_state
 from automl_common.data.math import normalize
+from automl_common.util.random import as_random_state
 
 DEFAULT_SEED = 42
 
@@ -62,7 +62,7 @@ def xy(
     if kind == "classification":
         # Normalize weights
         if weights:
-            weights = normalize(weights)
+            weights = normalize(np.array(weights))
 
         # Convert classes to be an np array of choices
         if isinstance(classes, int):

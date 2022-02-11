@@ -97,7 +97,7 @@ def majority_vote(
     arrays: Iterable[np.ndarray],
     weights: Optional[np.ndarray] = None,
 ) -> np.ndarray:
-    """ Do a majority vote where the weights correspond to each array's vote strength
+    """Do a majority vote where the weights correspond to each array's vote strength
 
     Parameters
     ----------
