@@ -6,11 +6,12 @@ from typing import Any, Iterator, List, Mapping, TypeVar
 import numpy as np
 
 from automl_common.model import Model
+from automl_common.util.types import EqualityMixin
 
 MT = TypeVar("MT", bound=Model)
 
 
-class Ensemble(ABC, Mapping[str, MT]):
+class Ensemble(ABC, EqualityMixin, Mapping[str, MT]):
     """Manages functionality around using multiple models ensembled in some fashion"""
 
     @abstractmethod

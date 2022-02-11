@@ -5,13 +5,14 @@ import pickle
 from pathlib import Path
 
 from automl_common.backend.util.path import rmtree
+from automl_common.util.types import EqualityMixin
 
 T = TypeVar("T")
 
 
 # TODO assuming a picklable object
 #   Trying to parametrize the saveing and loading functions would
-class Accessor(ABC, Generic[T]):
+class Accessor(ABC, EqualityMixin, Generic[T]):
     """Access state of some folder object wit predictions and an object
 
     Manages a directory:

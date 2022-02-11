@@ -6,7 +6,7 @@ from typing_extensions import Literal  # TODO, remove with Python 3.8
 import numpy as np
 
 from automl_common.backend.stores.model_store import ModelStore
-from automl_common.data.math import weighted_sum
+from automl_common.data.math import majority_vote, weighted_sum
 from automl_common.ensemble.builders.weighted_ensemble import weighted_ensemble_caruana
 from automl_common.metrics import accuracy, rmse
 from automl_common.sklearn.ensemble.ensemble import (
@@ -65,8 +65,8 @@ class WeightedEnsemble(Ensemble[PredictorT]):
         # self.random_state_
 
     @property
-    def tracjectory(self) -> List[Tuple[str, Orderable]]:
-        """The tracjectory of the fitting procedue
+    def trajectory(self) -> List[Tuple[str, Orderable]]:
+        """The trajectory of the fitting procedue
 
         Returns
         -------
@@ -80,7 +80,7 @@ class WeightedEnsemble(Ensemble[PredictorT]):
 
             .. code-block:: python
 
-                for model_id, perf in ensemble.tracjectory:
+                for model_id, perf in ensemble.trajectory:
                     ...
 
         Raises
@@ -178,7 +178,7 @@ class WeightedEnsemble(Ensemble[PredictorT]):
 
         """
         model_predictions = {
-            name: model.load().predict(x) for name, model in self.model_store.items()
+            name: model.load().predict(x) for name, model in self._model_store.items()
         }
 
         self.random_state_ = as_random_state(self.random_state)
@@ -212,8 +212,10 @@ class WeightedEnsemble(Ensemble[PredictorT]):
         """
         # Keep it iterable as weighted sum can handle it
         ids, weights = zip(*self.weights.items())
-        predictions = iter(self.model_store[id].load().predict(x) for id in ids)
-        return weighted_sum(weights, predictions)
+        predictions = iter(
+            self._model_store[id].load().predict(x) for id in ids
+        )  # pragma: no cover, not sure why it's not covered
+        return weighted_sum(predictions, weights=np.array(weights))
 
 
 class WeightedRegressorEnsemble(
@@ -250,6 +252,7 @@ class WeightedClassifierEnsemble(
         metric: Callable[[np.ndarray, np.ndarray], Orderable] = accuracy,
         select: Literal["min", "max"] = "max",
         random_state: Optional[Union[int, np.random.RandomState]] = None,
+        voting: Literal["majority", "probability"] = "majority",
     ):
         super().__init__(
             model_store=model_store,
@@ -258,3 +261,52 @@ class WeightedClassifierEnsemble(
             select=select,
             random_state=random_state,
         )
+        self.voting = voting
+
+    def get_params(self, deep: bool = True) -> Dict[str, Any]:
+        """Get the parameters of this ensemble
+
+        Parameters
+        ----------
+        deep : bool = True
+            Whether to get the parameters of subestimators
+
+        Returns
+        -------
+        Dict
+            A dicitonary mapping from parameters to values
+        """
+        return {**super().get_params(deep=deep), "voting": "voting"}
+
+    def _predict(self, x: np.ndarray) -> np.ndarray:
+        """Perform ensemble predictions on an array
+
+        Parameters
+        ----------
+        x : np.ndarray
+            The array to perform predictions on
+
+        Returns
+        -------
+        np.ndarray
+            The predictions of the ensemble
+        """
+        # Keep it iterable as weighted sum can handle it
+        ids, weights = zip(*self.weights.items())
+        if self.voting == "majority":
+            predictions = iter(self._model_store[id].load().predict(x) for id in ids)
+            return majority_vote(predictions, weights=np.array(weights))
+
+        elif self.voting == "probability":
+            probabilities = self._predict_proba(x)
+            return np.argmax(probabilities, axis=1)
+
+        else:
+            raise NotImplementedError()
+
+    def _predict_proba(self, x: np.ndarray) -> np.ndarray:
+        ids, weights = zip(*self.weights.items())
+        predictions = iter(
+            self._model_store[id].load().predict_proba(x) for id in ids
+        )  # pragma: no cover, not sure why coverage won't cover fully
+        return weighted_sum(predictions, weights=np.array(weights))

@@ -15,11 +15,10 @@ from pytest_cases import case, parametrize
 
 from automl_common.backend.accessors.ensemble_accessor import EnsembleAccessor
 from automl_common.backend.accessors.model_accessor import ModelAccessor
-from automl_common.backend.stores.model_store import ModelStore
 from automl_common.ensemble import Ensemble
 from automl_common.model import Model
 
-from test.test_model.mocks import MockModel, MockProbabilisticModel
+from test.test_model.mocks import MockModel
 
 MT = TypeVar("MT", bound=Model)
 ET = TypeVar("ET", bound=Ensemble)
@@ -83,7 +82,7 @@ def case_unpopulated_ensemble_accessor_with_predictions(
 
 @case(tags=["populated", "predictions", "ensemble"])
 @parametrize("models", [1, 5, ("a", "b", "c")])
-@parametrize("model_type", [MockModel, MockProbabilisticModel])
+@parametrize("model_type", [MockModel])
 def case_populated_ensemble_accessor_with_predictions(
     path: Path,
     models: Union[int, Tuple[str]],
@@ -113,7 +112,7 @@ def case_unpopulated_ensemble_accessor(
 
 @case(tags=["populated", "ensemble"])
 @parametrize("models", [1, 5, ("a", "b", "c")])
-@parametrize("model_type", [MockModel, MockProbabilisticModel])
+@parametrize("model_type", [MockModel])
 def case_populated_ensemble_accessor(
     path: Path,
     models: Union[int, Tuple[str]],

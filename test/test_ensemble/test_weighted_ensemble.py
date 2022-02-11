@@ -35,9 +35,7 @@ def test_empty_ids(path: Path, make_model_store: Callable[..., ModelStore[MT]]) 
     return  # pragma: no cover
 
 
-def test_with_missing_models(
-    path: Path, make_model_store: Callable[..., ModelStore[MT]]
-) -> None:
+def test_with_missing_models(path: Path, make_model_store: Callable[..., ModelStore[MT]]) -> None:
     """
     Parameters
     ----------
@@ -81,15 +79,15 @@ def test_predict(ensemble: WeightedEnsemble) -> None:
     ids, weights = zip(*ensemble.weights.items())
 
     # Note sure why coverage gives `line -> exit` not covered
-    expected = iter(ensemble[id].predict(x) for id in ids)  # pragma: no cover
+    expected = list(iter(ensemble[id].predict(x) for id in ids))  # pragma: no cover
 
     with patch("automl_common.ensemble.weighted_ensemble.weighted_sum") as mock:
         ensemble.predict(x)
 
         args, kwargs = mock.call_args
-        assert list(weights) == list(args[0])
+        assert list(weights) == list(kwargs["weights"])
 
-        for input, expected in zip(args[1], expected):
+        for input, expected in zip(args[0], expected):
             np.testing.assert_equal(input, expected)
 
     return

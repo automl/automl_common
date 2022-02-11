@@ -91,6 +91,7 @@ def weighted_ensemble_caruana(
         # Get the value if added for each model
         scores = {id: value_if_added(pred) for id, pred in model_predictions.items()}
 
+        print(scores)
         # Get the choices that produce the best value
         if select == "min":
             best_val = min(scores.values())

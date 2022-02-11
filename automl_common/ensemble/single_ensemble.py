@@ -21,9 +21,7 @@ class SingleEnsemble(WeightedEnsemble[MT]):
             The identifier of the single model
         """
         if model_id == "":
-            raise ValueError(
-                f"Found empty string as identifier for {self.__class__.__name__}"
-            )
+            raise ValueError(f"Found empty string as identifier for {self.__class__.__name__}")
 
         super().__init__(
             model_store=model_store,

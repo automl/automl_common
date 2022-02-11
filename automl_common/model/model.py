@@ -22,21 +22,3 @@ class Model(Protocol):
             The predictions of this model
         """
         ...
-
-
-@runtime_checkable
-class ProbabilisticModel(Model, Protocol):
-    def predict_proba(self, x: np.ndarray) -> np.ndarray:
-        """Perform probability predictions on x
-
-        Parameters
-        ----------
-        x: np.ndarray
-            The values to predict on
-
-        Returns
-        -------
-        np.ndarray
-            The predictions of this model
-        """
-        ...

@@ -62,8 +62,7 @@ def test_bad_size(size: int) -> None:
 
 
 @parametrize_with_cases(
-    "model_predictions, targets, metric, size, select,"
-    "expected_weights, expected_trajectory",
+    "model_predictions, targets, metric, size, select," "expected_weights, expected_trajectory",
     cases=cases,
     has_tag="weighted",
 )

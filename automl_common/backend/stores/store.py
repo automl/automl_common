@@ -1,14 +1,15 @@
 from abc import ABC, abstractmethod
-from typing import Iterator, Mapping, MutableMapping, TypeVar
+from typing import Any, Iterator, Mapping, MutableMapping, TypeVar
 
 from pathlib import Path
 
 from automl_common.backend.util.path import rmtree
+from automl_common.util.types import EqualityMixin
 
 T = TypeVar("T")
 
 
-class StoreView(ABC, Mapping[str, T]):
+class StoreView(ABC, EqualityMixin, Mapping[str, T]):
     """An immutable view into state preserved on the filesystem
 
     Stores items by key onto the filesystem but can not write to
@@ -77,6 +78,9 @@ class StoreView(ABC, Mapping[str, T]):
 
     def __repr__(self) -> str:
         return f"Store: {self.dir}"
+
+    def __eq__(self, other: Any) -> bool:
+        return isinstance(other, StoreView) and self.dir == other.dir
 
 
 class Store(StoreView[T], MutableMapping[str, T]):

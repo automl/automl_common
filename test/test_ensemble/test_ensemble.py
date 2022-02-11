@@ -1,5 +1,5 @@
 import numpy as np
-from pytest_cases import parametrize_with_cases, parametrize
+from pytest_cases import parametrize, parametrize_with_cases
 
 from automl_common.ensemble import Ensemble
 

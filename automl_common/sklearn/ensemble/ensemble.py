@@ -5,8 +5,7 @@ https://scikit-learn.org/stable/developers/develop.html#rolling-your-own-estimat
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Any, Dict, Iterator, List, Optional, Tuple, TypeVar
-from copy import copy
+from typing import Any, Dict, Iterator, List, Optional, TypeVar
 
 import logging
 
@@ -15,6 +14,7 @@ import numpy as np
 from automl_common.backend.stores.model_store import ModelStore
 from automl_common.ensemble.ensemble import Ensemble as BaseEnsemble
 from automl_common.sklearn.model import Classifier, Predictor, Regressor
+from automl_common.data.validate import jagged
 
 PredictorT = TypeVar("PredictorT", bound=Predictor)
 RegressorT = TypeVar("RegressorT", bound=Regressor)
@@ -48,29 +48,18 @@ class Ensemble(BaseEnsemble[PredictorT]):
     ----
     Technically we shouldn't allow for `model_store = None` in `__init__` but for
     full compatibility with sklearn, we need to do so. If this is the case, when
-    no model_store was recieved, the implementing object must call `self._fail_fit()`
-    and it's predictions should return the shape of NaN as seen during fit. This is
-    accessible in `self._target_shape`
-
-    None but for sklearn compatibility, we have to allow it. If not specified, it
-    must pretend nothing was chosen
+    no model_store was recieved, we simple error on fit.
 
     Parameters
     ----------
     model_store: Optional[ModelStore[PredictorT]] = None
         A model store from which models can be chosen.
-
-        Note
-        ----
         Will not operate properly without it.
     """
 
     @abstractmethod
     def __init__(self, *, model_store: Optional[ModelStore[PredictorT]] = None):
-        self._model_store = model_store
-
-        # Used if model_store is None to indicate it's failed
-        self._on_fail_predict_shape: Optional[Tuple[int, ...]] = None
+        self.model_store = model_store
 
     @abstractmethod
     def _fit(
@@ -162,18 +151,18 @@ class Ensemble(BaseEnsemble[PredictorT]):
         return self.ids_  # type: ignore
 
     @property
-    def model_store(self) -> ModelStore[PredictorT]:
-        """Get the ModelStore this ensemble is using
+    def _model_store(self) -> ModelStore[PredictorT]:
+        """Internal method to access the model store in a type safe way
 
         Returns
         -------
         ModelStore[PredictorT]
-            The model store that the ensemble is using
+            The model store this object was constructed with
         """
-        if self._model_store is None:
-            raise RuntimeError("Ensemble was built with `model_store` == None")
+        if self.model_store is None:
+            raise AttributeError("Constructed without `model_store`")
 
-        return self._model_store
+        return self.model_store
 
     def fit(self: SelfT, x: np.ndarray, y: np.ndarray) -> SelfT:
         """Fit the ensemble to the given targets
@@ -192,20 +181,13 @@ class Ensemble(BaseEnsemble[PredictorT]):
         -------
         self
         """
+        if self.model_store is None:
+            raise RuntimeError("Can't fit without model store")
+
         # Reset attributes
         for attr in self._fit_attributes():
-            delattr(self, attr)
-            self._on_fail_predict_shape = None
-
-        # If we have no model_store, we can't fit anything
-        if self._model_store is None:
-            for attr in self._fit_attributes():
-                setattr(self, attr, None)
-
-            self._on_fail_predict_shape = y.shape
-            self.ids_ = []
-
-            return self
+            if hasattr(self, attr):
+                delattr(self, attr)
 
         # Call the underlying fit implementation
         self.ids_ = self._fit(x, y)
@@ -235,21 +217,6 @@ class Ensemble(BaseEnsemble[PredictorT]):
         if not self.__sklearn_is_fitted__():
             raise AttributeError("Please call `fit` first")
 
-        # If fitted with no model store
-        if self._on_fail_predict_shape is not None:
-            assert self._model_store is None
-            logger.warning(
-                "Predicting with Ensemble that was constructed with no ModelStore."
-                "\nWill return all 0's."
-            )
-
-            # Copy the length and return the rest of the expected shape
-            shape = self._on_fail_predict_shape
-            if len(shape) == 1:
-                return np.zeros(len(x))
-            else:
-                return np.zeros((len(x), *shape[1:]))
-
         return self._predict(x)
 
     def get_params(self, deep: bool = True) -> Dict[str, Any]:
@@ -264,7 +231,7 @@ class Ensemble(BaseEnsemble[PredictorT]):
         Dict
             A dicitonary mapping from parameters to values
         """
-        return {"model_store": self._model_store}
+        return {"model_store": self.model_store}
 
     def set_params(self: SelfT, **parameters: Any) -> SelfT:
         """Set the params of this ensemble
@@ -280,9 +247,6 @@ class Ensemble(BaseEnsemble[PredictorT]):
             self with the parameters set
         """
         for param, value in parameters.items():
-            if param == "model_store":
-                param = "_model_store"  # We underscore prefix it
-
             setattr(self, param, value)
 
         return self
@@ -303,11 +267,10 @@ class Ensemble(BaseEnsemble[PredictorT]):
         MT
             The model
         """
-        if self.model_store is None:
-            raise RuntimeError("No ModelStore to retreive from")
-
         if not self.__sklearn_is_fitted__():
             raise AttributeError("Please call `fit` first")
+
+        assert self.model_store is not None  # Protected by requiring `fit`
 
         if model_id not in self.ids:  # type: ignore
             raise KeyError(f"Model {model_id} not in ensemble")
@@ -346,11 +309,23 @@ class ClassifierEnsemble(Ensemble[ClassifierT]):
         ------
         AttributeError
             Raises if the ensemble has not been fit yet
+
+        RuntimeError
+            Raises if it recieved a jagged set of probabilities
         """
         if not self.__sklearn_is_fitted__():
             raise AttributeError("Please call `fit` first")
 
-        return self._predict_proba(x)
+        predictions = self._predict_proba(x)
+        if jagged(predictions):
+            raise RuntimeError(
+                "Probability predictions were jagged, perhaps not all classifiers"
+                " were trained with the same labels or one of them produces output"
+                " in a different format from the rest."
+                f"\n\t{predictions}"
+            )
+
+        return predictions
 
     @abstractmethod
     def _predict_proba(self, x: np.ndarray) -> np.ndarray:

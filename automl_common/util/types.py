@@ -13,3 +13,17 @@ class Orderable(Protocol):
 
     def __gt__(self, other: Any) -> bool:
         ...
+
+
+class EqualityMixin:  # pragma: no cover
+    """Add basic equality checkng to a class
+
+    https://stackoverflow.com/a/390511/5332072
+    https://stackoverflow.com/a/390640/5332072
+    """
+
+    def __eq__(self, other: Any) -> bool:
+        if not type(self) is type(other):
+            return NotImplemented
+        else:
+            return self.__dict__ == other.__dict__

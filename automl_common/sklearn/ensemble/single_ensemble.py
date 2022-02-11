@@ -76,6 +76,11 @@ class SingleEnsemble(Ensemble[PredictorT]):
         -------
         str
             The id of the selected model
+
+        Raises
+        ------
+        AttributeError
+            If the ensemble has not been fit yet
         """
         if not self.__sklearn_is_fitted__():
             raise AttributeError("Please call `fit` first")
@@ -109,7 +114,7 @@ class SingleEnsemble(Ensemble[PredictorT]):
             The ids of the models selected
         """
         model_predictions = iter(
-            (model, self[model].predict(x)) for model in self.model_store
+            (name, model.load().predict(x)) for name, model in self._model_store.items()
         )
 
         self.random_state_ = as_random_state(self.random_state)

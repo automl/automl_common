@@ -3,8 +3,6 @@ from typing import Iterator, List, Optional
 import re
 from pathlib import Path
 
-from pytest import FixtureRequest
-
 # Load in other pytest modules, in this case fixtures
 here = Path(__file__)
 
@@ -43,20 +41,12 @@ def as_module(path: Path) -> str:
 
 def fixture_modules() -> List[str]:
     """Get all fixture modules"""
-    return [
-        as_module(path)
-        for path in walk(here.parent, include=r"test_(.*)")
-        if is_fixture(path)
-    ]
+    return [as_module(path) for path in walk(here.parent, include=r"test_(.*)") if is_fixture(path)]
 
 
 def factory_modules() -> List[str]:
     """Get all fixture modules"""
-    return [
-        as_module(path)
-        for path in walk(here.parent, include=r"test_(.*)")
-        if is_factory(path)
-    ]
+    return [as_module(path) for path in walk(here.parent, include=r"test_(.*)") if is_factory(path)]
 
 
 pytest_plugins += fixture_modules() + factory_modules()

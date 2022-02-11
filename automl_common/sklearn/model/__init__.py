@@ -1,8 +1,13 @@
 from automl_common.sklearn.model.model import (
     Classifier,
+    Estimator,
     Predictor,
-    ProbabilisticPredictor,
     Regressor,
 )
 
-__all__ = ["Predictor", "ProbabilisticPredictor", "Regressor", "Classifier"]
+__all__ = [
+    "Predictor",
+    "Regressor",
+    "Classifier",
+    "Estimator",
+]

@@ -3,7 +3,7 @@ tags:
     "params" - If it gives params for constructing an ensemble
     {"mock", "single", "uniform", "weighted"} - type of ensemble
 """
-from typing import Callable, List, Mapping, Tuple, Type, TypeVar, Union
+from typing import Callable, List, Mapping, Type, TypeVar, Union
 
 from pathlib import Path
 
@@ -18,7 +18,7 @@ from automl_common.ensemble import (
 from automl_common.model import Model
 
 from test.test_ensemble.mocks import MockEnsemble
-from test.test_model.mocks import MockModel, MockProbabilisticModel
+from test.test_model.mocks import MockModel
 
 MT = TypeVar("MT", bound=Model)
 ET = TypeVar("ET", bound=Ensemble)
@@ -26,7 +26,7 @@ ET = TypeVar("ET", bound=Ensemble)
 
 @case(tags=["mock"])
 @parametrize("n_models", [1, 10])
-@parametrize("model_type", [MockModel, MockProbabilisticModel])
+@parametrize("model_type", [MockModel])
 def case_mock(
     path: Path,
     n_models: int,
@@ -38,7 +38,7 @@ def case_mock(
 
 
 @case(tags=["single"])
-@parametrize("model_type", [MockModel, MockProbabilisticModel])
+@parametrize("model_type", [MockModel])
 def case_single(
     path: Path,
     model_type: Type[MT],
@@ -50,7 +50,7 @@ def case_single(
 
 @case(tags=["uniform"])
 @parametrize("n_models", [1, 3, 10])
-@parametrize("model_type", [MockModel, MockProbabilisticModel])
+@parametrize("model_type", [MockModel])
 def case_uniform(
     path: Path,
     n_models: int,
@@ -70,7 +70,7 @@ def case_uniform(
         (10, [0.1 for _ in range(10)]),
     ],
 )
-@parametrize("model_type", [MockModel, MockProbabilisticModel])
+@parametrize("model_type", [MockModel])
 def case_weighted(
     path: Path,
     n_models: int,

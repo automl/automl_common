@@ -57,7 +57,7 @@ class WeightedEnsemble(Ensemble[MT]):
         """
         ids, weights = zip(*self.weights.items())
         predictions = iter(self[id].predict(x) for id in ids)
-        return weighted_sum(weights, predictions)
+        return weighted_sum(predictions, weights=np.array(weights))
 
     def __getitem__(self, model_id: str) -> MT:
         return self._model_store[model_id].load()

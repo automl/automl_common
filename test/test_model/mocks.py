@@ -1,9 +1,15 @@
 import numpy as np
 
-from automl_common.model import Model, ProbabilisticModel
+from automl_common.model import Model
+from automl_common.util.random import as_random_state
+
+from test.data import DEFAULT_SEED, arrhash
 
 
 class MockModel(Model):
+    def __init__(self, seed: int = DEFAULT_SEED):
+        self.seed = seed
+
     def predict(self, x: np.ndarray) -> np.ndarray:
         """
         Parameters
@@ -16,25 +22,5 @@ class MockModel(Model):
         np.ndarray
             Just return what it got as input
         """
-        return x
-
-
-class MockProbabilisticModel(ProbabilisticModel, MockModel):
-    def __init__(self, n_classes: int = 2):
-        assert n_classes > 1
-        self.n_classes = n_classes
-
-    def predict_proba(self, x: np.ndarray) -> np.ndarray:
-        """
-        Parameters
-        ----------
-        x: np.ndarray
-            The values to predict on
-
-        Returns
-        -------
-        np.ndarray
-            Just return what it got as input
-        """
-        x = np.random.random((len(x), self.n_classes))
-        return x / x.sum(axis=1, keepdims=True)
+        rs = as_random_state(self.seed + arrhash(x))
+        return rs.random(size=len(x))

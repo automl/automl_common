@@ -1,48 +1,25 @@
-from typing import Callable
+from typing import Callable, Union
 
+from numpy.random import RandomState
 from pytest_cases import fixture
 
-from test.test_sklearn.test_models.mocks import (
-    MockClassifier,
-    MockPredictor,
-    MockProbabilisticPredictor,
-    MockRegressor,
-)
+from test.data import DEFAULT_SEED
+from test.test_sklearn.test_models.mocks import MockClassifier, MockRegressor
 
 
 @fixture(scope="function")
-def make_predictor() -> Callable[[], MockPredictor]:
-    """Model = make_predictor()"""
+def make_classifier() -> Callable[[], MockClassifier]:
+    """Classifier = make_classifier()"""
 
-    def _make() -> MockPredictor:
-        return MockPredictor()
-
-    return _make
-
-
-@fixture(scope="function")
-def make_probabilistic_predictor() -> Callable[[int], MockProbabilisticPredictor]:
-    """Model = make_probabilistic_predictor(n_classes: int =2)"""
-
-    def _make(n_classes: int = 2) -> MockProbabilisticPredictor:
-        return MockProbabilisticPredictor(n_classes=n_classes)
-
-    return _make
-
-
-@fixture(scope="function")
-def make_classifier() -> Callable[[int], MockClassifier]:
-    """Model = make_classifier(n_classes: int = 2)"""
-
-    def _make(n_classes: int = 2) -> MockClassifier:
-        return MockClassifier(n_classes=n_classes)
+    def _make(seed: Union[int, RandomState] = DEFAULT_SEED) -> MockClassifier:
+        return MockClassifier(seed=seed)
 
     return _make
 
 
 @fixture(scope="function")
 def make_regressor() -> Callable[[], MockRegressor]:
-    """Model = make_regressor()"""
+    """Regressor = make_regressor()"""
 
     def _make() -> MockRegressor:
         return MockRegressor()

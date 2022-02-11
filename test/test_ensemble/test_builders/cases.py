@@ -137,9 +137,7 @@ def case_autosklearn_weighted() -> Any:
     size = 10
     targets = np.full((100), 5.5)
 
-    model_predictions = {
-        str(i): np.full((100), i, dtype=np.float32) for i in range(1, 20)
-    }
+    model_predictions = {str(i): np.full((100), i, dtype=np.float32) for i in range(1, 20)}
 
     for i, preds in enumerate(model_predictions.values(), start=1):
         preds[i * 5 : (i + 1) * 5] = 5.5 * i

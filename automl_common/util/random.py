@@ -3,9 +3,7 @@ from typing import Union
 import numpy as np
 
 
-def as_random_state(
-    seed: Union[int, np.random.RandomState, None]
-) -> np.random.RandomState:
+def as_random_state(seed: Union[int, np.random.RandomState, None]) -> np.random.RandomState:
     """Converts a valid seed arg into a numpy.random.RandomState
 
     Following convention of sklearn.

@@ -36,4 +36,8 @@ def rmse(preds: np.ndarray, y: np.ndarray) -> float:
     float
         The root-mean-squared error of between the predictions and the targets
     """
-    return np.sqrt(np.average((y - preds) ** 2, axis=0))
+    scores = np.sqrt(np.average((y - preds) ** 2, axis=0))
+    if y.ndim > 1:
+        return np.average(scores)
+    else:
+        return scores
