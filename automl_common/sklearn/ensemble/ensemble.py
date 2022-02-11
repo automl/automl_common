@@ -6,6 +6,9 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from typing import Any, Dict, Iterator, List, Optional, Tuple, TypeVar
+from copy import copy
+
+import logging
 
 import numpy as np
 
@@ -19,6 +22,8 @@ ClassifierT = TypeVar("ClassifierT", bound=Classifier)
 
 # https://www.python.org/dev/peps/pep-0673/#motivation
 SelfT = TypeVar("SelfT", bound="Ensemble")  # TODO Python 3.11 or typing_extensions
+
+logger = logging.getLogger(__name__)
 
 
 class Ensemble(BaseEnsemble[PredictorT]):
@@ -60,6 +65,7 @@ class Ensemble(BaseEnsemble[PredictorT]):
         Will not operate properly without it.
     """
 
+    @abstractmethod
     def __init__(self, *, model_store: Optional[ModelStore[PredictorT]] = None):
         self._model_store = model_store
 
@@ -193,9 +199,11 @@ class Ensemble(BaseEnsemble[PredictorT]):
 
         # If we have no model_store, we can't fit anything
         if self._model_store is None:
-            self._on_fail_predict_shape = y.shape
             for attr in self._fit_attributes():
                 setattr(self, attr, None)
+
+            self._on_fail_predict_shape = y.shape
+            self.ids_ = []
 
             return self
 
@@ -227,6 +235,21 @@ class Ensemble(BaseEnsemble[PredictorT]):
         if not self.__sklearn_is_fitted__():
             raise AttributeError("Please call `fit` first")
 
+        # If fitted with no model store
+        if self._on_fail_predict_shape is not None:
+            assert self._model_store is None
+            logger.warning(
+                "Predicting with Ensemble that was constructed with no ModelStore."
+                "\nWill return all 0's."
+            )
+
+            # Copy the length and return the rest of the expected shape
+            shape = self._on_fail_predict_shape
+            if len(shape) == 1:
+                return np.zeros(len(x))
+            else:
+                return np.zeros((len(x), *shape[1:]))
+
         return self._predict(x)
 
     def get_params(self, deep: bool = True) -> Dict[str, Any]:
@@ -257,6 +280,9 @@ class Ensemble(BaseEnsemble[PredictorT]):
             self with the parameters set
         """
         for param, value in parameters.items():
+            if param == "model_store":
+                param = "_model_store"  # We underscore prefix it
+
             setattr(self, param, value)
 
         return self
