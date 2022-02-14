@@ -63,7 +63,7 @@ def make_sklearn_weighted_classifier_ensemble() -> Callable[
         # Build models
         if isinstance(models, int):
             model_dict: Dict[str, ClassifierT] = {
-                str(i): MockClassifier(seed=seed) for i in range(models)  # type: ignore
+                str(i): MockClassifier() for i in range(models)  # type: ignore
             }
         else:
             model_dict = dict(**models)
@@ -184,7 +184,7 @@ def make_sklearn_single_classifier_ensemble() -> Callable[
         # Build models
         if isinstance(models, int):
             model_dict: Dict[str, ClassifierT] = {
-                str(i): MockClassifier(seed=seed) for i in range(models)  # type: ignore
+                str(i): MockClassifier() for i in range(models)  # type: ignore
             }
         else:
             model_dict = dict(**models)

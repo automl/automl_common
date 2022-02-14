@@ -10,7 +10,7 @@ import numpy as np
 
 from automl_common.model.model import Model
 
-SelfT = TypeVar("SelfT", bound="Estimator", covariant=True)
+SelfT = TypeVar("SelfT")
 
 
 @runtime_checkable
@@ -20,6 +20,9 @@ class Predictor(Model, Protocol):
 
 @runtime_checkable
 class Estimator(Predictor, Protocol):
+
+    _estimator_type: str
+
     def fit(self: SelfT, x: np.ndarray, y: np.ndarray) -> SelfT:
         """Fit this estimator
 
@@ -41,11 +44,17 @@ class Estimator(Predictor, Protocol):
 
 @runtime_checkable
 class Regressor(Estimator, Predictor, Protocol):
+
+    _estimator_type: str = "regressor"
+
     ...
 
 
 @runtime_checkable
 class Classifier(Estimator, Predictor, Protocol):
+
+    _estimator_type: str = "classifier"
+
     def predict_proba(self, x: np.ndarray) -> np.ndarray:
         """Get the probability for the predictions
 

@@ -1,3 +1,5 @@
+import numpy as np
+
 import pytest
 from pytest import approx
 from pytest_cases import filters as ft
@@ -44,7 +46,7 @@ def test_trajectory_is_sorted(ensemble: WeightedEnsemble) -> None:
     * The entries in the trajectory should be sorted
     """
     scores = [x for _, x in ensemble.trajectory]
-    assert scores == sorted(scores)
+    np.testing.assert_allclose(scores, sorted(scores))
 
 
 @parametrize_with_cases(

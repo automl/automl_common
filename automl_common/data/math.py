@@ -32,7 +32,8 @@ def weighted_sum(
     np.ndarray
         The weighted sum of the arrays
     """
-    iterator = zip(weights, iter(arrays))
+    arrs = iter(np.array(a) for a in arrays)
+    iterator = zip(weights, arrs)
 
     # Do the first one to get an output location
     weight, arr = next(iterator)
@@ -101,30 +102,34 @@ def majority_vote(
 
     Parameters
     ----------
-    arrays : Iterable[np.ndarray], (n, m)
-        A iterable of `n` voters, each with `m` items in their array
+    arrays : Iterable[np.ndarray], (n, m, ...)
+        A iterable of `n` voters, each with `m` items voted on where
+        `...` is either None if only single column output, else `k`
 
     weights : Optional[np.ndarray] = None, (n,)
         `n` weights, the relative strength of each voter
 
     Returns
     -------
-    np.ndarray (m,)
+    np.ndarray (m, ...)
         An `m` long array with the most voted for item between all voted
+        where `...` is either None if only single column output, else `k`
 
     Raises
     ------
     ValueError
         If the number of weights and number of arrays don't match
     """
+    arrays = list(arrays)
+
     # Each column is a voter votes, the row are the votes for a single item
     # v1   v2   v3
     # "a", "b", "a"   item 1
     # "b", "b", "c"   item 2
     # "c", "c", "b"   item 3
     # "a", "a", "b"   item 4
-    arrays = list(arrays)
-    arrs = np.array(arrays).T
+    # Incase of multi-label, "a" == ["l1", "l2", "l3"]
+    arrs = np.swapaxes(np.array(arrays), 0, 1)
 
     # weights, for voters v1, v2 and v3
     #  v1   v2   v3
@@ -136,23 +141,36 @@ def majority_vote(
             f"`weights` ({len(_weights)}) and `arrays` ({arrs.shape[1]}) must have the same length."
         )
 
-    # labels
-    #  0     1    2
-    # ["a", "b", "c"]
-    labels = np.unique(arrs)
-
-    # For eaxmple, first row
+    # For example, first row
     # [
     #   weights[row == "a"].sum() -> weights[True, False, True].sum() -> [0.1, 0.7].sum() -> 0.8,
     #   weights[row == "b"].sum() -> ... -> 0.2
     #   weights[row == "c"].sum() -> ... -> 0.0
     # ]
     # == [0.8, 0.2, 0.0], meaning "a" has 0.8 voting strength, "b" has 0.2, and "c" has 0.0
-    def _weighted_choice(row: np.ndarray) -> np.ndarray:
-        return np.array([_weights[row == label].sum() for label in labels])
+    weighted_choices = np.empty(shape=arrs.shape[0:2], dtype=float)
 
     # Perform this for each row
-    weighted_choices = np.apply_along_axis(_weighted_choice, axis=1, arr=arrs)
+    # row = ["a", "b", "c"]
+    if arrs.ndim == 2:
+
+        labels = np.unique(arrs)
+
+        for i, row in enumerate(arrs):
+            weight_idxs = np.array([row == label for label in labels])
+            label_weights = np.array([_weights[idx].sum() for idx in weight_idxs])
+            weighted_choices[i, :] = label_weights
+
+    # Perform this check for each row but take into account these row items
+    # row = [[1,0,1], [0,0,1], ...]
+    else:
+        labels = arrs.reshape(-1, arrs.shape[2])  # Flatten out all n*m items
+        labels = np.unique(labels, axis=0)  # Get unique m items
+
+        for i, row in enumerate(arrs):
+            weight_idxs = np.array([(row == label).all(axis=1) for label in labels])
+            label_weights = np.array([_weights[idx].sum() for idx in weight_idxs])
+            weighted_choices[i, :] = label_weights
 
     # Get the arg max of each row
     chosen_labels = np.argmax(weighted_choices, axis=1)

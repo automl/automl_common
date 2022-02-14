@@ -15,6 +15,10 @@ from automl_common.backend.stores.model_store import ModelStore
 from automl_common.data.validate import jagged
 from automl_common.ensemble.ensemble import Ensemble as BaseEnsemble
 from automl_common.sklearn.model import Classifier, Predictor, Regressor
+from automl_common.sklearn.ensemble.util import tag_accumulate
+
+from sklearn.base import BaseEstimator
+from sklearn.utils.validation import check_is_fitted, check_X_y, check_array
 
 PredictorT = TypeVar("PredictorT", bound=Predictor)
 RegressorT = TypeVar("RegressorT", bound=Regressor)
@@ -26,7 +30,7 @@ SelfT = TypeVar("SelfT", bound="Ensemble")  # TODO Python 3.11 or typing_extensi
 logger = logging.getLogger(__name__)
 
 
-class Ensemble(Predictor, BaseEnsemble[PredictorT]):
+class Ensemble(Predictor, BaseEstimator, BaseEnsemble[PredictorT]):
     """An sklearn style ensemble which includes `fit`.
 
     A base class for sklearn style ensembles.
@@ -56,6 +60,9 @@ class Ensemble(Predictor, BaseEnsemble[PredictorT]):
         A model store from which models can be chosen.
         Will not operate properly without it.
     """
+
+    # Not sure if we then make the parameter Non-Optional?
+    _required_parameters: List[str] = ["model_store"]
 
     @abstractmethod
     def __init__(self, *, model_store: Optional[ModelStore[PredictorT]] = None):
@@ -102,7 +109,7 @@ class Ensemble(Predictor, BaseEnsemble[PredictorT]):
 
         Raises
         ------
-        AttributeError
+        NotFittedError
             Raises if the ensemble has not been fit yet
         """
         ...
@@ -142,12 +149,10 @@ class Ensemble(Predictor, BaseEnsemble[PredictorT]):
 
         Raises
         ------
-        AttributeError
+        NotFittedError
             If the Ensemble is not fitted, will raise an attribute error
         """
-        if not self.__sklearn_is_fitted__():
-            raise AttributeError("Please call `fit` first")
-
+        check_is_fitted(self)
         return self.ids_  # type: ignore
 
     @property
@@ -184,6 +189,8 @@ class Ensemble(Predictor, BaseEnsemble[PredictorT]):
         if self.model_store is None:
             raise RuntimeError("Can't fit without model store")
 
+        x, y = check_X_y(x, y, accept_sparse=True, multi_output=True)
+
         # Reset attributes
         for attr in self._fit_attributes():
             if hasattr(self, attr):
@@ -211,11 +218,11 @@ class Ensemble(Predictor, BaseEnsemble[PredictorT]):
 
         Raises
         ------
-        AttributeError
+        NotFittedError
             Raises if the ensemble has not been fit yet
         """
-        if not self.__sklearn_is_fitted__():
-            raise AttributeError("Please call `fit` first")
+        check_is_fitted(self)
+        x = check_array(x, accept_sparse=True)
 
         return self._predict(x)
 
@@ -267,8 +274,7 @@ class Ensemble(Predictor, BaseEnsemble[PredictorT]):
         MT
             The model
         """
-        if not self.__sklearn_is_fitted__():
-            raise AttributeError("Please call `fit` first")
+        check_is_fitted(self)
 
         assert self.model_store is not None  # Protected by requiring `fit`
 
@@ -283,6 +289,17 @@ class Ensemble(Predictor, BaseEnsemble[PredictorT]):
         # https://scikit-learn.org/stable/modules/generated/sklearn.utils.validation.check_is_fitted.html
         """  # noqa: E501
         return all(hasattr(self, attr) for attr in self._fit_attributes())
+
+    def _more_tags(self) -> Dict[str, Any]:
+        # Get all model tags
+        model_tags: List[Dict[str, bool]] = []
+        for model in self._model_store.values():
+            m = model.load()
+            _more_tags = getattr(m, "_more_tags", None)
+            if callable(_more_tags):
+                model_tags.append(_more_tags())
+
+        return tag_accumulate(model_tags)
 
 
 class RegressorEnsemble(Ensemble[RegressorT], Regressor):
@@ -307,14 +324,14 @@ class ClassifierEnsemble(Ensemble[ClassifierT], Classifier):
 
         Raises
         ------
-        AttributeError
+        NotFittedError
             Raises if the ensemble has not been fit yet
 
         RuntimeError
             Raises if it recieved a jagged set of probabilities
         """
-        if not self.__sklearn_is_fitted__():
-            raise AttributeError("Please call `fit` first")
+        check_is_fitted(self)
+        x = self._validate_data(x, reset=False)
 
         predictions = self._predict_proba(x)
         if jagged(predictions):
@@ -343,7 +360,7 @@ class ClassifierEnsemble(Ensemble[ClassifierT], Classifier):
 
         Raises
         ------
-        AttributeError
+        NotFittedError
             Raises if the ensemble has not been fit yet
         """
         ...

@@ -6,7 +6,7 @@ import numpy as np
 
 from automl_common.backend.stores.model_store import ModelStore
 from automl_common.ensemble.builders.single_best import single_best
-from automl_common.metrics import accuracy, rmse
+from automl_common.metrics import accuracy_from_probabilities, rmse
 from automl_common.sklearn.ensemble.ensemble import (
     ClassifierEnsemble,
     Ensemble,
@@ -15,6 +15,8 @@ from automl_common.sklearn.ensemble.ensemble import (
 from automl_common.sklearn.model import Classifier, Predictor, Regressor
 from automl_common.util.random import as_random_state
 from automl_common.util.types import Orderable
+
+from sklearn.utils.validation import check_is_fitted
 
 PredictorT = TypeVar("PredictorT", bound=Predictor)
 RegressorT = TypeVar("RegressorT", bound=Regressor)
@@ -64,7 +66,7 @@ class SingleEnsemble(Ensemble[PredictorT]):
 
         Raises
         ------
-        AttributeError
+        NotFittedError
             If the ensemble has not been fit yet
         """
         return self.__getitem__(self.id)
@@ -79,12 +81,10 @@ class SingleEnsemble(Ensemble[PredictorT]):
 
         Raises
         ------
-        AttributeError
+        NotFittedError
             If the ensemble has not been fit yet
         """
-        if not self.__sklearn_is_fitted__():
-            raise AttributeError("Please call `fit` first")
-
+        check_is_fitted(self)
         return self.model_id_  # type: ignore
 
     @classmethod
@@ -145,7 +145,7 @@ class SingleEnsemble(Ensemble[PredictorT]):
 
         Raises
         ------
-        AttributeError
+        NotFittedError
             If the ensemble has not been fit yet
         """
         return self.model.predict(x)
@@ -198,7 +198,7 @@ class SingleClassifierEnsemble(
     def __init__(
         self,
         *,
-        metric: Callable[[np.ndarray, np.ndarray], Orderable] = accuracy,
+        metric: Callable[[np.ndarray, np.ndarray], Orderable] = accuracy_from_probabilities,
         select: Literal["min", "max"] = "max",
         random_state: Optional[Union[int, np.random.RandomState]] = None,
         model_store: Optional[ModelStore[ClassifierT]] = None,

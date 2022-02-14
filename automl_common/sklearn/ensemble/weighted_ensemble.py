@@ -8,7 +8,7 @@ import numpy as np
 from automl_common.backend.stores.model_store import ModelStore
 from automl_common.data.math import majority_vote, weighted_sum
 from automl_common.ensemble.builders.weighted_ensemble import weighted_ensemble_caruana
-from automl_common.metrics import accuracy, rmse
+from automl_common.metrics import accuracy_from_probabilities, rmse
 from automl_common.sklearn.ensemble.ensemble import (
     ClassifierEnsemble,
     Ensemble,
@@ -17,6 +17,8 @@ from automl_common.sklearn.ensemble.ensemble import (
 from automl_common.sklearn.model import Classifier, Predictor, Regressor
 from automl_common.util.random import as_random_state
 from automl_common.util.types import Orderable
+
+from sklearn.utils.validation import check_is_fitted
 
 PredictorT = TypeVar("PredictorT", bound=Predictor)
 RegressorT = TypeVar("RegressorT", bound=Regressor)
@@ -85,12 +87,10 @@ class WeightedEnsemble(Ensemble[PredictorT]):
 
         Raises
         ------
-        AttributeError
+        NotFittedError
             If the ensemble has not been fitted yet
         """
-        if not self.__sklearn_is_fitted__():
-            raise AttributeError("Please call `fit` first")
-
+        check_is_fitted(self)
         return self.trajectory_  # type: ignore
 
     @property
@@ -112,12 +112,10 @@ class WeightedEnsemble(Ensemble[PredictorT]):
 
         Raises
         ------
-        AttributeError
+        NotFittedError
             If the ensemble has not been fit yet
         """
-        if not self.__sklearn_is_fitted__():
-            raise AttributeError("Please call `fit` first")
-
+        check_is_fitted(self)
         return self.weights_
 
     @classmethod
@@ -249,7 +247,7 @@ class WeightedClassifierEnsemble(
         *,
         model_store: Optional[ModelStore[ClassifierT]] = None,
         size: int = 10,
-        metric: Callable[[np.ndarray, np.ndarray], Orderable] = accuracy,
+        metric: Callable[[np.ndarray, np.ndarray], Orderable] = accuracy_from_probabilities,
         select: Literal["min", "max"] = "max",
         random_state: Optional[Union[int, np.random.RandomState]] = None,
         voting: Literal["majority", "probability"] = "majority",
@@ -276,7 +274,7 @@ class WeightedClassifierEnsemble(
         Dict
             A dicitonary mapping from parameters to values
         """
-        return {**super().get_params(deep=deep), "voting": "voting"}
+        return {**super().get_params(deep=deep), "voting": self.voting}
 
     def _predict(self, x: np.ndarray) -> np.ndarray:
         """Perform ensemble predictions on an array
@@ -302,7 +300,7 @@ class WeightedClassifierEnsemble(
             return np.argmax(probabilities, axis=1)
 
         else:
-            raise NotImplementedError()
+            raise NotImplementedError(self.voting)
 
     def _predict_proba(self, x: np.ndarray) -> np.ndarray:
         ids, weights = zip(*self.weights.items())

@@ -45,32 +45,51 @@ def test_weighted_sum_arrays(
 
 
 @case(tags=["majority_vote"])
-def case_majority_vote_one() -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+def case_majority_vote_2d_one() -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    # Each row is a models predictions
     arrays = np.array(
         [
-            ["a", "b", "a"],
-            ["b", "b", "c"],
-            ["c", "c", "b"],
-            ["a", "b", "b"],
+            ["a", "b", "c", "a"],
+            ["b", "b", "c", "b"],
+            ["a", "c", "b", "b"],
         ]
-    ).T
+    )
+
     weights = np.array([0.1, 0.2, 0.8])
     expected = np.array(["a", "c", "b", "b"])
     return arrays, weights, expected
 
 
 @case(tags=["majority_vote"])
-def case_majority_vote_two() -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+def case_majority_vote_2d_two() -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     arrays = np.array(
         [
-            ["a", "b", "a"],
-            ["b", "b", "c"],
-            ["c", "c", "b"],
-            ["a", "b", "b"],
+            ["a", "b", "c", "a"],
+            ["b", "b", "c", "b"],
+            ["a", "c", "b", "b"],
         ]
-    ).T
+    )
+
     weights = np.array([2, 2, 3])
     expected = np.array(["a", "b", "c", "b"])
+    return arrays, weights, expected
+
+
+@case(tags=["majority_vote"])
+def case_majority_vote_3d_one() -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    # Same setup as above cases but make it multilabel
+    d = {"a": [1, 0], "b": [0, 1], "c": [1, 1]}
+
+    arrays = np.array(
+        [
+            [d["a"], d["b"], d["c"], d["a"]],
+            [d["b"], d["b"], d["c"], d["b"]],
+            [d["a"], d["c"], d["b"], d["b"]],
+        ]
+    )
+
+    weights = np.array([2, 2, 3])
+    expected = np.array([d["a"], d["b"], d["c"], d["b"]])
     return arrays, weights, expected
 
 

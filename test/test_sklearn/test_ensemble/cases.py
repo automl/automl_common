@@ -85,7 +85,12 @@ def case_weighted_regressor_fitted(
     """A WeightedRegressorEnsemble fitted"""
     x, y = make_xy(kind="regression", targets=targets)
     return make_sklearn_weighted_regressor_ensemble(
-        path=path, fitted=True, model_x=x, model_y=y, x=y, y=y
+        path=path,
+        fitted=True,
+        x=x,
+        y=y,
+        model_x=x,
+        model_y=y,
     )
 
 
@@ -101,4 +106,12 @@ def case_weighted_classifier_fitted(
 ) -> WCE:
     """A WeightedRegressorEnsemble fitted"""
     x, y = make_xy("classification", classes=classes)
-    return make_sklearn_weighted_classifier_ensemble(path=path, voting=voting, fitted=True)
+    return make_sklearn_weighted_classifier_ensemble(
+        path=path,
+        voting=voting,
+        fitted=True,
+        x=x,
+        y=y,
+        model_x=x,
+        model_y=y,
+    )

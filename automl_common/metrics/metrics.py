@@ -20,6 +20,26 @@ def accuracy(preds: np.ndarray, y: np.ndarray) -> float:
     return (preds == y).sum() / len(preds)
 
 
+def accuracy_from_probabilities(probs: np.ndarray, y: np.ndarray) -> float:
+    """Calculates accuracy using probabilities
+
+    Parameters
+    ----------
+    probs : np.ndarray
+        The probabilities
+
+    y : np.ndarray
+        The labels to predict
+
+    Returns
+    -------
+    float
+        The accuracy of the predictions
+    """
+    print(probs)
+    return accuracy(np.argmax(probs, axis=1), y)
+
+
 def rmse(preds: np.ndarray, y: np.ndarray) -> float:
     """A default metric for regression ensembles
 

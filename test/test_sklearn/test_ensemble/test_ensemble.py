@@ -18,6 +18,8 @@ from automl_common.sklearn.ensemble import (
 
 import test.test_sklearn.test_ensemble.cases as cases
 
+from sklearn.exceptions import NotFittedError
+
 DataFactory = Callable[..., Tuple[np.ndarray, np.ndarray]]
 fit_err = r"Please call `fit` first"
 
@@ -77,7 +79,7 @@ def test__model_store_raises_when_not_fitted(ensemble_type: Type[Ensemble]) -> N
     * The _model_store should give an attribute error when not fitted
     """
     ensemble = ensemble_type()
-    with pytest.raises(AttributeError, match="Constructed without `model_store`"):
+    with pytest.raises(AttributeError):
         ensemble._model_store
 
     return  # pragma: no cover
@@ -116,7 +118,7 @@ def test_ids_when_not_fitted_raises_error(ensemble: Ensemble) -> None:
     -------
     * Should not be able to access ids if not fitted
     """
-    with pytest.raises(AttributeError, match=fit_err):
+    with pytest.raises(NotFittedError):
         ensemble.ids
 
     return  # pragma: no cover
@@ -206,7 +208,7 @@ def test_predict_when_not_fitted_raises_error(
     -------
     * Should raise attribute erorr, not fitted
     """
-    with pytest.raises(AttributeError, match=fit_err):
+    with pytest.raises(NotFittedError):
         ensemble.predict(np.array([1, 2, 3, 4]))
 
     return  # pragma: no cover
@@ -258,9 +260,9 @@ def test_getitem_when_not_fitted_raises_error(ensemble: Ensemble) -> None:
 
     Expects
     -------
-    * Should raise Attribute error, not fitted
+    * Should raise  NotFittedError, not fitted
     """
-    with pytest.raises(AttributeError, match=fit_err):
+    with pytest.raises(NotFittedError):
         ensemble["badkey"]
 
     return  # pragma: no cover
@@ -341,7 +343,7 @@ def test_predict_proba_raises_when_not_fitted(ensemble: ClassifierEnsemble) -> N
     -------
     * The unfitted ensemble should not be able to predict_proba
     """
-    with pytest.raises(AttributeError, match=fit_err):
+    with pytest.raises(NotFittedError):
         ensemble.predict_proba(np.array([1, 2, 3, 4]))
 
     return  # pragma: no cover
@@ -398,6 +400,8 @@ def test_fit_twice_produces_same_attributes(
     """
     x, y = make_xy(kind="classification")
 
+    for name, model in ensemble.model_store.items():
+        print(model.load())
     ensemble.fit(x, y)
     first_fit = {attr: getattr(ensemble, attr, None) for attr in ensemble._fit_attributes()}
 
@@ -434,6 +438,7 @@ def test_predict_proba_raises_with_jagged_predictions(ensemble: ClassifierEnsemb
     with patch.object(ensemble, "_predict_proba", return_value=jagged):
 
         with pytest.raises(RuntimeError, match="Probability predictions were jagged"):
-            ensemble.predict_proba(np.array([1, 2, 3]))
+            x = np.array([[1, 2, 3], [1, 2, 3]])
+            ensemble.predict_proba(x)
 
     return  # pragma: no cover
