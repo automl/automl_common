@@ -17,7 +17,15 @@ def accuracy(preds: np.ndarray, y: np.ndarray) -> float:
     float
         The accuracy of how often the predictions matched the targets
     """
-    return (preds == y).sum() / len(preds)
+    if preds.shape != y.shape:
+        raise ValueError("Preds and y should have matching shapes")
+
+    if preds.ndim == 1:
+        return sum(preds == y) / len(preds)
+    elif preds.ndim == 2:
+        return sum(np.equal(preds, y).all(axis=1).astype(bool)) / len(preds)
+    else:
+        raise NotImplementedError()
 
 
 def accuracy_from_probabilities(probs: np.ndarray, y: np.ndarray) -> float:
@@ -36,7 +44,10 @@ def accuracy_from_probabilities(probs: np.ndarray, y: np.ndarray) -> float:
     float
         The accuracy of the predictions
     """
-    print(probs)
+    if probs.ndim > 2:
+        # https://github.com/scikit-learn/scikit-learn/blob/7e1e6d09bcc2eaeba98f7e737aac2ac782f0e5f1/sklearn/ensemble/_forest.py#L712
+        probs = np.rollaxis(probs, axis=0, start=3)
+
     return accuracy(np.argmax(probs, axis=1), y)
 
 

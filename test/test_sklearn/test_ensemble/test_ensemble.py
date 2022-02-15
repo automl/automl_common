@@ -400,8 +400,6 @@ def test_fit_twice_produces_same_attributes(
     """
     x, y = make_xy(kind="classification")
 
-    for name, model in ensemble.model_store.items():
-        print(model.load())
     ensemble.fit(x, y)
     first_fit = {attr: getattr(ensemble, attr, None) for attr in ensemble._fit_attributes()}
 

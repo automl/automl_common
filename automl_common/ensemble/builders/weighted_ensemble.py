@@ -100,7 +100,7 @@ def weighted_ensemble_caruana(
             raise NotImplementedError()
 
         choices = [id for id, score in scores.items() if score == best_val]
-        choice = rand.choice(np.array(list(choices)))
+        choice = rand.choice(np.asarray(list(choices)))
 
         # Add the predictions of the chosen model
         np.add(current, model_predictions[choice], out=current)

@@ -62,7 +62,7 @@ def xy(
     if kind == "classification":
         # Normalize weights
         if weights:
-            weights = normalize(np.array(weights))
+            weights = normalize(np.asarray(weights))
 
         # Convert classes to be an np array of choices
         if isinstance(classes, int):
@@ -70,7 +70,7 @@ def xy(
             classes = np.arange(0, classes + 1)
 
         elif isinstance(classes, (list, np.ndarray)):
-            classes = np.array(classes)
+            classes = np.asarray(classes)
 
         else:
             raise NotImplementedError()

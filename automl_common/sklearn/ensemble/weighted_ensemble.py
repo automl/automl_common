@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from abc import abstractmethod
 from typing import Any, Callable, Dict, List, Optional, Tuple, TypeVar, Union
 from typing_extensions import Literal  # TODO, remove with Python 3.8
 
@@ -17,7 +18,6 @@ from automl_common.sklearn.ensemble.ensemble import (
 from automl_common.sklearn.model import Classifier, Predictor, Regressor
 from automl_common.util.random import as_random_state
 from automl_common.util.types import Orderable
-
 from sklearn.utils.validation import check_is_fitted
 
 PredictorT = TypeVar("PredictorT", bound=Predictor)
@@ -175,10 +175,7 @@ class WeightedEnsemble(Ensemble[PredictorT]):
             The ids of the models selected
 
         """
-        model_predictions = {
-            name: model.load().predict(x) for name, model in self._model_store.items()
-        }
-
+        model_predictions = self._predictions_for_weighted_sum(x)
         self.random_state_ = as_random_state(self.random_state)
 
         weighted_ids, trajectory = weighted_ensemble_caruana(
@@ -213,7 +210,17 @@ class WeightedEnsemble(Ensemble[PredictorT]):
         predictions = iter(
             self._model_store[id].load().predict(x) for id in ids
         )  # pragma: no cover, not sure why it's not covered
-        return weighted_sum(predictions, weights=np.array(weights))
+        return weighted_sum(predictions, weights=np.asarray(weights))
+
+    @abstractmethod
+    def _predictions_for_weighted_sum(self, x: np.ndarray) -> Dict[str, np.ndarray]:
+        """What to include for weighted sum
+
+        We have to delegate to the subclass as Regressors will return nicely
+        weightable predictions, but, classifiers would return probability
+        predictions.
+        """
+        ...
 
 
 class WeightedRegressorEnsemble(
@@ -236,6 +243,9 @@ class WeightedRegressorEnsemble(
             select=select,
             random_state=random_state,
         )
+
+    def _predictions_for_weighted_sum(self, x: np.ndarray) -> Dict[str, np.ndarray]:
+        return {name: model.load().predict(x) for name, model in self._model_store.items()}
 
 
 class WeightedClassifierEnsemble(
@@ -293,7 +303,7 @@ class WeightedClassifierEnsemble(
         ids, weights = zip(*self.weights.items())
         if self.voting == "majority":
             predictions = iter(self._model_store[id].load().predict(x) for id in ids)
-            return majority_vote(predictions, weights=np.array(weights))
+            return majority_vote(predictions, weights=np.asarray(weights))
 
         elif self.voting == "probability":
             probabilities = self._predict_proba(x)
@@ -304,7 +314,17 @@ class WeightedClassifierEnsemble(
 
     def _predict_proba(self, x: np.ndarray) -> np.ndarray:
         ids, weights = zip(*self.weights.items())
-        predictions = iter(
+        probs = iter(
             self._model_store[id].load().predict_proba(x) for id in ids
         )  # pragma: no cover, not sure why coverage won't cover fully
-        return weighted_sum(predictions, weights=np.array(weights))
+        weighted_probs = weighted_sum(probs, weights=np.asarray(weights))
+        print(ids)
+        print(weighted_probs.shape)
+        print(x.shape)
+        return weighted_probs
+
+    def _predictions_for_weighted_sum(self, x: np.ndarray) -> Dict[str, np.ndarray]:
+        return {
+            name: np.asarray(model.load().predict_proba(x))
+            for name, model in self._model_store.items()
+        }

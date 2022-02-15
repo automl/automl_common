@@ -50,6 +50,6 @@ def single_best(
 
     best_val = min(scores.values()) if select == "min" else max(scores.values())
     choices = [id for id, score in scores.items() if score == best_val]
-    choice = rand.choice(np.array(list(choices)))
+    choice = rand.choice(np.asarray(list(choices)))
 
     return choice

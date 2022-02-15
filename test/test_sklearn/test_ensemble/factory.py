@@ -7,7 +7,7 @@ import numpy as np
 from pytest_cases import fixture
 
 from automl_common.backend.stores.model_store import ModelStore
-from automl_common.metrics import accuracy, rmse
+from automl_common.metrics import accuracy, accuracy_from_probabilities, rmse
 from automl_common.sklearn.ensemble import (
     SingleClassifierEnsemble,
     SingleRegressorEnsemble,
@@ -43,7 +43,7 @@ def make_sklearn_weighted_classifier_ensemble() -> Callable[
         voting: Literal["majority", "probability"] = "majority",
         x: np.ndarray = data_clf.x,
         y: np.ndarray = data_clf.y,
-        metric: Callable[[np.ndarray, np.ndarray], Orderable] = accuracy,
+        metric: Callable[[np.ndarray, np.ndarray], Orderable] = accuracy_from_probabilities,
         select: Literal["min", "max"] = "max",
         random_state: Optional[Union[int, np.random.RandomState]] = DEFAULT_SEED,
         models: Union[int, Mapping[str, ClassifierT]] = 10,

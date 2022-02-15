@@ -25,7 +25,12 @@ class ModelStore(StoreView[ModelAccessor[ModelT]]):
         / ...
     """
 
-    def __init__(self, dir: Path, ids: Optional[Collection[str]] = None):
+    def __init__(
+        self,
+        dir: Path,
+        ids: Optional[Collection[str]] = None,
+        only_existing: Optional[bool] = None,
+    ):
         """
         Parameters
         ----------
@@ -33,20 +38,31 @@ class ModelStore(StoreView[ModelAccessor[ModelT]]):
             The path to the directory
 
         ids : Optional[Collection[str]] = None
-            An optional set of ids to filter by
+            An optional set of ids to filter by.
+
+        only_existing : Optional[bool] = None
+            When iterating, only return existing models.
+
+            If ``ids`` is specified, this defaults to ``True``, otherwise
+            to ``False``.
         """
         if ids is not None and len(ids) == 0:
             raise ValueError("Can't have empty `ids` on a ModelStore")
 
         super().__init__(dir)
         self.ids = ids
+        self.only_existing = True if ids is not None else False
 
     def __iter__(self) -> Iterator[str]:
         iterator = super().__iter__()
-        if self.ids is None:
-            return iterator
-        else:
-            return iter(id for id in iterator if id in self.ids)
+
+        if self.ids is not None:
+            iterator = iter(id for id in iterator if id in self.ids)
+
+        if self.only_existing:
+            iterator = iter(id for id in iterator if self[id].exists())
+
+        return iterator
 
     def __getitem__(self, key: str) -> ModelAccessor[ModelT]:
         """Gets the ModelAccessor for the model associated with a model

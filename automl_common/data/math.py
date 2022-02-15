@@ -32,7 +32,7 @@ def weighted_sum(
     np.ndarray
         The weighted sum of the arrays
     """
-    arrs = iter(np.array(a) for a in arrays)
+    arrs = iter(np.asarray(a) for a in arrays)
     iterator = zip(weights, arrs)
 
     # Do the first one to get an output location
@@ -120,7 +120,8 @@ def majority_vote(
     ValueError
         If the number of weights and number of arrays don't match
     """
-    arrays = list(arrays)
+    if not isinstance(arrays, np.ndarray):
+        arrays = np.asarray(list(arrays))
 
     # Each column is a voter votes, the row are the votes for a single item
     # v1   v2   v3
@@ -129,7 +130,7 @@ def majority_vote(
     # "c", "c", "b"   item 3
     # "a", "a", "b"   item 4
     # Incase of multi-label, "a" == ["l1", "l2", "l3"]
-    arrs = np.swapaxes(np.array(arrays), 0, 1)
+    arrs = np.swapaxes(arrays, 0, 1)
 
     # weights, for voters v1, v2 and v3
     #  v1   v2   v3
@@ -157,8 +158,8 @@ def majority_vote(
         labels = np.unique(arrs)
 
         for i, row in enumerate(arrs):
-            weight_idxs = np.array([row == label for label in labels])
-            label_weights = np.array([_weights[idx].sum() for idx in weight_idxs])
+            weight_idxs = np.asarray([row == label for label in labels])
+            label_weights = np.asarray([_weights[idx].sum() for idx in weight_idxs])
             weighted_choices[i, :] = label_weights
 
     # Perform this check for each row but take into account these row items
@@ -168,8 +169,8 @@ def majority_vote(
         labels = np.unique(labels, axis=0)  # Get unique m items
 
         for i, row in enumerate(arrs):
-            weight_idxs = np.array([(row == label).all(axis=1) for label in labels])
-            label_weights = np.array([_weights[idx].sum() for idx in weight_idxs])
+            weight_idxs = np.asarray([(row == label).all(axis=1) for label in labels])
+            label_weights = np.asarray([_weights[idx].sum() for idx in weight_idxs])
             weighted_choices[i, :] = label_weights
 
     # Get the arg max of each row

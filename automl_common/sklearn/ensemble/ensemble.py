@@ -8,17 +8,17 @@ from abc import abstractmethod
 from typing import Any, Dict, Iterator, List, Optional, TypeVar
 
 import logging
+import warnings
 
 import numpy as np
 
 from automl_common.backend.stores.model_store import ModelStore
 from automl_common.data.validate import jagged
 from automl_common.ensemble.ensemble import Ensemble as BaseEnsemble
-from automl_common.sklearn.model import Classifier, Predictor, Regressor
 from automl_common.sklearn.ensemble.util import tag_accumulate
-
+from automl_common.sklearn.model import Classifier, Predictor, Regressor
 from sklearn.base import BaseEstimator
-from sklearn.utils.validation import check_is_fitted, check_X_y, check_array
+from sklearn.utils.validation import check_array, check_is_fitted, check_X_y
 
 PredictorT = TypeVar("PredictorT", bound=Predictor)
 RegressorT = TypeVar("RegressorT", bound=Regressor)
@@ -291,6 +291,14 @@ class Ensemble(Predictor, BaseEstimator, BaseEnsemble[PredictorT]):
         return all(hasattr(self, attr) for attr in self._fit_attributes())
 
     def _more_tags(self) -> Dict[str, Any]:
+        """
+        Note
+        ----
+        We assume this method is only called for testing purposes by sklearn.
+        This is quite an expensive function so we raise a warning if this is
+        not the case.
+        """
+        warnings.warn("Expensive function `_more_tags` called.")
         # Get all model tags
         model_tags: List[Dict[str, bool]] = []
         for model in self._model_store.values():

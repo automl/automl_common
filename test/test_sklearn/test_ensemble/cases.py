@@ -96,7 +96,7 @@ def case_weighted_regressor_fitted(
 
 @case(tags=["weighted", "classifier", "fitted"])
 @parametrize("voting", ["majority", "probability"])
-@parametrize("classes", [[0, 1], [[1, 0, 1], [1, 0, 1]]])
+@parametrize("classes", [2, 3, [[0, 0, 0], [0, 1, 1], [1, 1, 1]]])
 def case_weighted_classifier_fitted(
     path: Path,
     voting: str,

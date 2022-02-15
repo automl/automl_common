@@ -4,7 +4,7 @@ from collections import defaultdict
 
 import numpy as np
 
-from automl_common.util.functional import intersection
+from automl_common.util.functional import intersection, union
 
 # https://scikit-learn.org/stable/developers/develop.html#estimator-tags
 # A dict mapping from tag -> (what's required for non default, default)
@@ -25,7 +25,7 @@ alltags = {
     "requires_y": (any, False),
     "requires_positive_y": (any, False),
     "_skip_test": (any, False),
-    # "_xfail_checks": False,  # Can't handle this easily
+    "_xfail_checks": (union, False),  # Can't handle this easily
     "stateless": (all, False),
     "X_types": (intersection, ["2darray"]),
 }
@@ -51,7 +51,7 @@ def tag_accumulate(model_tags: Iterable[Mapping[str, Any]]) -> Dict[str, Any]:
             acctags[k].append(v)
 
     results: Dict[str, Any] = {}
-    for k, v in acctags.values():
+    for k, v in acctags.items():
         accumulation_method, _ = alltags[k]
         results[k] = accumulation_method(v)
 
