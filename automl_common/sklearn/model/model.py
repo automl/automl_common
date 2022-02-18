@@ -69,3 +69,54 @@ class Classifier(Estimator, Predictor, Protocol):
             The probability predictions
         """
         ...
+
+
+@runtime_checkable
+class TargetEncoder(Protocol):
+    """An encoder that takes one argument ``y`` and produces classes_"""
+
+    classes_: np.ndarray
+
+    def fit(self: SelfT, y: np.ndarray, /) -> SelfT:
+        """Fit the transformer
+
+        Parameters
+        ----------
+        y : np.ndarray
+            The array to transform
+
+        Returns
+        -------
+        SelfT
+        """
+        ...
+
+    def transform(self, y: np.ndarray, /) -> np.ndarray:
+        """Transform the array
+
+        Parameters
+        ----------
+        y : np.ndarray
+            The array to transform
+
+        Returns
+        -------
+        np.ndarray
+            The transformed array
+        """
+        ...
+
+    def fit_transform(self, y: np.ndarray, /) -> np.ndarray:
+        """Fit and then transform the array
+
+        Parameters
+        ----------
+        y : np.ndarray
+            The array to transform
+
+        Returns
+        -------
+        np.ndarray
+            The transformed array
+        """
+        ...

@@ -79,9 +79,6 @@ class StoreView(ABC, EqualityMixin, Mapping[str, T]):
     def __repr__(self) -> str:
         return f"Store: {self.dir}"
 
-    def __eq__(self, other: Any) -> bool:
-        return isinstance(other, StoreView) and self.dir == other.dir
-
 
 class Store(StoreView[T], MutableMapping[str, T]):
     """An mutable view into state preserved on the filesystem

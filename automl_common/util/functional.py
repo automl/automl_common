@@ -1,4 +1,4 @@
-from typing import Iterable, Set, TypeVar
+from typing import Dict, Iterable, List, Set, TypeVar
 
 from functools import reduce
 from itertools import chain
@@ -37,3 +37,35 @@ def union(items: Iterable[Iterable[T]]) -> Set[T]:
         The intersection of all items
     """
     return set(chain.from_iterable(items))
+
+
+def dictmerge(items: Iterable[Dict], recursive: bool = False) -> Dict:
+    """Does a dictionary merge
+
+    Parameters
+    ----------
+    items : Iterable[Dict]
+        An iterable of dicts to merge
+
+    Returns
+    -------
+    Dict
+        The merged dictionary
+    """
+    if recursive is True:
+        raise NotImplementedError("Don't have recursive yet")
+
+    results = {}
+    for d in items:
+        if not isinstance(d, Dict):
+            continue
+        for k, v in d.items():
+            if k in results:
+                if isinstance(results[k], List):
+                    results[k].append(v)
+                else:
+                    results[k] = [results[k], v]
+            else:
+                results[k] = v
+
+    return results

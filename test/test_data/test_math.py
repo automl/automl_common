@@ -1,10 +1,10 @@
-from typing import Iterable, List, Tuple
+from typing import Iterable, List, Tuple, Union
 
 import numpy as np
 import pytest
 from pytest_cases import case, parametrize, parametrize_with_cases
 
-from automl_common.data.math import majority_vote, weighted_sum
+from automl_common.data.math import majority_vote, normalize, weighted_sum
 
 from test.data import DEFAULT_SEED
 
@@ -128,3 +128,32 @@ def test_majority_vote_with_bad_shapes(m: int, n: int) -> None:
         majority_vote(arrays, weights)
 
     return  # pragma: no cover
+
+
+@parametrize(
+    "arr, axis, expected",
+    [
+        (np.array([2, 3, 5]), None, np.array([0.2, 0.3, 0.5])),
+        (np.array([[2, 3, 5]] * 3), 1, np.array([[0.2, 0.3, 0.5]] * 3)),
+        (np.array([[2] * 3, [3] * 3, [5] * 3]), 0, np.array([[0.2] * 3, [0.3] * 3, [0.5] * 3])),
+    ],
+)
+def test_normalize(arr: np.ndarray, axis: Union[int, None], expected: np.ndarray) -> None:
+    """
+    Parameters
+    ----------
+    arr : np.ndarray
+        The array to normalize
+
+    axis : Union[int, None]
+        Which axis to normalize one
+
+    expected : np.ndarray
+        The result of normaliztion expected
+
+    Expects
+    -------
+    * Normalization should normalize across the given axis
+    """
+    result = normalize(arr, axis=axis)
+    np.testing.assert_allclose(result, expected)

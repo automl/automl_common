@@ -1,3 +1,3 @@
-from automl_common.metrics.metrics import accuracy, accuracy_from_probabilities, rmse
+from automl_common.metrics.metrics import accuracy, rmse
 
-__all__ = ["accuracy", "rmse", "accuracy_from_probabilities"]
+__all__ = ["accuracy", "rmse"]

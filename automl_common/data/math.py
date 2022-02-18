@@ -32,7 +32,7 @@ def weighted_sum(
     np.ndarray
         The weighted sum of the arrays
     """
-    arrs = iter(np.asarray(a) for a in arrays)
+    arrs = iter(np.asarray(a) for a in arrays)  # pragma: no cover
     iterator = zip(weights, arrs)
 
     # Do the first one to get an output location
@@ -47,8 +47,12 @@ def weighted_sum(
     return buff
 
 
-def normalize(x: np.ndarray, axis: int = 0) -> np.ndarray:
+def normalize(x: np.ndarray, axis: Optional[int] = None) -> np.ndarray:
     """Normalizes an array along an axis
+
+    Note
+    ----
+    TODO: Only works for positive numbers
 
     ..code:: python
 
@@ -83,7 +87,7 @@ def normalize(x: np.ndarray, axis: int = 0) -> np.ndarray:
     x : np.ndarray
         The array to normalize
 
-    axis : int = 0
+    axis : Optional[int] = None
         The axis to normalize across
 
     Returns
@@ -132,6 +136,15 @@ def majority_vote(
     # Incase of multi-label, "a" == ["l1", "l2", "l3"]
     arrs = np.swapaxes(arrays, 0, 1)
 
+    if arrs.ndim == 2:
+        labels = np.unique(arrs)
+    else:
+        labels = arrs.reshape(-1, arrs.shape[2])  # Flatten out all n*m items
+        labels = np.unique(labels, axis=0)  # Get unique m items
+
+    n_samples = len(arrs)
+    n_labels = len(labels)
+
     # weights, for voters v1, v2 and v3
     #  v1   v2   v3
     # 0.1, 0.2, 0.7
@@ -149,13 +162,11 @@ def majority_vote(
     #   weights[row == "c"].sum() -> ... -> 0.0
     # ]
     # == [0.8, 0.2, 0.0], meaning "a" has 0.8 voting strength, "b" has 0.2, and "c" has 0.0
-    weighted_choices = np.empty(shape=arrs.shape[0:2], dtype=float)
+    weighted_choices = np.empty(shape=(n_samples, n_labels), dtype=float)
 
     # Perform this for each row
     # row = ["a", "b", "c"]
     if arrs.ndim == 2:
-
-        labels = np.unique(arrs)
 
         for i, row in enumerate(arrs):
             weight_idxs = np.asarray([row == label for label in labels])
@@ -165,8 +176,6 @@ def majority_vote(
     # Perform this check for each row but take into account these row items
     # row = [[1,0,1], [0,0,1], ...]
     else:
-        labels = arrs.reshape(-1, arrs.shape[2])  # Flatten out all n*m items
-        labels = np.unique(labels, axis=0)  # Get unique m items
 
         for i, row in enumerate(arrs):
             weight_idxs = np.asarray([(row == label).all(axis=1) for label in labels])

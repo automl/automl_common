@@ -8,6 +8,7 @@ import numpy as np
 
 from automl_common.util.random import as_random_state
 from automl_common.util.types import Orderable
+from automl_common.data.convert import probabilities_to_classes
 
 logger = logging.getLogger(__name__)
 
@@ -21,14 +22,24 @@ def weighted_ensemble_caruana(
     size: int,
     metric: Callable[[np.ndarray, np.ndarray], OrderableT],
     select: Literal["min", "max"],
+    is_probabilities: bool = False,
+    classes: Optional[Union[List, np.ndarray]] = None,
     random_state: Optional[Union[int, np.random.RandomState]] = None,
 ) -> Tuple[Dict[str, float], List[Tuple[str, OrderableT]]]:
     """Calculate a weighted ensemble of `n` models
+
+    Note
+    ----
+    If passing probabilities for for ``model_predictions``, must
+    specify ``is_probabilities = True`` and provide ``classes``.
 
     Parameters
     ----------
     model_predictions: Mapping[Hashable, np.ndarray]
         The model predictions to use, mapping from id to their predictions
+
+    is_probabilities: bool = False
+        Whether the predictions are probabilities
 
     targets: np.ndarray
         The targets
@@ -45,6 +56,11 @@ def weighted_ensemble_caruana(
         predictions. Can return a single str or a list of them, in which case a
         random selection will be made.
 
+    classes: Optional[np.ndarray | List] = None
+        The classes to use if ``is_probabilities`` for ``model_predictions``. For
+        now we assume to style of sklearn for specifying clases and probabilties
+        for binary, multiclass and multi-label targets.
+
     random_state: Optional[Union[int, np.random.RandomState]] = None
         The random_state to use for breaking ties
 
@@ -59,6 +75,12 @@ def weighted_ensemble_caruana(
 
     if len(model_predictions) == 0:
         raise ValueError("`model_predictions` is empty")
+
+    if is_probabilities is True and classes is None:
+        raise ValueError("Must provide `classes` if using probabilties")
+
+    if is_probabilities is False and classes is not None:
+        raise ValueError("`classes` should not be provided if not using probabilities")
 
     rand = as_random_state(random_state)
 
@@ -85,7 +107,14 @@ def weighted_ensemble_caruana(
         # Get the value if the model was added to the current set of predicitons
         np.add(current, _pred, out=buffer)
         np.multiply(buffer, (1.0 / float(len(ensemble) + 1)), out=buffer)
-        return metric(buffer, targets)
+
+        # We need to convert the probabilities to classes before passing to metric
+        if is_probabilities:
+            assert classes is not None
+            predictions = probabilities_to_classes(buffer, classes)
+            return metric(predictions, targets)
+        else:
+            return metric(buffer, targets)
 
     for i in range(size):
         # Get the value if added for each model

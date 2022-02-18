@@ -10,6 +10,8 @@ from automl_common.util.types import EqualityMixin
 
 MT = TypeVar("MT", bound=Model)
 
+x: List[str] = []
+
 
 class Ensemble(ABC, Model, EqualityMixin, Mapping[str, MT]):
     """Manages functionality around using multiple models ensembled in some fashion"""

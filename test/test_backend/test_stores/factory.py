@@ -127,6 +127,7 @@ def make_model_store() -> Callable[..., ModelStore[MT]]:
         dir: Path,
         models: Optional[Mapping[str, MT]] = None,
         ids: Optional[Collection[str]] = None,
+        only_existing: Optional[bool] = None,
     ) -> ModelStore[MT]:
         # Make a store unrestricted by ids
         store = ModelStore[MT](dir=dir)
@@ -134,10 +135,7 @@ def make_model_store() -> Callable[..., ModelStore[MT]]:
             for key, model in models.items():
                 store[key].save(model)
 
-        if ids is not None:
-            return ModelStore[MT](dir=dir, ids=ids)
-        else:
-            return ModelStore[MT](dir=dir, ids=ids)
+        return ModelStore[MT](dir=dir, ids=ids, only_existing=only_existing)
 
     return _make
 

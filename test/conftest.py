@@ -1,10 +1,15 @@
-from typing import Iterator, List, Optional
+from typing import Iterator, List, Optional, Union
 
 import re
+import shutil
 from pathlib import Path
+from tempfile import gettempdir
+
+from pytest import ExitCode, Session
 
 # Load in other pytest modules, in this case fixtures
 here = Path(__file__)
+manual_tmp = Path(gettempdir()) / "test_automl_common"
 
 pytest_plugins = []
 
@@ -50,3 +55,33 @@ def factory_modules() -> List[str]:
 
 
 pytest_plugins += fixture_modules() + factory_modules()
+
+
+def pytest_sessionstart(session: Session) -> None:
+    """Called after the ``Session`` object has been created and before performing collection
+    and entering the run test loop.
+
+    Parameters
+    ----------
+    session : Session
+        The pytest session object
+    """
+    if manual_tmp.exists():
+        shutil.rmtree(manual_tmp)
+
+    manual_tmp.mkdir()
+
+
+def pytest_sessionfinish(session: Session, exitstatus: Union[int, ExitCode]) -> None:
+    """Called after whole test run finished, right before returning the exit status to the system.
+
+    Parameters
+    ----------
+    session : Session
+        The pytest session object.
+
+    exitstatus: int | ExitCode
+        The status which pytest will return to the system.
+    """
+    if manual_tmp.exists():
+        shutil.rmtree(manual_tmp)

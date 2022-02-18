@@ -3,11 +3,7 @@ from automl_common.sklearn.model.model import (
     Estimator,
     Predictor,
     Regressor,
+    TargetEncoder,
 )
 
-__all__ = [
-    "Predictor",
-    "Regressor",
-    "Classifier",
-    "Estimator",
-]
+__all__ = ["Predictor", "Regressor", "Classifier", "Estimator", "TargetEncoder"]

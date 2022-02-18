@@ -1,18 +1,16 @@
-from automl_common.sklearn.ensemble.ensemble import (
+from automl_common.sklearn.ensemble.base import Ensemble
+from automl_common.sklearn.ensemble.classification import (
     ClassifierEnsemble,
-    Ensemble,
-    RegressorEnsemble,
-)
-from automl_common.sklearn.ensemble.single_ensemble import (
     SingleClassifierEnsemble,
-    SingleEnsemble,
-    SingleRegressorEnsemble,
-)
-from automl_common.sklearn.ensemble.weighted_ensemble import (
     WeightedClassifierEnsemble,
-    WeightedEnsemble,
+)
+from automl_common.sklearn.ensemble.regression import (
+    RegressorEnsemble,
+    SingleRegressorEnsemble,
     WeightedRegressorEnsemble,
 )
+from automl_common.sklearn.ensemble.single import SingleEnsemble
+from automl_common.sklearn.ensemble.weighted import WeightedEnsemble
 
 __all__ = [
     "Ensemble",
