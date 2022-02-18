@@ -87,7 +87,7 @@ def test_fit_does_not_modify_data(
     -------
     * Implementer should return a non-empty list of id's given valid training data
     """
-    x, y = make_xy()
+    x, y = make_xy("classification")
     x_, y_ = x.copy(), y.copy()
     ensemble.fit(x, y)
 
