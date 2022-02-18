@@ -2,11 +2,11 @@ from typing import Any, Callable, Dict, List, Optional, TypeVar, Union
 from typing_extensions import Literal
 
 import numpy as np
+from sklearn.metrics import accuracy_score
 from sklearn.utils import check_random_state
 
 from automl_common.backend.stores.model_store import ModelStore
 from automl_common.ensemble.builders.single_best import single_best
-from automl_common.metrics import accuracy
 from automl_common.sklearn.ensemble.classification.base import ClassifierEnsemble
 from automl_common.sklearn.ensemble.single import SingleEnsemble
 from automl_common.sklearn.model import Classifier
@@ -23,7 +23,7 @@ class SingleClassifierEnsemble(SingleEnsemble[CT], ClassifierEnsemble[CT]):
         *,
         model_store: ModelStore[CT],
         classes: Optional[Union[np.ndarray, List]] = None,
-        metric: Callable[[np.ndarray, np.ndarray], Orderable] = accuracy,
+        metric: Callable[[np.ndarray, np.ndarray], Orderable] = accuracy_score,
         select: Literal["min", "max"] = "max",
         random_state: Optional[Union[int, np.random.RandomState]] = None,
     ) -> None:

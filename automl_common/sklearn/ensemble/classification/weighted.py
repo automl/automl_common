@@ -2,17 +2,17 @@ from typing import Any, Callable, Dict, List, Optional, TypeVar, Union
 from typing_extensions import Literal  # TODO, remove with Python 3.8
 
 import numpy as np
+from sklearn.metrics import accuracy_score
 
 from automl_common.backend.stores.model_store import ModelStore
+from automl_common.data.convert import probabilities_to_classes
 from automl_common.data.math import majority_vote, weighted_sum
 from automl_common.ensemble.builders.weighted_ensemble import weighted_ensemble_caruana
-from automl_common.metrics import accuracy
 from automl_common.sklearn.ensemble.classification.base import ClassifierEnsemble
 from automl_common.sklearn.ensemble.weighted import WeightedEnsemble
 from automl_common.sklearn.model import Classifier
 from automl_common.util.random import as_random_state
 from automl_common.util.types import Orderable
-from automl_common.data.convert import probabilities_to_classes
 
 CT = TypeVar("CT", bound=Classifier)
 
@@ -24,7 +24,7 @@ class WeightedClassifierEnsemble(ClassifierEnsemble[CT], WeightedEnsemble[CT]):
         model_store: ModelStore[CT],
         classes: Optional[Union[List, np.ndarray]] = None,
         size: int = 10,
-        metric: Callable[[np.ndarray, np.ndarray], Orderable] = accuracy,
+        metric: Callable[[np.ndarray, np.ndarray], Orderable] = accuracy_score,
         select: Literal["min", "max"] = "max",
         random_state: Optional[Union[int, np.random.RandomState]] = None,
         voting: Literal["majority", "probability"] = "probability",

@@ -5,7 +5,7 @@ https://scikit-learn.org/stable/developers/develop.html#rolling-your-own-estimat
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Any, Dict, Iterator, List, Optional, TypeVar
+from typing import Any, Dict, Iterator, List, TypeVar
 
 import warnings
 

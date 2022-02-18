@@ -1,4 +1,4 @@
-from typing import Callable, Tuple, List
+from typing import Callable, List, Tuple
 
 import numpy as np
 import pytest

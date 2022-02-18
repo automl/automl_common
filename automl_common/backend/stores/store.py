@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Iterator, Mapping, MutableMapping, TypeVar
+from typing import Iterator, Mapping, MutableMapping, TypeVar
 
 from pathlib import Path
 

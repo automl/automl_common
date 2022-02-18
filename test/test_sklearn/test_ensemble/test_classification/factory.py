@@ -5,9 +5,9 @@ from pathlib import Path
 
 import numpy as np
 from pytest_cases import fixture
+from sklearn.metrics import accuracy_score
 
 from automl_common.backend.stores.model_store import ModelStore
-from automl_common.metrics import accuracy
 from automl_common.sklearn.ensemble.classification import (
     SingleClassifierEnsemble,
     WeightedClassifierEnsemble,
@@ -36,7 +36,7 @@ def make_sklearn_weighted_classifier_ensemble() -> Callable[..., WeightedClassif
         voting: Literal["majority", "probability"] = "probability",
         x: np.ndarray = data.x,
         y: np.ndarray = data.y,
-        metric: Callable[[np.ndarray, np.ndarray], Orderable] = accuracy,
+        metric: Callable[[np.ndarray, np.ndarray], Orderable] = accuracy_score,
         select: Literal["min", "max"] = "max",
         random_state: Optional[Union[int, np.random.RandomState]] = DEFAULT_SEED,
         models: Union[int, Mapping[str, CT]] = 10,
@@ -94,7 +94,7 @@ def make_sklearn_single_classifier_ensemble() -> Callable[..., SingleClassifierE
         fitted: bool = False,
         x: np.ndarray = data.x,
         y: np.ndarray = data.y,
-        metric: Callable[[np.ndarray, np.ndarray], Orderable] = accuracy,
+        metric: Callable[[np.ndarray, np.ndarray], Orderable] = accuracy_score,
         select: Literal["min", "max"] = "max",
         random_state: Optional[Union[int, np.random.RandomState]] = DEFAULT_SEED,
         models: Union[int, Mapping[str, CT]] = 10,

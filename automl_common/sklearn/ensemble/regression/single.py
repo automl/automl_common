@@ -1,18 +1,21 @@
 from typing import Any, Callable, Dict, List, Optional, TypeVar, Union
 from typing_extensions import Literal
 
+from functools import partial
+
 import numpy as np
+from sklearn.metrics import mean_squared_error
 from sklearn.utils import check_random_state
 
 from automl_common.backend.stores.model_store import ModelStore
 from automl_common.ensemble.builders.single_best import single_best
-from automl_common.metrics import rmse
 from automl_common.sklearn.ensemble.regression.base import RegressorEnsemble
 from automl_common.sklearn.ensemble.single import SingleEnsemble
 from automl_common.sklearn.model import Regressor
 from automl_common.util.types import Orderable
 
 RT = TypeVar("RT", bound=Regressor)
+rmse = partial(mean_squared_error, squared=False)
 
 
 class SingleRegressorEnsemble(RegressorEnsemble[RT], SingleEnsemble[RT]):

@@ -55,7 +55,7 @@ def dictmerge(items: Iterable[Dict], recursive: bool = False) -> Dict:
     if recursive is True:
         raise NotImplementedError("Don't have recursive yet")
 
-    results = {}
+    results: Dict = {}
     for d in items:
         if not isinstance(d, Dict):
             continue

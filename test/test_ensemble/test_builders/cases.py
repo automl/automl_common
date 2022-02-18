@@ -6,16 +6,19 @@ tags:
 from typing import Any, Callable, TypeVar
 from typing_extensions import Literal  # TODO, remove with Python 3.8
 
+from functools import partial
+
 import numpy as np
 from pytest_cases import case, parametrize
-
-from automl_common.metrics import accuracy, rmse
+from sklearn.metrics import accuracy_score, mean_squared_error
 
 T = TypeVar("T")
 
+rmse = partial(mean_squared_error, squared=False)
+
 
 @case(tags=["single"])
-@parametrize("metric, select", [(accuracy, "max"), (rmse, "min")])
+@parametrize("metric, select", [(accuracy_score, "max"), (rmse, "min")])
 def case_single_one_model_to_choose_with_predictions(
     metric: Callable[..., T],
     select: Literal["min", "max"],
@@ -46,7 +49,7 @@ def case_single_one_model_to_choose_with_predictions(
 
 @case(tags=["single"])
 @parametrize("n", [2, 5, 10])
-@parametrize("metric, select", [(accuracy, "max"), (rmse, "min")])
+@parametrize("metric, select", [(accuracy_score, "max"), (rmse, "min")])
 def case_single_n_models(
     n: int,
     metric: Callable[..., T],
@@ -81,7 +84,7 @@ def case_single_n_models(
 
 @case(tags=["weighted"])
 @parametrize("size", [1, 5, 10])
-@parametrize("metric, select", [(accuracy, "max"), (rmse, "min")])
+@parametrize("metric, select", [(accuracy_score, "max"), (rmse, "min")])
 def case_weighted_one_model_to_choose(
     metric: Callable[..., T],
     select: Literal["min", "max"],

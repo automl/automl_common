@@ -61,6 +61,50 @@ def test_bad_size(size: int) -> None:
     return  # pragma: no cover
 
 
+def test_is_probabilities_requires_classes() -> None:
+    """
+    Expects
+    -------
+    * Using weighted_ensemble_caruana with probabilties should require classes be passed
+    """
+    classes = None
+    is_probabilities = True
+
+    with pytest.raises(ValueError, match="Must provide `classes` if using probabilities"):
+        weighted_ensemble_caruana(
+            model_predictions={"a": np.asarray([])},
+            is_probabilities=is_probabilities,
+            classes=classes,
+            targets=np.asarray([]),
+            size=1,
+            metric=lambda x, y: 42,
+            select="min",
+        )
+
+
+def test_no_probabilities_with_classes() -> None:
+    """
+    Expects
+    -------
+    * Should raise an error is passing classes but not probabilities as this is probably
+     a user error.
+
+    """
+    classes = [1, 2, 3]
+    is_probabilities = False
+
+    with pytest.raises(ValueError, match="`classes` should not be provided"):
+        weighted_ensemble_caruana(
+            model_predictions={"a": np.asarray([])},
+            is_probabilities=is_probabilities,
+            classes=classes,
+            targets=np.asarray([]),
+            size=1,
+            metric=lambda x, y: 42,
+            select="min",
+        )
+
+
 @parametrize_with_cases(
     "model_predictions, targets, metric, size, select," "expected_weights, expected_trajectory",
     cases=cases,

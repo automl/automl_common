@@ -6,9 +6,9 @@ from collections import Counter
 
 import numpy as np
 
+from automl_common.data.convert import probabilities_to_classes
 from automl_common.util.random import as_random_state
 from automl_common.util.types import Orderable
-from automl_common.data.convert import probabilities_to_classes
 
 logger = logging.getLogger(__name__)
 
@@ -77,7 +77,7 @@ def weighted_ensemble_caruana(
         raise ValueError("`model_predictions` is empty")
 
     if is_probabilities is True and classes is None:
-        raise ValueError("Must provide `classes` if using probabilties")
+        raise ValueError("Must provide `classes` if using probabilities")
 
     if is_probabilities is False and classes is not None:
         raise ValueError("`classes` should not be provided if not using probabilities")

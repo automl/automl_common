@@ -4,8 +4,8 @@ from abc import abstractmethod
 from typing import Any, Dict, List, Optional, TypeVar, Union
 
 import numpy as np
-from sklearn.utils.validation import check_array, check_is_fitted, check_X_y
 from sklearn.utils.multiclass import class_distribution
+from sklearn.utils.validation import check_array, check_is_fitted, check_X_y
 
 from automl_common.backend.stores.model_store import ModelStore
 from automl_common.data.validate import jagged
@@ -85,6 +85,7 @@ class ClassifierEnsemble(Ensemble[CT], Classifier):
         if self.classes is not None:
             self.classes_ = self.classes
             self.class_prior_ = None
+            self.n_classes_: Union[int, List[int]]
 
             ndim = np.ndim(self.classes_)
             if ndim == 1:

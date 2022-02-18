@@ -1,4 +1,5 @@
-from typing import Union, List
+from typing import List, Union
+
 import numpy as np
 
 
@@ -14,8 +15,8 @@ def probabilities_to_classes(
     shape = np.shape(classes)
     if len(shape) == 1:
         n_outputs = 1
-        classes = [classes]
-        probabilities = [probabilities]
+        classes = [classes]  # type: ignore
+        probabilities = [probabilities]  # type: ignore
 
     elif len(shape) == 2:
         n_outputs = len(classes)
@@ -23,10 +24,7 @@ def probabilities_to_classes(
         raise NotImplementedError(f"Don't support `classes` with ndim > 2, {classes}")
 
     predictions = np.vstack(
-        [
-            classes[k][probabilities[k].argmax(axis=1)]
-            for k in range(n_outputs)
-        ]
+        [classes[k][probabilities[k].argmax(axis=1)] for k in range(n_outputs)]
     ).T
 
     return predictions

@@ -1,13 +1,14 @@
 from typing import Callable, Dict, Mapping, Optional, TypeVar, Union
 from typing_extensions import Literal  # TODO, python 3.8
 
+from functools import partial
 from pathlib import Path
 
 import numpy as np
 from pytest_cases import fixture
+from sklearn.metrics import mean_squared_error
 
 from automl_common.backend.stores.model_store import ModelStore
-from automl_common.metrics import rmse
 from automl_common.sklearn.ensemble.regression import (
     SingleRegressorEnsemble,
     WeightedRegressorEnsemble,
@@ -19,6 +20,7 @@ from test.data import DEFAULT_SEED, XYPack, xy
 from test.test_sklearn.test_models.mocks import MockRegressor
 
 RT = TypeVar("RT", bound=Regressor)
+rmse = partial(mean_squared_error, square=False)
 
 
 data = XYPack(*xy(kind="regression", xdims=(50, 3), ydims=(50,)))

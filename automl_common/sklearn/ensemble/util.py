@@ -1,14 +1,15 @@
-from typing import Any, Dict, Iterable, List, Mapping
+from typing import Any, Callable, Dict, Iterable, List, Mapping
 
 from collections import defaultdict
 
-from automl_common.util.functional import intersection, dictmerge
 from sklearn.utils._tags import _DEFAULT_TAGS
+
+from automl_common.util.functional import dictmerge, intersection
 
 # https://scikit-learn.org/stable/developers/develop.html#estimator-tags
 # A dict mapping from tag -> (what's required for non default, default)
 # The defaults aren't used but just here for full documentation
-accumulation_method = {
+accumulation_method: Dict[str, Callable[[Iterable[Any]], Any]] = {
     "allow_nan": all,
     "binary_only": any,
     "multilabel": all,

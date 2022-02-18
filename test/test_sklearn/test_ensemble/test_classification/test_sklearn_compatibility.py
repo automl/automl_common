@@ -10,8 +10,8 @@ from __future__ import annotations
 
 from typing import Any, Iterator, List, TypeVar
 from typing_extensions import Literal
-from itertools import product
 
+from itertools import product
 from pathlib import Path
 
 import numpy as np
@@ -71,9 +71,7 @@ def weighted_classifier_ensemble(path: Path) -> Iterator[MockWeightedClassifierE
         dir.mkdir(parents=True)
 
         yield MockWeightedClassifierEnsemble[CT](
-            model_store=ModelStore[CT](dir=dir),
-            voting=voting,
-            size=size
+            model_store=ModelStore[CT](dir=dir), voting=voting, size=size
         )
 
 

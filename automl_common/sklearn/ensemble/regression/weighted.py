@@ -1,12 +1,14 @@
 from typing import Any, Callable, Dict, List, Optional, TypeVar, Union
 from typing_extensions import Literal  # TODO, remove with Python 3.8
 
+from functools import partial
+
 import numpy as np
+from sklearn.metrics import mean_squared_error
 
 from automl_common.backend.stores.model_store import ModelStore
 from automl_common.data.math import weighted_sum
 from automl_common.ensemble.builders.weighted_ensemble import weighted_ensemble_caruana
-from automl_common.metrics import rmse
 from automl_common.sklearn.ensemble.regression.base import RegressorEnsemble
 from automl_common.sklearn.ensemble.weighted import WeightedEnsemble
 from automl_common.sklearn.model import Regressor
@@ -14,6 +16,7 @@ from automl_common.util.random import as_random_state
 from automl_common.util.types import Orderable
 
 RT = TypeVar("RT", bound=Regressor)
+rmse = partial(mean_squared_error, squared=True)
 
 
 class WeightedRegressorEnsemble(RegressorEnsemble[RT], WeightedEnsemble[RT]):
