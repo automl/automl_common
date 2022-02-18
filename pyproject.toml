@@ -5,6 +5,7 @@
 testpaths = ["test"]
 minversion = "3.7"
 addopts = "--cov=automl_common --cov=test"
+markers = ["todo: Needs to be implemented"]
 
 [tool.black]
 target-version = ['py37']

@@ -1,11 +1,12 @@
-from typing import Iterator, List, Optional, Union
+from typing import Any, Iterator, List, Optional, Union
 
 import re
 import shutil
 from pathlib import Path
 from tempfile import gettempdir
 
-from pytest import ExitCode, Session
+import pytest
+from pytest import ExitCode, Session, Item
 
 # Load in other pytest modules, in this case fixtures
 here = Path(__file__)
@@ -85,3 +86,10 @@ def pytest_sessionfinish(session: Session, exitstatus: Union[int, ExitCode]) -> 
     """
     if manual_tmp.exists():
         shutil.rmtree(manual_tmp)
+
+
+def pytest_runtest_setup(item: Item) -> None:
+    """Run before each test"""
+    todos = [mark for mark in item.iter_markers(name="todo")]
+    if todos:
+        pytest.xfail(f"Test needs to be implemented, {item.location}")
