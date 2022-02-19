@@ -31,10 +31,11 @@ py_version = "37"
 profile = "black" # Play nicely with black
 src_paths = ["automl_common", "test"]
 known_types = ["typing", "typing_extensions", "abc"] # We put these in their own section "types"
-known_test = ["pytest", "pytest_cases", "test"]
+known_pytest = ["pytest", "pytest_cases"]
+known_test = ["test"]
 known_third_party = ["sklearn"]
 known_first_party = ["automl_common"]
-sections = ["FUTURE", "TYPES", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "TEST", "LOCALFOLDER"] # section ordering
+sections = ["FUTURE", "TYPES", "STDLIB", "PYTEST", "THIRDPARTY", "FIRSTPARTY", "TEST", "LOCALFOLDER"] # section ordering
 multi_line_output = 3 # https://pycqa.github.io/isort/docs/configuration/multi_line_output_modes.html
 
 [tool.pydocstyle]
