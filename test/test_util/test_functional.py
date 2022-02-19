@@ -34,11 +34,6 @@ def test_union(xs: Iterable[List[int]], expected: Set[int]) -> None:
 def test_dictmerge() -> None:
     a = {"a": "hello", "b": "world", "c": "mars"}
     b = {"x": "hello", "b": "world", "c": "venus"}
-    expected = {
-        "a": "hello",
-        "x": "hello",
-        "b": ["world", "world"],
-        "c": ["mars", "venus"]
-    }
+    expected = {"a": "hello", "x": "hello", "b": ["world", "world"], "c": ["mars", "venus"]}
 
     assert dictmerge([a, b, {}]) == expected
