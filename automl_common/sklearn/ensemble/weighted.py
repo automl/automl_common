@@ -1,9 +1,7 @@
 from __future__ import annotations
 
-from abc import abstractmethod
 from typing import Dict, List, Tuple, TypeVar
 
-import numpy as np
 from sklearn.utils.validation import check_is_fitted
 
 from automl_common.sklearn.ensemble.base import Ensemble
@@ -86,23 +84,3 @@ class WeightedEnsemble(Ensemble[PredictorT]):
             The attributes of this ensemble
         """
         return super()._fit_attributes() + ["weights_", "trajectory_"]
-
-    @abstractmethod
-    def _fit(self, x: np.ndarray, y: np.ndarray) -> List[str]:
-        """Fit the ensemble to the given targets
-
-        Parameters
-        ----------
-        x : np.ndarray,
-            Fit the ensemble to the given x data
-
-        y : np.ndarray,
-            The targets to fit to
-
-        Returns
-        -------
-        List[str]
-            The ids of the models selected
-
-        """
-        ...

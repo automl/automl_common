@@ -21,7 +21,7 @@ from test.data import DEFAULT_SEED, XYPack, xy
 from test.test_sklearn.test_models.mocks import MockRegressor
 
 RT = TypeVar("RT", bound=Regressor)
-rmse = partial(mean_squared_error, square=False)
+rmse = partial(mean_squared_error, squared=False)
 
 
 data = XYPack(*xy(kind="regression", xdims=(50, 3), ydims=(50,)))

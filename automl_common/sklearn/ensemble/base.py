@@ -146,8 +146,6 @@ class Ensemble(BaseEnsemble[PredictorT], Predictor, BaseEstimator):
         """
         ...
 
-        return self
-
     def __iter__(self) -> Iterator[str]:
         return iter(self.ids)
 

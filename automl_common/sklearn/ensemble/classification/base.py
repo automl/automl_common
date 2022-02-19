@@ -8,7 +8,6 @@ from sklearn.utils.multiclass import check_classification_targets, class_distrib
 from sklearn.utils.validation import check_is_fitted
 
 from automl_common.backend.stores.model_store import ModelStore
-from automl_common.data.validate import jagged
 from automl_common.sklearn.ensemble.base import Ensemble
 from automl_common.sklearn.model import Classifier
 
@@ -98,7 +97,7 @@ class ClassifierEnsemble(Ensemble[CT], Classifier):
             elif ndim == 2:
                 self.n_classes_ = [len(col_classes) for col_classes in self.classes]
             else:
-                raise ValueError(f"`classes` mut be 1 or 2 dimensional, {self.classes}")
+                raise ValueError(f"`classes` must be 1 or 2 dimensional, {self.classes}")
 
         else:
             shape = np.shape(y)
@@ -172,17 +171,7 @@ class ClassifierEnsemble(Ensemble[CT], Classifier):
         """
         check_is_fitted(self)
         x = self._validate_data(X=x, accept_sparse=True, reset=False)
-
-        probs = self._predict_proba(x)
-        if jagged(probs):
-            raise RuntimeError(
-                "Probability predictions were jagged, perhaps not all classifiers"
-                " were trained with the same labels or one of them produces output"
-                " in a different format from the rest."
-                f"\n\t{probs}"
-            )
-
-        return probs
+        return self._predict_proba(x)
 
     @abstractmethod
     def _fit(

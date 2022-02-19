@@ -60,4 +60,4 @@ class SingleEnsemble(Ensemble[PT]):
 
     @classmethod
     def _fit_attributes(cls) -> List[str]:
-        return super()._fit_attributes() + ["random_state_", "model_id_"]
+        return super()._fit_attributes() + ["model_id_"]

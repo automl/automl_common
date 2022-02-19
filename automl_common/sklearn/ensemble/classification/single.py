@@ -126,3 +126,7 @@ class SingleClassifierEnsemble(SingleEnsemble[CT], ClassifierEnsemble[CT]):
             "random_state": self.random_state,
             **super().get_params(deep=deep),
         }
+
+    @classmethod
+    def _fit_attributes(self) -> List[str]:
+        return super()._fit_attributes() + ["random_state_"]

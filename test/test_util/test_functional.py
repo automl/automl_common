@@ -1,16 +1,44 @@
-import pytest
+from typing import Iterable, List, Set
+
+from pytest_cases import parametrize
+
+from automl_common.util.functional import dictmerge, intersection, union
 
 
-@pytest.mark.todo
-def test_intersection() -> None:
-    pass
+@parametrize(
+    "xs, expected",
+    [
+        [([1, 2, 3], [2, 3], []), set()],
+        [([1, 2, 3], [2, 3], [2]), {2}],
+        [([1, 2, 3], [3], [2, 3]), {3}],
+        [{}, set()],
+    ],
+)
+def test_intersection(xs: Iterable[List[int]], expected: Set[int]) -> None:
+    assert intersection(xs) == expected
 
 
-@pytest.mark.todo
-def test_union() -> None:
-    pass
+@parametrize(
+    "xs, expected",
+    [
+        [([1, 2, 3], [2, 3], []), {1, 2, 3}],
+        [([1], [2], [3]), {1, 2, 3}],
+        [([1], [], [3]), {1, 3}],
+        [{}, set()],
+    ],
+)
+def test_union(xs: Iterable[List[int]], expected: Set[int]) -> None:
+    assert union(xs) == expected
 
 
-@pytest.mark.todo
 def test_dictmerge() -> None:
-    pass
+    a = {"a": "hello", "b": "world", "c": "mars"}
+    b = {"x": "hello", "b": "world", "c": "venus"}
+    expected = {
+        "a": "hello",
+        "x": "hello",
+        "b": ["world", "world"],
+        "c": ["mars", "venus"]
+    }
+
+    assert dictmerge([a, b, {}]) == expected

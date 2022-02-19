@@ -8,6 +8,9 @@ from tempfile import gettempdir
 import pytest
 from pytest import ExitCode, Item, Session
 
+Config = Any
+Parser = Any
+
 # Load in other pytest modules, in this case fixtures
 here = Path(__file__)
 manual_tmp = Path(gettempdir()) / "test_automl_common"
@@ -58,6 +61,22 @@ def factory_modules() -> List[str]:
 pytest_plugins += fixture_modules() + factory_modules()
 
 
+def pytest_addoption(parser: Parser) -> None:
+    """
+
+    Parameters
+    ----------
+    parser : Parser
+        The parser to add options to
+    """
+    parser.addoption(
+        "--sklearn",
+        action="store_true",
+        default=False,
+        help="Run sklearn compatibility tests",
+    )
+
+
 def pytest_sessionstart(session: Session) -> None:
     """Called after the ``Session`` object has been created and before performing collection
     and entering the run test loop.
@@ -93,3 +112,18 @@ def pytest_runtest_setup(item: Item) -> None:
     todos = [mark for mark in item.iter_markers(name="todo")]
     if todos:
         pytest.xfail(f"Test needs to be implemented, {item.location}")
+
+
+def pytest_collection_modifyitems(
+    session: Session,
+    config: Config,
+    items: List[Item],
+) -> None:
+    """Modifys the colelction of tests that are captured"""
+    if config.getoption("--sklearn"):
+        return
+
+    skip_sklearn = pytest.mark.skip(reason="Need --sklearn option to run")
+    for item in items:
+        if "sklearn" in item.keywords:
+            item.add_marker(skip_sklearn)

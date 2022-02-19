@@ -20,7 +20,11 @@ def intersection(items: Iterable[Iterable[T]]) -> Set[T]:
     Set[T]
         The intersection of all items
     """
-    return set(reduce(lambda s1, s2: set(s1) & set(s2), items))
+    items = list(items)
+    if len(items) == 0:
+        return set()
+
+    return set(reduce(lambda s1, s2: set(s1) & set(s2), items, items[0]))
 
 
 def union(items: Iterable[Iterable[T]]) -> Set[T]:

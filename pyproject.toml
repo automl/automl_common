@@ -5,7 +5,7 @@
 testpaths = ["test"]
 minversion = "3.7"
 addopts = "--cov=automl_common --cov=test"
-markers = ["todo: Needs to be implemented"]
+markers = ["todo: Needs to be implemented", "sklearn: Test sklearn compatibility"]
 
 [tool.black]
 target-version = ['py37']

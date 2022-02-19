@@ -93,6 +93,7 @@ def ensembles_to_test() -> Iterator[ClassifierEnsemble[CT]]:
 @pytest.mark.filterwarnings("ignore::sklearn.exceptions.SkipTestWarning")
 @pytest.mark.filterwarnings("ignore:Expensive function `_more_tags` called")
 @pytest.mark.filterwarnings("ignore:Can't check dok sparse matrix for nan or inf.")
+@pytest.mark.sklearn
 @parametrize("ensemble", list(ensembles_to_test()))
 def test_compatibility(ensemble: ClassifierEnsemble) -> None:
     check_estimator(ensemble)
