@@ -70,10 +70,10 @@ def pytest_addoption(parser: Parser) -> None:
         The parser to add options to
     """
     parser.addoption(
-        "--sklearn",
+        "--nosklearn",
         action="store_true",
         default=False,
-        help="Run sklearn compatibility tests",
+        help="Disable sklearn compatibility tests",
     )
 
 
@@ -120,10 +120,8 @@ def pytest_collection_modifyitems(
     items: List[Item],
 ) -> None:
     """Modifys the colelction of tests that are captured"""
-    if config.getoption("--sklearn"):
-        return
-
-    skip_sklearn = pytest.mark.skip(reason="Need --sklearn option to run")
-    for item in items:
-        if "sklearn" in item.keywords:
-            item.add_marker(skip_sklearn)
+    if config.getoption("--nosklearn"):
+        skip_sklearn = pytest.mark.skip(reason="Need --sklearn option to run")
+        for item in items:
+            if "sklearn" in item.keywords:
+                item.add_marker(skip_sklearn)

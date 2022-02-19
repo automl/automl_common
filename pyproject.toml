@@ -18,6 +18,9 @@ context = "automl_common"
 [tool.coverage.report]
 show_missing = true
 skip_covered = true
+omit = [
+    "test/conftest.py"
+]
 exclude_lines = [
     "pragma: no cover",
     '\.\.\.',
