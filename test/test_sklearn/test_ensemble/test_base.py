@@ -1,13 +1,14 @@
 from typing import Callable, List, Tuple
 
+import pytest
+from pytest_cases import filters as ft
+from pytest_cases import parametrize_with_cases
+
 import numpy as np
 from sklearn.exceptions import NotFittedError
 
 from automl_common.sklearn.ensemble import Ensemble
 
-import pytest
-from pytest_cases import filters as ft
-from pytest_cases import parametrize_with_cases
 from test.test_sklearn.test_ensemble.cases import cases
 
 DataFactory = Callable[..., Tuple[np.ndarray, np.ndarray]]

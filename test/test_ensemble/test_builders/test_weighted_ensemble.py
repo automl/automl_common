@@ -1,14 +1,15 @@
 from typing import Callable, Mapping, Optional, Sequence, Tuple, TypeVar
 from typing_extensions import Literal
 
+import pytest
+from pytest_cases import parametrize, parametrize_with_cases
+
 import numpy as np
 
 from automl_common.ensemble.builders.weighted_ensemble import weighted_ensemble_caruana
 from automl_common.util.types import Orderable
 
-import pytest
 import test.test_ensemble.test_builders.cases as cases
-from pytest_cases import parametrize, parametrize_with_cases
 
 OrderableT = TypeVar("OrderableT", bound=Orderable)
 

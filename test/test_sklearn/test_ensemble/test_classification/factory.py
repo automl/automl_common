@@ -3,6 +3,8 @@ from typing_extensions import Literal  # TODO, python 3.8
 
 from pathlib import Path
 
+from pytest_cases import fixture
+
 import numpy as np
 from sklearn.metrics import accuracy_score
 
@@ -14,7 +16,6 @@ from automl_common.sklearn.ensemble.classification import (
 from automl_common.sklearn.model import Classifier
 from automl_common.util.types import Orderable
 
-from pytest_cases import fixture
 from test.data import DEFAULT_SEED, XYPack, xy
 from test.test_sklearn.test_models.mocks import MockClassifier
 

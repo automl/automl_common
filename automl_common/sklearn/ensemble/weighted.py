@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Any, Dict, List, Tuple, TypeVar
+from typing import Dict, List, Tuple, TypeVar
 
 import numpy as np
 from sklearn.utils.validation import check_is_fitted
@@ -86,21 +86,6 @@ class WeightedEnsemble(Ensemble[PredictorT]):
             The attributes of this ensemble
         """
         return super()._fit_attributes() + ["weights_", "trajectory_"]
-
-    def get_params(self, deep: bool = True) -> Dict[str, Any]:
-        """Get the parameters of this ensemble
-
-        Parameters
-        ----------
-        deep : bool = True
-            Whether to get the parameters of subestimators
-
-        Returns
-        -------
-        Dict
-            A dicitonary mapping from parameters to values
-        """
-        return {**super().get_params(deep=deep)}
 
     @abstractmethod
     def _fit(self, x: np.ndarray, y: np.ndarray) -> List[str]:

@@ -2,6 +2,8 @@ from typing import Any, Callable, Collection, Mapping, Optional, TypeVar
 
 from pathlib import Path
 
+from pytest_cases import fixture
+
 import numpy as np
 
 from automl_common.backend.stores.ensemble_store import EnsembleStore
@@ -12,7 +14,6 @@ from automl_common.backend.stores.predictions_store import PredictionsStore
 from automl_common.ensemble import Ensemble
 from automl_common.model import Model
 
-from pytest_cases import fixture
 from test.test_backend.test_stores.mocks import MockDirStore
 
 MT = TypeVar("MT", bound=Model)

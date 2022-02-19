@@ -3,16 +3,17 @@ from typing import Callable, TypeVar
 from pathlib import Path
 from unittest.mock import patch
 
+import pytest
+from pytest_cases import filters as ft
+from pytest_cases import parametrize_with_cases
+
 import numpy as np
 
 from automl_common.backend.stores.model_store import ModelStore
 from automl_common.ensemble import WeightedEnsemble
 from automl_common.model import Model
 
-import pytest
 import test.test_ensemble.cases as cases
-from pytest_cases import filters as ft
-from pytest_cases import parametrize_with_cases
 
 MT = TypeVar("MT", bound=Model)
 

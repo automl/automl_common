@@ -14,6 +14,9 @@ from typing_extensions import Literal
 from itertools import product
 from pathlib import Path
 
+import pytest
+from pytest_cases import parametrize
+
 import numpy as np
 from sklearn.dummy import DummyClassifier
 from sklearn.utils.estimator_checks import check_estimator
@@ -26,8 +29,6 @@ from automl_common.sklearn.ensemble import (
 )
 from automl_common.sklearn.model import Classifier
 
-import pytest
-from pytest_cases import parametrize
 from test.conftest import manual_tmp
 
 TMPDIR = manual_tmp / "sklearn_ensemble_classifiers"

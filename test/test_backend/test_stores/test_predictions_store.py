@@ -2,11 +2,11 @@ from typing import Callable
 
 from pathlib import Path
 
+from pytest_cases import parametrize
+
 import numpy as np
 
 from automl_common.backend.stores.predictions_store import PredictionsStore
-
-from pytest_cases import parametrize
 
 
 @parametrize("bad_filename", ["predictions_not.txt", "hello", "here.npy"])

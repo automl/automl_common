@@ -2,12 +2,13 @@ from typing import Type
 
 from pathlib import Path
 
-from automl_common.backend.stores.store import Store, StoreView
-
 import pytest
-import test.test_backend.test_stores.cases as cases
 from pytest_cases import filters as ft
 from pytest_cases import parametrize_with_cases
+
+from automl_common.backend.stores.store import Store, StoreView
+
+import test.test_backend.test_stores.cases as cases
 
 
 @parametrize_with_cases("cls, dir", cases=cases, filter=ft.has_tag("params"))

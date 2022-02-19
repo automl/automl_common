@@ -2,16 +2,17 @@ from typing import Callable, Tuple
 
 from unittest.mock import patch
 
+import pytest
+from pytest_cases import filters as ft
+from pytest_cases import parametrize_with_cases
+
 import numpy as np
 from sklearn.base import clone
 from sklearn.exceptions import NotFittedError
 
 from automl_common.sklearn.ensemble import ClassifierEnsemble
 
-import pytest
 import test.test_sklearn.test_ensemble.test_classification.cases as cases
-from pytest_cases import filters as ft
-from pytest_cases import parametrize_with_cases
 
 DataFactory = Callable[..., Tuple[np.ndarray, np.ndarray]]
 

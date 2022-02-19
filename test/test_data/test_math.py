@@ -1,11 +1,12 @@
 from typing import Iterable, List, Tuple, Union
 
+import pytest
+from pytest_cases import case, parametrize, parametrize_with_cases
+
 import numpy as np
 
 from automl_common.data.math import majority_vote, normalize, weighted_sum
 
-import pytest
-from pytest_cases import case, parametrize, parametrize_with_cases
 from test.data import DEFAULT_SEED
 
 

@@ -2,10 +2,11 @@ from typing import Callable, Tuple
 
 from pathlib import Path
 
-import numpy as np
-
 from pytest import FixtureRequest
 from pytest_cases import fixture, fixture_ref, parametrize
+
+import numpy as np
+
 from test.data import xy
 
 

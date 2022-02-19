@@ -8,10 +8,10 @@ from typing_extensions import Literal  # TODO, remove with Python 3.8
 
 from functools import partial
 
+from pytest_cases import case, parametrize
+
 import numpy as np
 from sklearn.metrics import accuracy_score, mean_squared_error
-
-from pytest_cases import case, parametrize
 
 T = TypeVar("T")
 

@@ -2,6 +2,8 @@ from typing import Callable, List, Tuple, Union
 
 from pathlib import Path
 
+from pytest_cases import case, parametrize
+
 import numpy as np
 
 from automl_common.sklearn.ensemble.classification import (
@@ -9,7 +11,6 @@ from automl_common.sklearn.ensemble.classification import (
     WeightedClassifierEnsemble,
 )
 
-from pytest_cases import case, parametrize
 from test.test_sklearn.test_models.mocks import MockClassifier
 
 SCE = SingleClassifierEnsemble[MockClassifier]

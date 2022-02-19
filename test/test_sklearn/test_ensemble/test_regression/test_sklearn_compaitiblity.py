@@ -9,6 +9,9 @@ from typing import Any, Iterator, TypeVar
 
 from pathlib import Path
 
+import pytest
+from pytest_cases import parametrize
+
 import numpy as np
 from sklearn.dummy import DummyRegressor
 from sklearn.utils.estimator_checks import check_estimator
@@ -21,8 +24,6 @@ from automl_common.sklearn.ensemble import (
 )
 from automl_common.sklearn.model import Regressor
 
-import pytest
-from pytest_cases import parametrize
 from test.conftest import manual_tmp
 
 TMPDIR = manual_tmp / "ensemble_sklearn_compatibility"

@@ -1,9 +1,10 @@
-from automl_common.backend.accessors.accessor import Accessor
-
 import pytest
-import test.test_backend.test_accessors.cases as cases
 from pytest_cases import filters as ft
 from pytest_cases import parametrize_with_cases
+
+from automl_common.backend.accessors.accessor import Accessor
+
+import test.test_backend.test_accessors.cases as cases
 
 
 @parametrize_with_cases("accessor", cases=cases)
