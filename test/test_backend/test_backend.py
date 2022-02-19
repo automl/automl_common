@@ -2,9 +2,9 @@ from typing import Optional
 
 from pathlib import Path
 
-from pytest_cases import fixture_ref, parametrize
-
 from automl_common.backend import Backend
+
+from pytest_cases import fixture_ref, parametrize
 
 
 def test_makes_non_existent_dir(path: Path) -> None:

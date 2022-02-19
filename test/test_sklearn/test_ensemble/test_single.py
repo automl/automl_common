@@ -1,10 +1,9 @@
-import pytest
-from pytest_cases import filters as ft
-from pytest_cases import parametrize_with_cases
-
 from automl_common.sklearn.ensemble import SingleEnsemble
 
+import pytest
 import test.test_sklearn.test_ensemble.cases as cases
+from pytest_cases import filters as ft
+from pytest_cases import parametrize_with_cases
 
 
 @parametrize_with_cases(

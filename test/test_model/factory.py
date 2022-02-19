@@ -1,7 +1,6 @@
 from typing import Callable
 
 from pytest_cases import fixture
-
 from test.test_model.mocks import MockModel
 
 

@@ -2,11 +2,11 @@ from typing import Callable
 
 from pathlib import Path
 
-import pytest
-from pytest_cases import case, parametrize, parametrize_with_cases
-
 from automl_common.backend.stores.model_store import ModelStore
 from automl_common.model import Model
+
+import pytest
+from pytest_cases import case, parametrize, parametrize_with_cases
 
 
 @case(tags=["filter"])

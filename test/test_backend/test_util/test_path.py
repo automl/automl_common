@@ -2,9 +2,9 @@ from typing import List, Optional
 
 from pathlib import Path
 
-from pytest_cases import parametrize
-
 from automl_common.backend.util.path import rmtree
+
+from pytest_cases import parametrize
 
 
 @parametrize("contents", [None, ["file.txt", "other"]])

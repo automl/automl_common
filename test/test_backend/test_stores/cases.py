@@ -16,7 +16,6 @@ from itertools import chain
 from pathlib import Path
 
 import numpy as np
-from pytest_cases import case, parametrize
 
 from automl_common.backend.stores.ensemble_store import EnsembleStore
 from automl_common.backend.stores.model_store import ModelStore
@@ -27,6 +26,7 @@ from automl_common.backend.stores.store import StoreView
 from automl_common.ensemble.ensemble import Ensemble
 from automl_common.model.model import Model
 
+from pytest_cases import case, parametrize
 from test.test_backend.test_stores.mocks import MockDirStore
 from test.test_model.mocks import MockModel
 

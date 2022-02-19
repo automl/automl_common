@@ -3,13 +3,13 @@ from typing import Callable, List, Tuple, Union
 from pathlib import Path
 
 import numpy as np
-from pytest_cases import case, parametrize
 
 from automl_common.sklearn.ensemble.classification import (
     SingleClassifierEnsemble,
     WeightedClassifierEnsemble,
 )
 
+from pytest_cases import case, parametrize
 from test.test_sklearn.test_models.mocks import MockClassifier
 
 SCE = SingleClassifierEnsemble[MockClassifier]

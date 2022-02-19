@@ -22,6 +22,7 @@ class WeightedClassifierEnsemble(ClassifierEnsemble[CT], WeightedEnsemble[CT]):
         self,
         *,
         model_store: ModelStore[CT],
+        tags: Optional[Dict[str, Any]] = None,
         classes: Optional[Union[List, np.ndarray]] = None,
         size: int = 10,
         metric: Callable[[np.ndarray, np.ndarray], Orderable] = accuracy_score,
@@ -29,7 +30,11 @@ class WeightedClassifierEnsemble(ClassifierEnsemble[CT], WeightedEnsemble[CT]):
         random_state: Optional[Union[int, np.random.RandomState]] = None,
         voting: Literal["majority", "probability"] = "probability",
     ):
-        super().__init__(model_store=model_store, classes=classes)
+        super().__init__(
+            model_store=model_store,
+            tags=tags,
+            classes=classes,
+        )
         self.size = size
         self.metric = metric
         self.select = select
@@ -109,7 +114,7 @@ class WeightedClassifierEnsemble(ClassifierEnsemble[CT], WeightedEnsemble[CT]):
 
     def _predict_proba(self, x: np.ndarray) -> np.ndarray:
         ids, weights = zip(*self.weights.items())
-        probs = iter(self.model_store[id].load().predict_proba(x) for id in ids)
+        probs = iter(self.model_store[id].load().predict_proba(x) for id in ids)  # pragma: no cover
 
         weighted_probs = weighted_sum(probs, weights=np.asarray(weights))
 
@@ -135,3 +140,7 @@ class WeightedClassifierEnsemble(ClassifierEnsemble[CT], WeightedEnsemble[CT]):
             "random_state": self.random_state,
             "voting": self.voting,
         }
+
+    @classmethod
+    def _fit_attributes(cls) -> List[str]:
+        return super()._fit_attributes() + ["random_state_"]

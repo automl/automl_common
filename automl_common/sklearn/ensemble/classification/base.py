@@ -4,8 +4,8 @@ from abc import abstractmethod
 from typing import Any, Dict, List, Optional, TypeVar, Union
 
 import numpy as np
-from sklearn.utils.multiclass import class_distribution
-from sklearn.utils.validation import check_array, check_is_fitted, check_X_y
+from sklearn.utils.multiclass import check_classification_targets, class_distribution
+from sklearn.utils.validation import check_is_fitted
 
 from automl_common.backend.stores.model_store import ModelStore
 from automl_common.data.validate import jagged
@@ -39,14 +39,20 @@ class ClassifierEnsemble(Ensemble[CT], Classifier):
         self,
         *,
         model_store: ModelStore[CT],
+        tags: Optional[Dict[str, Any]] = None,
         classes: Optional[Union[np.ndarray, List]] = None,
     ):
-        self.model_store = model_store
+        super().__init__(model_store=model_store, tags=tags)
         self.classes = classes
 
     @classmethod
     def _fit_attributes(cls) -> List[str]:
-        return super()._fit_attributes() + ["classes_", "n_classes_", "class_prior_"]
+        return super()._fit_attributes() + [
+            "classes_",
+            "n_classes_",
+            "class_prior_",
+            "n_features_in_",
+        ]
 
     def fit(self, x: np.ndarray, y: np.ndarray) -> ClassifierEnsemble[CT]:
         """Fit a classifier Ensemble
@@ -71,15 +77,14 @@ class ClassifierEnsemble(Ensemble[CT], Classifier):
         RuntimeError
 
         """
-        if self.model_store is None:
-            raise RuntimeError("Can't fit without model store")
-
-        x, y = check_X_y(x, y, accept_sparse=True, multi_output=True)
-
         # Reset attributes
         for attr in self._fit_attributes():
             if hasattr(self, attr):
                 delattr(self, attr)
+
+        # Validate the data, set's the `n_features_in` attribute
+        x, y = self._validate_data(x, y, accept_sparse=True, multi_output=True)
+        check_classification_targets(y)
 
         # Fill in attributes, classes_, n_classes_ and class_prior_
         if self.classes is not None:
@@ -138,7 +143,7 @@ class ClassifierEnsemble(Ensemble[CT], Classifier):
             Raises if the ensemble has not been fit yet
         """
         check_is_fitted(self)
-        x = check_array(x, accept_sparse=True)
+        x = self._validate_data(X=x, accept_sparse=True, reset=False)
 
         return self._predict(x)
 
@@ -166,7 +171,7 @@ class ClassifierEnsemble(Ensemble[CT], Classifier):
             Raises if it recieved a jagged set of probabilities
         """
         check_is_fitted(self)
-        x = check_array(x, accept_sparse=True)
+        x = self._validate_data(X=x, accept_sparse=True, reset=False)
 
         probs = self._predict_proba(x)
         if jagged(probs):
@@ -255,6 +260,3 @@ class ClassifierEnsemble(Ensemble[CT], Classifier):
             A dicitonary mapping from parameters to values
         """
         return {**super().get_params(deep=deep), "classes": self.classes}
-
-    def _more_tags(self) -> Dict[str, Any]:
-        return {**super()._more_tags(), "multioutput_only": False, "no_validation": True}

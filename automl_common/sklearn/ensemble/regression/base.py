@@ -4,7 +4,7 @@ from abc import abstractmethod
 from typing import List, TypeVar
 
 import numpy as np
-from sklearn.utils.validation import check_array, check_is_fitted, check_X_y
+from sklearn.utils.validation import check_is_fitted
 
 from automl_common.sklearn.ensemble.base import Ensemble
 from automl_common.sklearn.model import Regressor
@@ -31,15 +31,13 @@ class RegressorEnsemble(Ensemble[RT], Regressor):
         ClassifierEnsemble[ClassifierT]
             The ClassifierEnsemble
         """
-        if self.model_store is None:
-            raise RuntimeError("Can't fit without model store")
-
-        x, y = check_X_y(x, y, accept_sparse=True, multi_output=True)
-
         # Reset attributes
         for attr in self._fit_attributes():
             if hasattr(self, attr):
                 delattr(self, attr)
+
+        # Validate the data and sets the `n_features_in_` attribute
+        x, y = self._validate_data(x, y, accept_sparse=True, multi_output=True, y_numeric=True)
 
         # Get the output shape
         shape = np.shape(y)
@@ -74,7 +72,7 @@ class RegressorEnsemble(Ensemble[RT], Regressor):
             Raises if the ensemble has not been fit yet
         """
         check_is_fitted(self)
-        x = check_array(x, accept_sparse=True)
+        x = self._validate_data(X=x, accept_sparse=True, reset=False)
 
         return self._predict(x)
 
@@ -117,3 +115,7 @@ class RegressorEnsemble(Ensemble[RT], Regressor):
 
         """
         ...
+
+    @classmethod
+    def _fit_attributes(self) -> List[str]:
+        return super()._fit_attributes() + ["n_features_in_"]

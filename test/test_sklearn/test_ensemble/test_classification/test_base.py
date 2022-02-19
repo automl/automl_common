@@ -3,14 +3,15 @@ from typing import Callable, Tuple
 from unittest.mock import patch
 
 import numpy as np
-import pytest
-from pytest_cases import filters as ft
-from pytest_cases import parametrize_with_cases
+from sklearn.base import clone
 from sklearn.exceptions import NotFittedError
 
 from automl_common.sklearn.ensemble import ClassifierEnsemble
 
+import pytest
 import test.test_sklearn.test_ensemble.test_classification.cases as cases
+from pytest_cases import filters as ft
+from pytest_cases import parametrize_with_cases
 
 DataFactory = Callable[..., Tuple[np.ndarray, np.ndarray]]
 
@@ -86,3 +87,19 @@ def test_predict_proba_raises_with_jagged_predictions(ensemble: ClassifierEnsemb
             ensemble.predict_proba(x)
 
     return  # pragma: no cover
+
+
+@pytest.mark.todo
+def test_with_custom_classes_valid() -> None:
+    """
+
+    Parameters
+    ----------
+    ensemble : ClassifierEnsemble
+        A fitted ensemble
+
+    Expects
+    -------
+    * Should be able to manually pass classes for fitting
+    """
+    pass

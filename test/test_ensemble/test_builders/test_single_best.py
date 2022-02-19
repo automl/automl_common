@@ -2,13 +2,13 @@ from typing import Callable, List, Tuple, TypeVar
 from typing_extensions import Literal  # TODO python3.8
 
 import numpy as np
-import pytest
-from pytest_cases import parametrize, parametrize_with_cases
 
 from automl_common.ensemble.builders.single_best import single_best
 from automl_common.util.types import Orderable
 
+import pytest
 import test.test_ensemble.test_builders.cases as cases
+from pytest_cases import parametrize, parametrize_with_cases
 
 OrderableT = TypeVar("OrderableT", bound=Orderable)
 

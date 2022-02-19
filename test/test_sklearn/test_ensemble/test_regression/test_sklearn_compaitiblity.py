@@ -10,7 +10,6 @@ from typing import Any, Iterator, TypeVar
 from pathlib import Path
 
 import numpy as np
-from pytest_cases import parametrize
 from sklearn.dummy import DummyRegressor
 from sklearn.utils.estimator_checks import check_estimator
 
@@ -22,6 +21,8 @@ from automl_common.sklearn.ensemble import (
 )
 from automl_common.sklearn.model import Regressor
 
+import pytest
+from pytest_cases import parametrize
 from test.conftest import manual_tmp
 
 TMPDIR = manual_tmp / "ensemble_sklearn_compatibility"
@@ -73,6 +74,9 @@ def ensembles_to_test() -> Iterator[RegressorEnsemble[RT]]:
         yield from generator(TMPDIR)
 
 
+@pytest.mark.filterwarnings("ignore::sklearn.exceptions.SkipTestWarning")
+@pytest.mark.filterwarnings("ignore:Expensive function `_more_tags` called")
+@pytest.mark.filterwarnings("ignore:Can't check dok sparse matrix for nan or inf.")
 @parametrize("ensemble", list(ensembles_to_test()))
 def test_compatibility(ensemble: RegressorEnsemble) -> None:
     check_estimator(ensemble)

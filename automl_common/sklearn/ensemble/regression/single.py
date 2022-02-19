@@ -25,11 +25,12 @@ class SingleRegressorEnsemble(RegressorEnsemble[RT], SingleEnsemble[RT]):
         self,
         *,
         model_store: ModelStore[RT],
+        tags: Optional[Dict[str, Any]] = None,
         metric: Callable[[np.ndarray, np.ndarray], Orderable] = rmse,
         select: Literal["min", "max"] = "min",
         random_state: Optional[Union[int, np.random.RandomState]] = None,
     ) -> None:
-        super().__init__(model_store=model_store)
+        super().__init__(model_store=model_store, tags=tags)
         self.metric = metric
         self.select = select
         self.random_state = random_state
@@ -106,3 +107,7 @@ class SingleRegressorEnsemble(RegressorEnsemble[RT], SingleEnsemble[RT]):
             "random_state": self.random_state,
             **super().get_params(deep=deep),
         }
+
+    @classmethod
+    def _fit_attributes(cls) -> List[str]:
+        return super()._fit_attributes() + ["random_state_"]

@@ -3,9 +3,10 @@ from typing import Callable
 from pathlib import Path
 
 import numpy as np
-from pytest_cases import parametrize
 
 from automl_common.backend.stores.predictions_store import PredictionsStore
+
+from pytest_cases import parametrize
 
 
 @parametrize("bad_filename", ["predictions_not.txt", "hello", "here.npy"])

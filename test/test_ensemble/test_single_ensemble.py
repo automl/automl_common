@@ -2,15 +2,14 @@ from typing import Callable, TypeVar
 
 from pathlib import Path
 
-import pytest
-from pytest_cases import filters as ft
-from pytest_cases import parametrize_with_cases
-
 from automl_common.backend.stores.model_store import ModelStore
 from automl_common.ensemble import SingleEnsemble
 from automl_common.model import Model
 
+import pytest
 import test.test_ensemble.cases as cases
+from pytest_cases import filters as ft
+from pytest_cases import parametrize_with_cases
 
 MT = TypeVar("MT", bound=Model)
 

@@ -54,8 +54,11 @@ def tag_accumulate(model_tags: Iterable[Mapping[str, Any]]) -> Dict[str, Any]:
 
     results: Dict[str, Any] = {}
     for k, v in accumulated_tags.items():
-        f = accumulation_method[k]
-        results[k] = f(v)
+        if k in accumulation_method:
+            f = accumulation_method[k]
+            results[k] = f(v)
+        else:
+            results[k] = v[0] if len(v) == 1 else v  # Account for single item in list
 
     results = {**_DEFAULT_TAGS, **results}
 

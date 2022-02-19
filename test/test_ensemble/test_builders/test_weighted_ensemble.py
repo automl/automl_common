@@ -2,13 +2,13 @@ from typing import Callable, Mapping, Optional, Sequence, Tuple, TypeVar
 from typing_extensions import Literal
 
 import numpy as np
-import pytest
-from pytest_cases import parametrize, parametrize_with_cases
 
 from automl_common.ensemble.builders.weighted_ensemble import weighted_ensemble_caruana
 from automl_common.util.types import Orderable
 
+import pytest
 import test.test_ensemble.test_builders.cases as cases
+from pytest_cases import parametrize, parametrize_with_cases
 
 OrderableT = TypeVar("OrderableT", bound=Orderable)
 
@@ -81,6 +81,8 @@ def test_is_probabilities_requires_classes() -> None:
             select="min",
         )
 
+    return  # pragma: no cover
+
 
 def test_no_probabilities_with_classes() -> None:
     """
@@ -103,6 +105,8 @@ def test_no_probabilities_with_classes() -> None:
             metric=lambda x, y: 42,
             select="min",
         )
+
+    return  # pragma: no cover
 
 
 @parametrize_with_cases(

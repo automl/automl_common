@@ -7,8 +7,6 @@ from typing import Callable, List, Mapping, Type, TypeVar, Union
 
 from pathlib import Path
 
-from pytest_cases import case, parametrize
-
 from automl_common.ensemble import (
     Ensemble,
     SingleEnsemble,
@@ -17,6 +15,7 @@ from automl_common.ensemble import (
 )
 from automl_common.model import Model
 
+from pytest_cases import case, parametrize
 from test.test_ensemble.mocks import MockEnsemble
 from test.test_model.mocks import MockModel
 

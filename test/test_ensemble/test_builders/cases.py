@@ -9,8 +9,9 @@ from typing_extensions import Literal  # TODO, remove with Python 3.8
 from functools import partial
 
 import numpy as np
-from pytest_cases import case, parametrize
 from sklearn.metrics import accuracy_score, mean_squared_error
+
+from pytest_cases import case, parametrize
 
 T = TypeVar("T")
 
@@ -38,10 +39,6 @@ def case_single_one_model_to_choose_with_predictions(
     """
     model_predictions = [("a", np.asarray([1, 1, 1]))]
     targets = np.asarray([0, 0, 0])
-    expected = "a"
-
-    return model_predictions, targets, metric, select, expected
-
     expected = "a"
 
     return model_predictions, targets, metric, select, expected

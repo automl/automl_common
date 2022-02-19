@@ -3,13 +3,13 @@ from typing import Callable, Tuple
 from pathlib import Path
 
 import numpy as np
-from pytest_cases import case, parametrize
 
 from automl_common.sklearn.ensemble.regression import (
     SingleRegressorEnsemble,
     WeightedRegressorEnsemble,
 )
 
+from pytest_cases import case, parametrize
 from test.test_sklearn.test_models.mocks import MockRegressor
 
 SRE = SingleRegressorEnsemble[MockRegressor]

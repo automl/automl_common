@@ -5,7 +5,7 @@ https://scikit-learn.org/stable/developers/develop.html#rolling-your-own-estimat
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Any, Dict, Iterator, List, TypeVar
+from typing import Any, Dict, Iterator, List, Optional, TypeVar
 
 import warnings
 
@@ -45,13 +45,22 @@ class Ensemble(BaseEnsemble[PredictorT], Predictor, BaseEstimator):
     model_store: ModelStore[PredictorT]
         A model store from which models can be chosen.
         Will not operate properly without it.
+
+    tags: Optional[Dict[str, Any]] = None
+        What tags the ensemble advertises to sklearn
     """
 
     _required_parameters: List[str] = ["model_store"]
 
     @abstractmethod
-    def __init__(self, *, model_store: ModelStore[PredictorT]):
+    def __init__(
+        self,
+        *,
+        model_store: ModelStore[PredictorT],
+        tags: Optional[Dict[str, Any]] = None,
+    ):
         self.model_store = model_store
+        self.tags = tags
 
     @classmethod
     def _fit_attributes(cls) -> List[str]:
@@ -137,36 +146,6 @@ class Ensemble(BaseEnsemble[PredictorT], Predictor, BaseEstimator):
         """
         ...
 
-    def get_params(self, deep: bool = True) -> Dict[str, Any]:
-        """Get the parameters of this ensemble
-        Parameters
-        ----------
-        deep : bool = True
-            Whether to get the parameters of subestimators
-
-        Returns
-        -------
-        Dict
-            A dicitonary mapping from parameters to values
-        """
-        return {"model_store": self.model_store}
-
-    def set_params(self: SelfT, **parameters: Any) -> SelfT:
-        """Set the params of this ensemble
-
-        Parameters
-        ----------
-        **parameters : Any
-            The parameters and their values to set
-
-        Returns
-        -------
-        Ensemble[PredictorT]
-            self with the parameters set
-        """
-        for param, value in parameters.items():
-            setattr(self, param, value)
-
         return self
 
     def __iter__(self) -> Iterator[str]:
@@ -192,13 +171,6 @@ class Ensemble(BaseEnsemble[PredictorT], Predictor, BaseEstimator):
 
         return self.model_store[model_id].load()
 
-    def __sklearn_is_fitted__(self) -> bool:
-        """Sklearns check to see if a model is fitted.
-
-        # https://scikit-learn.org/stable/modules/generated/sklearn.utils.validation.check_is_fitted.html
-        """  # noqa: E501
-        return all(hasattr(self, attr) for attr in self._fit_attributes())
-
     def _more_tags(self) -> Dict[str, Any]:
         """
         Note
@@ -207,18 +179,19 @@ class Ensemble(BaseEnsemble[PredictorT], Predictor, BaseEstimator):
         This is quite an expensive function so we raise a warning if this is
         not the case.
         """
+        if self.tags is not None:
+            return self.tags
+
         warnings.warn("Expensive function `_more_tags` called.")
 
         # Get all model tags
         model_tags: List[Dict[str, bool]] = []
+        tag_f_attributes = ["_more_tags", "_get_tags"]
+
         for model in self.model_store.values():
             m = model.load()
-            _more_tags = getattr(m, "_more_tags", None)
-            _get_tags = getattr(m, "_get_tags", None)
-            for tag_f in [_more_tags, _get_tags]:
-                if callable(tag_f):
-                    tags = tag_f()
-                    if isinstance(tags, Dict):
-                        model_tags.append(tags)
+            tag_fs = [getattr(m, attr, None) for attr in tag_f_attributes]
+            for tag_f in [f for f in tag_fs if callable(f)]:
+                model_tags.append(tag_f())
 
         return tag_accumulate(model_tags)

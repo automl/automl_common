@@ -3,12 +3,13 @@ from typing import Callable, Mapping, Optional, TypeVar
 from pathlib import Path
 
 import numpy as np
-from pytest_cases import fixture
 
 from automl_common.backend.accessors.ensemble_accessor import EnsembleAccessor
 from automl_common.backend.accessors.model_accessor import ModelAccessor
 from automl_common.ensemble import Ensemble
 from automl_common.model import Model
+
+from pytest_cases import fixture
 
 MT = TypeVar("MT", bound=Model)
 ET = TypeVar("ET", bound=Ensemble)

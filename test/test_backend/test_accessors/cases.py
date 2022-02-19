@@ -11,13 +11,13 @@ from typing import Callable, Mapping, Tuple, Type, TypeVar, Union
 from pathlib import Path
 
 import numpy as np
-from pytest_cases import case, parametrize
 
 from automl_common.backend.accessors.ensemble_accessor import EnsembleAccessor
 from automl_common.backend.accessors.model_accessor import ModelAccessor
 from automl_common.ensemble import Ensemble
 from automl_common.model import Model
 
+from pytest_cases import case, parametrize
 from test.test_model.mocks import MockModel
 
 MT = TypeVar("MT", bound=Model)

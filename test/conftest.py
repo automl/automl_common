@@ -6,7 +6,7 @@ from pathlib import Path
 from tempfile import gettempdir
 
 import pytest
-from pytest import ExitCode, Session, Item
+from pytest import ExitCode, Item, Session
 
 # Load in other pytest modules, in this case fixtures
 here = Path(__file__)

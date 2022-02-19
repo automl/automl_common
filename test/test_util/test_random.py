@@ -1,10 +1,11 @@
 from typing import Any, Union
 
 import numpy as np
-import pytest
-from pytest_cases import parametrize
 
 from automl_common.util.random import as_random_state
+
+import pytest
+from pytest_cases import parametrize
 
 
 @parametrize("seed", [None, 0, np.random.RandomState(5)])

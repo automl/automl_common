@@ -1,13 +1,13 @@
 from typing import Callable, List, Tuple
 
 import numpy as np
-import pytest
-from pytest_cases import filters as ft
-from pytest_cases import parametrize_with_cases
 from sklearn.exceptions import NotFittedError
 
 from automl_common.sklearn.ensemble import Ensemble
 
+import pytest
+from pytest_cases import filters as ft
+from pytest_cases import parametrize_with_cases
 from test.test_sklearn.test_ensemble.cases import cases
 
 DataFactory = Callable[..., Tuple[np.ndarray, np.ndarray]]
@@ -188,35 +188,6 @@ def test_models_in_iter_can_be_gotten(ensemble: Ensemble) -> None:
 
     assert all(name in model_dict for name in iter(ensemble))
     assert all(ensemble[name] is not None for name in iter(ensemble))
-
-
-@parametrize_with_cases("ensemble", cases=cases, has_tag="fitted")
-def test_is_fitted_on_fitted(ensemble: Ensemble) -> None:
-    """
-    Parameters
-    ----------
-    ensemble : Ensemble
-        The ensemble to test
-
-    Expects
-    -------
-    * All ensembles that were fitted should advertise fitted
-    """
-    assert ensemble.__sklearn_is_fitted__()
-
-
-@parametrize_with_cases("ensemble", cases=cases, filter=~ft.has_tag("fitted"))
-def test_is_fitted_on_non_fitted(ensemble: Ensemble) -> None:
-    """
-    Parameters
-    ----------
-    ensemble: Ensemble
-
-    Expects
-    -------
-    * All models that were not fitted should advertise not fitted
-    """
-    assert not ensemble.__sklearn_is_fitted__()
 
 
 @parametrize_with_cases("ensemble", cases=cases, filter=~ft.has_tag("fitted"))

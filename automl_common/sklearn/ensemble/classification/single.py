@@ -22,6 +22,7 @@ class SingleClassifierEnsemble(SingleEnsemble[CT], ClassifierEnsemble[CT]):
         self,
         *,
         model_store: ModelStore[CT],
+        tags: Optional[Dict[str, Any]] = None,
         classes: Optional[Union[np.ndarray, List]] = None,
         metric: Callable[[np.ndarray, np.ndarray], Orderable] = accuracy_score,
         select: Literal["min", "max"] = "max",
@@ -30,6 +31,7 @@ class SingleClassifierEnsemble(SingleEnsemble[CT], ClassifierEnsemble[CT]):
         super().__init__(
             model_store=model_store,
             classes=classes,
+            tags=tags,
         )
         self.metric = metric
         self.select = select

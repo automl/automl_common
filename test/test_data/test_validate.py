@@ -1,7 +1,8 @@
 import numpy as np
-from pytest_cases import parametrize
 
 from automl_common.data.validate import jagged
+
+from pytest_cases import parametrize
 
 
 @parametrize(

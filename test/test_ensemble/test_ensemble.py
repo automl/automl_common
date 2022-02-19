@@ -1,9 +1,9 @@
 import numpy as np
-from pytest_cases import parametrize, parametrize_with_cases
 
 from automl_common.ensemble import Ensemble
 
 import test.test_ensemble.cases as cases
+from pytest_cases import parametrize, parametrize_with_cases
 
 
 @parametrize_with_cases("ensemble", cases=cases)

@@ -1,9 +1,8 @@
-from pytest_cases import filters as ft
-from pytest_cases import parametrize, parametrize_with_cases
-
 from automl_common.backend.stores.ensemble_store import EnsembleStore
 
 import test.test_backend.test_stores.cases as cases
+from pytest_cases import filters as ft
+from pytest_cases import parametrize, parametrize_with_cases
 
 
 @parametrize_with_cases(

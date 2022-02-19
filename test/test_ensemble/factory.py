@@ -13,12 +13,11 @@ from typing import (
 
 from pathlib import Path
 
-from pytest_cases import fixture
-
 from automl_common.backend.stores.model_store import ModelStore
 from automl_common.ensemble import SingleEnsemble, UniformEnsemble, WeightedEnsemble
 from automl_common.model import Model
 
+from pytest_cases import fixture
 from test.test_ensemble.mocks import MockEnsemble
 
 MT = TypeVar("MT", bound=Model)

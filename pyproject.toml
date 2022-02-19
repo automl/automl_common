@@ -22,7 +22,8 @@ exclude_lines = [
     "pragma: no cover",
     '\.\.\.',
     "raise NotImplementedError",
-    "if TYPE_CHECKING"
+    "if TYPE_CHECKING",
+    "@pytest.mark.todo",
 ]
 
 [tool.isort]
@@ -30,7 +31,7 @@ py_version = "37"
 profile = "black" # Play nicely with black
 src_paths = ["automl_common", "test"]
 known_types = ["typing", "typing_extensions", "abc"] # We put these in their own section "types"
-known_test = ["test"]
+known_test = ["pytest", "pytest_cases", "test"]
 known_third_party = ["sklearn"]
 known_first_party = ["automl_common"]
 sections = ["FUTURE", "TYPES", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "TEST", "LOCALFOLDER"] # section ordering

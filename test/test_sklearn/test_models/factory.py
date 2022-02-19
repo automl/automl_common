@@ -1,7 +1,6 @@
 from typing import Callable
 
 from pytest_cases import fixture
-
 from test.test_sklearn.test_models.mocks import MockClassifier, MockRegressor
 
 
