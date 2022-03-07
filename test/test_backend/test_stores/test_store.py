@@ -1,10 +1,10 @@
-from typing import Type
+from typing import Any, Type
 
 from pathlib import Path
 
 import pytest
 from pytest_cases import filters as ft
-from pytest_cases import parametrize_with_cases
+from pytest_cases import parametrize, parametrize_with_cases
 
 from automl_common.backend.stores.store import Store, StoreView
 
@@ -199,19 +199,27 @@ def test_get_item_bad_key(store: StoreView) -> None:
         store[key]
 
 
+class NonConvertable:
+    def __str__(self) -> str:
+        pass
+
+
+@parametrize("key", ["badkey", NonConvertable()])
 @parametrize_with_cases("store", cases=cases, filter=ft.has_tag("unpopulated"))
-def test_contains_bad_key(store: StoreView) -> None:
+def test_contains_bad_key(store: StoreView, key: Any) -> None:
     """
     Parameters
     ----------
     store: StoreView
         An empty store
 
+    key: Any
+        The key to check is not in the store
+
     Expects
     -------
     * Should not be contained
     """
-    key = "badkey"
     assert key not in store
 
 
