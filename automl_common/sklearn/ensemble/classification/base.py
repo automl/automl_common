@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Any, Dict, List, Optional, TypeVar, Union
+from typing import Any, Dict, List, Optional, TypeVar, Union, Tuple, Iterator
 
 import numpy as np
 from sklearn.utils.multiclass import check_classification_targets, class_distribution
@@ -259,3 +259,33 @@ class ClassifierEnsemble(Ensemble[ID, CT], Classifier):
             A dicitonary mapping from parameters to values
         """
         return {**super().get_params(deep=deep), "classes": self.classes}
+
+    def _model_probas(
+        self,
+        x: np.ndarray,
+        pred_key: Optional[str] = None,
+    ) -> Iterator[Tuple[ID, np.ndarray]]:
+        """Helper to get the model proba predicitons, loading from pred_key if it can.
+
+        Parameters
+        ----------
+        x : np.ndarray,
+            Fit the ensemble to the given x data
+
+        pred_key: Optional[str] = None
+            The name of predictions to try and load instead of loading the full models
+
+        Returns
+        -------
+        Dict[ID, np.ndarray]
+            Mapping from model id to their predictions
+        """
+        ids = list(self.model_store.keys())
+        model_accessors = iter(self.model_store[id] for id in ids)
+        predictions = iter(
+            m.predictions[pred_key]
+            if pred_key is not None and pred_key in m.predictions
+            else np.asarray(m.load().predict_proba(x))
+            for m in model_accessors
+        )
+        return zip(ids, predictions)

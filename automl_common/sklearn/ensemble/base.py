@@ -223,7 +223,7 @@ class Ensemble(BaseEnsemble[ID, PredictorT], Predictor, BaseEstimator):
         predictions = iter(
             m.predictions[pred_key]
             if pred_key is not None and pred_key in m.predictions
-            else m.load().predict(x)
+            else np.asarray(m.load().predict(x))
             for m in model_accessors
         )
         return zip(ids, predictions)

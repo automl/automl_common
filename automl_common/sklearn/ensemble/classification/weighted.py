@@ -63,7 +63,8 @@ class WeightedClassifierEnsemble(ClassifierEnsemble[ID, CT], WeightedEnsemble[ID
 
         """
         self.random_state_ = as_random_state(self.random_state)
-        model_predictions = dict(self._model_predictions(x, pred_key))
+        model_predictions = dict(self._model_probas(x, pred_key))
+        print(model_predictions)
 
         weighted_ids, trajectory = weighted_ensemble_caruana(
             model_predictions=model_predictions,
