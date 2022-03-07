@@ -5,19 +5,20 @@ from automl_common.ensemble.weighted_ensemble import WeightedEnsemble
 from automl_common.model import Model
 
 MT = TypeVar("MT", bound=Model)
+ID = TypeVar("ID")
 
 
-class UniformEnsemble(WeightedEnsemble[MT]):
+class UniformEnsemble(WeightedEnsemble[ID, MT]):
     """An ensemble of models, each with equal weight"""
 
-    def __init__(self, model_store: ModelStore[MT], ids: Collection[str]):
+    def __init__(self, model_store: ModelStore[ID, MT], ids: Collection[ID]):
         """
         Parameters
         ----------
-        model_store: ModelStore[MT]
+        model_store: ModelStore[ID, MT]
             The path to the models
 
-        ids: Sequence[str]
+        ids: Collection[ID]
             The ids of the ensemble
         """
         if len(ids) == 0:

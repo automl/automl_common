@@ -5,7 +5,7 @@ https://scikit-learn.org/stable/developers/develop.html#rolling-your-own-estimat
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Any, Dict, Iterator, List, Optional, TypeVar
+from typing import Any, Dict, Iterator, List, Optional, Tuple, TypeVar
 
 import warnings
 
@@ -19,12 +19,13 @@ from automl_common.sklearn.ensemble.util import tag_accumulate
 from automl_common.sklearn.model import Predictor
 
 PredictorT = TypeVar("PredictorT", bound=Predictor)
+ID = TypeVar("ID")
 
 # https://www.python.org/dev/peps/pep-0673/#motivation
 SelfT = TypeVar("SelfT", bound="Ensemble")  # TODO Python 3.11 or typing_extensions
 
 
-class Ensemble(BaseEnsemble[PredictorT], Predictor, BaseEstimator):
+class Ensemble(BaseEnsemble[ID, PredictorT], Predictor, BaseEstimator):
     """An sklearn style ensemble which includes `fit`.
 
     A base class for sklearn style ensembles.
@@ -42,7 +43,7 @@ class Ensemble(BaseEnsemble[PredictorT], Predictor, BaseEstimator):
 
     Parameters
     ----------
-    model_store: ModelStore[PredictorT]
+    model_store: ModelStore[ID, PredictorT]
         A model store from which models can be chosen.
         Will not operate properly without it.
 
@@ -56,7 +57,7 @@ class Ensemble(BaseEnsemble[PredictorT], Predictor, BaseEstimator):
     def __init__(
         self,
         *,
-        model_store: ModelStore[PredictorT],
+        model_store: ModelStore[ID, PredictorT],
         tags: Optional[Dict[str, Any]] = None,
     ):
         self.model_store = model_store
@@ -82,7 +83,7 @@ class Ensemble(BaseEnsemble[PredictorT], Predictor, BaseEstimator):
         return ["ids_", "n_outputs_"]
 
     @property
-    def ids(self) -> List[str]:
+    def ids(self) -> List[ID]:
         """The ids of the fitted ensemble.
 
         Returns
@@ -104,7 +105,7 @@ class Ensemble(BaseEnsemble[PredictorT], Predictor, BaseEstimator):
         return self.ids_  # type: ignore
 
     @abstractmethod
-    def fit(self: SelfT, x: np.ndarray, y: np.ndarray) -> SelfT:
+    def fit(self: SelfT, x: np.ndarray, y: np.ndarray, pred_key: Optional[str] = None) -> SelfT:
         """Fit the ensemble to the given targets
 
         Implemented should set the attribute `self.ids_`
@@ -116,6 +117,9 @@ class Ensemble(BaseEnsemble[PredictorT], Predictor, BaseEstimator):
 
         y : np.ndarray,
             The targets to fit to
+
+        pred_key: Optional[str] = None
+            The name of predictions to try and load instead of loading the full models
 
         Returns
         -------
@@ -146,15 +150,15 @@ class Ensemble(BaseEnsemble[PredictorT], Predictor, BaseEstimator):
         """
         ...
 
-    def __iter__(self) -> Iterator[str]:
+    def __iter__(self) -> Iterator[ID]:
         return iter(self.ids)
 
-    def __getitem__(self, model_id: str) -> PredictorT:
+    def __getitem__(self, model_id: ID) -> PredictorT:
         """Get a model with a given model_id
 
         Parameters
         ----------
-        model_id : str
+        model_id : ID
             The id of the model to get
 
         Returns
@@ -193,3 +197,33 @@ class Ensemble(BaseEnsemble[PredictorT], Predictor, BaseEstimator):
                 model_tags.append(tag_f())
 
         return tag_accumulate(model_tags)
+
+    def _model_predictions(
+        self,
+        x: np.ndarray,
+        pred_key: Optional[str] = None,
+    ) -> Iterator[Tuple[ID, np.ndarray]]:
+        """Helper to get the model predicitons, loading from pred_key if it can.
+
+        Parameters
+        ----------
+        x : np.ndarray,
+            Fit the ensemble to the given x data
+
+        pred_key: Optional[str] = None
+            The name of predictions to try and load instead of loading the full models
+
+        Returns
+        -------
+        Dict[ID, np.ndarray]
+            Mapping from model id to their predictions
+        """
+        ids = list(self.model_store.keys())
+        model_accessors = iter(self.model_store[id] for id in ids)
+        predictions = iter(
+            m.predictions[pred_key]
+            if pred_key is not None and pred_key in m.predictions
+            else m.load().predict(x)
+            for m in model_accessors
+        )
+        return zip(ids, predictions)

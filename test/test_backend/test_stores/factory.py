@@ -1,4 +1,4 @@
-from typing import Any, Callable, Collection, Mapping, Optional, TypeVar
+from typing import Any, Callable, Mapping, Optional, TypeVar
 
 from pathlib import Path
 
@@ -18,6 +18,7 @@ from test.test_backend.test_stores.mocks import MockDirStore
 
 MT = TypeVar("MT", bound=Model)
 ET = TypeVar("ET", bound=Ensemble)
+ID = TypeVar("ID")
 
 
 @fixture(scope="function")
@@ -70,9 +71,9 @@ def make_numpy_store() -> Callable[..., NumpyStore]:
 
     def _make(
         dir: Path,
-        items: Optional[Mapping[str, np.ndarray]] = None,
+        items: Optional[Mapping[ID, np.ndarray]] = None,
     ) -> NumpyStore:
-        store = NumpyStore(dir=dir)
+        store = NumpyStore[ID](dir=dir)
         if items is not None:
             for key, arr in items.items():
                 store[key] = arr
@@ -91,13 +92,13 @@ def make_pickle_store() -> Callable[..., PickleStore]:
     dir: Path
         Path to the store
 
-    items: Optional[Mapping[str, Any]] = None
+    items: Optional[Mapping[ID, Any]] = None
         Any {key: item} to store
 
     """
 
-    def _make(dir: Path, items: Optional[Mapping[str, Any]] = None) -> PickleStore[Any]:
-        store = PickleStore[Any](dir=dir)
+    def _make(dir: Path, items: Optional[Mapping[ID, Any]] = None) -> PickleStore[ID, Any]:
+        store = PickleStore[ID, Any](dir=dir)
         if items is not None:
             for key, obj in items.items():
                 store[key] = obj
@@ -108,7 +109,7 @@ def make_pickle_store() -> Callable[..., PickleStore]:
 
 
 @fixture(scope="function")
-def make_model_store() -> Callable[..., ModelStore[MT]]:
+def make_model_store() -> Callable[..., ModelStore[ID, MT]]:
     """Make a ModelStore
 
     Parameters
@@ -126,23 +127,21 @@ def make_model_store() -> Callable[..., ModelStore[MT]]:
 
     def _make(
         dir: Path,
-        models: Optional[Mapping[str, MT]] = None,
-        ids: Optional[Collection[str]] = None,
-        only_existing: Optional[bool] = None,
-    ) -> ModelStore[MT]:
+        models: Optional[Mapping[ID, MT]] = None,
+    ) -> ModelStore[ID, MT]:
         # Make a store unrestricted by ids
-        store = ModelStore[MT](dir=dir)
+        store = ModelStore[ID, MT](dir=dir)
         if models is not None:
             for key, model in models.items():
                 store[key].save(model)
 
-        return ModelStore[MT](dir=dir, ids=ids, only_existing=only_existing)
+        return ModelStore(dir=dir)
 
     return _make
 
 
 @fixture(scope="function")
-def make_ensemble_store() -> Callable[..., EnsembleStore[ET]]:
+def make_ensemble_store() -> Callable[..., EnsembleStore[ID, ET]]:
     """Make an EnsembleStore
 
     Parameters
@@ -153,10 +152,10 @@ def make_ensemble_store() -> Callable[..., EnsembleStore[ET]]:
     model_dir: Path
         Path where Models are stored
 
-    ensembles: Optional[Mapping[str, ET]] = None
+    ensembles: Optional[Mapping[ID, ET]] = None
         Mapping {key: Ensemble} to store
 
-    extra_models: Optional[Mapping[str, MT]] = None:
+    extra_models: Optional[Mapping[ID, MT]] = None:
         Any extra {key: Model} to store that are outside of the ensemble
 
     Returns
@@ -166,9 +165,9 @@ def make_ensemble_store() -> Callable[..., EnsembleStore[ET]]:
 
     def _make(
         dir: Path,
-        ensembles: Optional[Mapping[str, ET]] = None,
-    ) -> EnsembleStore[ET]:
-        store = EnsembleStore[ET](dir=dir)
+        ensembles: Optional[Mapping[ID, ET]] = None,
+    ) -> EnsembleStore[ID, ET]:
+        store = EnsembleStore[ID, ET](dir=dir)
         if ensembles is not None:
             for key, ensemble in ensembles.items():
                 store[key].save(ensemble)

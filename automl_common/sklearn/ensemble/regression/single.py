@@ -15,16 +15,18 @@ from automl_common.sklearn.model import Regressor
 from automl_common.util.types import Orderable
 
 RT = TypeVar("RT", bound=Regressor)
+ID = TypeVar("ID")
+
 rmse = partial(mean_squared_error, squared=False)
 
 
-class SingleRegressorEnsemble(RegressorEnsemble[RT], SingleEnsemble[RT]):
+class SingleRegressorEnsemble(RegressorEnsemble[ID, RT], SingleEnsemble[ID, RT]):
     """TODO"""
 
     def __init__(
         self,
         *,
-        model_store: ModelStore[RT],
+        model_store: ModelStore[ID, RT],
         tags: Optional[Dict[str, Any]] = None,
         metric: Callable[[np.ndarray, np.ndarray], Orderable] = rmse,
         select: Literal["min", "max"] = "min",
@@ -35,7 +37,7 @@ class SingleRegressorEnsemble(RegressorEnsemble[RT], SingleEnsemble[RT]):
         self.select = select
         self.random_state = random_state
 
-    def _fit(self, x: np.ndarray, y: np.ndarray) -> List[str]:
+    def _fit(self, x: np.ndarray, y: np.ndarray, pred_key: Optional[str] = None) -> List[ID]:
         """Fit the ensemble to the given targets
 
         Parameters
@@ -46,16 +48,16 @@ class SingleRegressorEnsemble(RegressorEnsemble[RT], SingleEnsemble[RT]):
         y : np.ndarray,
             The targets to fit to
 
+        pred_key: Optional[str] = None
+            The name of predictions to try and load instead of loading the full models
+
         Returns
         -------
-        List[str]
+        List[ID]
             The ids of the models selected
         """
-        model_predictions = iter(
-            (name, model.load().predict(x)) for name, model in self.model_store.items()
-        )
-
         self.random_state_ = check_random_state(self.random_state)
+        model_predictions = self._model_predictions(x, pred_key)
 
         selected_id = single_best(
             model_predictions=model_predictions,

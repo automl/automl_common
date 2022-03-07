@@ -14,10 +14,11 @@ logger = logging.getLogger(__name__)
 
 # Values return by metric require that we can perform equality checks on them
 OrderableT = TypeVar("OrderableT", bound=Orderable)
+ID = TypeVar("ID")
 
 
 def weighted_ensemble_caruana(
-    model_predictions: Mapping[str, np.ndarray],
+    model_predictions: Mapping[ID, np.ndarray],
     targets: np.ndarray,
     size: int,
     metric: Callable[[np.ndarray, np.ndarray], OrderableT],
@@ -25,7 +26,7 @@ def weighted_ensemble_caruana(
     is_probabilities: bool = False,
     classes: Optional[Union[List, np.ndarray]] = None,
     random_state: Optional[Union[int, np.random.RandomState]] = None,
-) -> Tuple[Dict[str, float], List[Tuple[str, OrderableT]]]:
+) -> Tuple[Dict[ID, float], List[Tuple[ID, OrderableT]]]:
     """Calculate a weighted ensemble of `n` models
 
     Note
@@ -51,9 +52,9 @@ def weighted_ensemble_caruana(
         The metric to use in calculating which models to add to the ensemble.
         Should retunr something orderable
 
-    select: (Dict[str, OrderableT]) -> str | List[str]
+    select: (Dict[ID, OrderableT]) -> ID | List[ID]
         Selects a models from the list based on the values of the metric on their
-        predictions. Can return a single str or a list of them, in which case a
+        predictions. Can return a single ID or a list of them, in which case a
         random selection will be made.
 
     classes: Optional[np.ndarray | List] = None
@@ -66,7 +67,7 @@ def weighted_ensemble_caruana(
 
     Returns
     -------
-    (Dict[str, float], List[Tuple[str, OrderableT]])
+    (Dict[ID, float], List[Tuple[ID, OrderableT]])
         A dictionary mapping from id's to values genrated from adding a model at each
         time step.
     """
@@ -100,8 +101,8 @@ def weighted_ensemble_caruana(
     # Buffer where new models predictions are added to current to try them
     buffer = np.empty_like(predictions[0], dtype=dtype)
 
-    ensemble: List[str] = []
-    trajectory: List[Tuple[str, OrderableT]] = []
+    ensemble: List[ID] = []
+    trajectory: List[Tuple[ID, OrderableT]] = []
 
     def value_if_added(_pred: np.ndarray) -> OrderableT:
         # Get the value if the model was added to the current set of predicitons

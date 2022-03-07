@@ -15,13 +15,14 @@ from automl_common.util.random import as_random_state
 from automl_common.util.types import Orderable
 
 CT = TypeVar("CT", bound=Classifier)
+ID = TypeVar("ID")
 
 
-class WeightedClassifierEnsemble(ClassifierEnsemble[CT], WeightedEnsemble[CT]):
+class WeightedClassifierEnsemble(ClassifierEnsemble[ID, CT], WeightedEnsemble[ID, CT]):
     def __init__(
         self,
         *,
-        model_store: ModelStore[CT],
+        model_store: ModelStore[ID, CT],
         tags: Optional[Dict[str, Any]] = None,
         classes: Optional[Union[List, np.ndarray]] = None,
         size: int = 10,
@@ -41,7 +42,7 @@ class WeightedClassifierEnsemble(ClassifierEnsemble[CT], WeightedEnsemble[CT]):
         self.random_state = random_state
         self.voting = voting
 
-    def _fit(self, x: np.ndarray, y: np.ndarray) -> List[str]:
+    def _fit(self, x: np.ndarray, y: np.ndarray, pred_key: Optional[str] = None) -> List[ID]:
         """Fit the ensemble to the given targets
 
         Parameters
@@ -52,17 +53,17 @@ class WeightedClassifierEnsemble(ClassifierEnsemble[CT], WeightedEnsemble[CT]):
         y : np.ndarray,
             The targets to fit to
 
+        pred_key: Optional[str] = None
+            The name of predictions to try and load instead of loading the full models
+
         Returns
         -------
-        List[str]
+        List[ID]
             The ids of the models selected
 
         """
-        model_predictions = {
-            name: np.asarray(model.load().predict_proba(x))
-            for name, model in self.model_store.items()
-        }
         self.random_state_ = as_random_state(self.random_state)
+        model_predictions = dict(self._model_predictions(x, pred_key))
 
         weighted_ids, trajectory = weighted_ensemble_caruana(
             model_predictions=model_predictions,

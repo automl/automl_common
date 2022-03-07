@@ -5,12 +5,13 @@ from automl_common.ensemble.weighted_ensemble import WeightedEnsemble
 from automl_common.model import Model
 
 MT = TypeVar("MT", bound=Model)
+ID = TypeVar("ID")
 
 
-class SingleEnsemble(WeightedEnsemble[MT]):
+class SingleEnsemble(WeightedEnsemble[ID, MT]):
     """An ensemble of just a single model"""
 
-    def __init__(self, model_store: ModelStore[MT], model_id: str):
+    def __init__(self, model_store: ModelStore[ID, MT], model_id: ID):
         """
         Parameters
         ----------

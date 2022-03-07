@@ -7,10 +7,11 @@ from automl_common.ensemble import Ensemble
 from automl_common.model import Model
 
 MT = TypeVar("MT", bound=Model)
+ID = TypeVar("ID")
 
 
-class MockEnsemble(Ensemble[MT]):
-    def __init__(self, model_store: ModelStore[MT], ids: Collection[str]):
+class MockEnsemble(Ensemble[ID, MT]):
+    def __init__(self, model_store: ModelStore[ID, MT], ids: Collection[ID]):
         self.model_store = model_store
         self._ids = ids
 
@@ -28,8 +29,8 @@ class MockEnsemble(Ensemble[MT]):
         """
         return x
 
-    def __getitem__(self, model_id: str) -> MT:
+    def __getitem__(self, model_id: ID) -> MT:
         return self.model_store[model_id].load()
 
-    def __iter__(self) -> Iterator[str]:
+    def __iter__(self) -> Iterator[ID]:
         return iter(self._ids)

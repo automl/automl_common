@@ -9,18 +9,19 @@ from automl_common.sklearn.model import Predictor
 from automl_common.util.types import Orderable
 
 PredictorT = TypeVar("PredictorT", bound=Predictor)
+ID = TypeVar("ID")
 
 
-class WeightedEnsemble(Ensemble[PredictorT]):
+class WeightedEnsemble(Ensemble[ID, PredictorT]):
     """An ensemble of size ``n`` that selects a weighted ensemble."""
 
     @property
-    def trajectory(self) -> List[Tuple[str, Orderable]]:
+    def trajectory(self) -> List[Tuple[ID, Orderable]]:
         """The trajectory of the fitting procedue
 
         Returns
         -------
-        List[Tuple[str, Orderable]]
+        List[Tuple[ID, Orderable]]
             The trajectory of the ensemble fitting procedure with the model added and
             the overall ensemble performance with that model added.
 
@@ -42,12 +43,12 @@ class WeightedEnsemble(Ensemble[PredictorT]):
         return self.trajectory_  # type: ignore
 
     @property
-    def weights(self) -> Dict[str, float]:
+    def weights(self) -> Dict[ID, float]:
         """The weights of the ensemble
 
         Returns
         -------
-        Dict[str, float]
+        Dict[ID, float]
             A dictionary mapping from model ids to weights
 
             .. code-block:: python

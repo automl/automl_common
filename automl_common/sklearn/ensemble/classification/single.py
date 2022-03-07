@@ -13,15 +13,16 @@ from automl_common.sklearn.model import Classifier
 from automl_common.util.types import Orderable
 
 CT = TypeVar("CT", bound=Classifier)
+ID = TypeVar("ID")
 
 
-class SingleClassifierEnsemble(SingleEnsemble[CT], ClassifierEnsemble[CT]):
+class SingleClassifierEnsemble(SingleEnsemble[ID, CT], ClassifierEnsemble[ID, CT]):
     """TODO"""
 
     def __init__(
         self,
         *,
-        model_store: ModelStore[CT],
+        model_store: ModelStore[ID, CT],
         tags: Optional[Dict[str, Any]] = None,
         classes: Optional[Union[np.ndarray, List]] = None,
         metric: Callable[[np.ndarray, np.ndarray], Orderable] = accuracy_score,
@@ -37,7 +38,7 @@ class SingleClassifierEnsemble(SingleEnsemble[CT], ClassifierEnsemble[CT]):
         self.select = select
         self.random_state = random_state
 
-    def _fit(self, x: np.ndarray, y: np.ndarray) -> List[str]:
+    def _fit(self, x: np.ndarray, y: np.ndarray, pred_key: Optional[str] = None) -> List[ID]:
         """Fit the ensemble to the given targets
 
         Parameters
@@ -48,16 +49,16 @@ class SingleClassifierEnsemble(SingleEnsemble[CT], ClassifierEnsemble[CT]):
         y : np.ndarray,
             The targets to fit to
 
+        pred_key: Optional[str] = None
+            The name of predictions to try and load instead of loading the full models
+
         Returns
         -------
-        List[str]
+        List[ID]
             The ids of the models selected
         """
-        model_predictions = iter(
-            (name, model.load().predict(x)) for name, model in self.model_store.items()
-        )
-
         self.random_state_ = check_random_state(self.random_state)
+        model_predictions = self._model_predictions(x, pred_key)
 
         selected_id = single_best(
             model_predictions=model_predictions,

@@ -16,16 +16,19 @@ from automl_common.util.random import as_random_state
 from automl_common.util.types import Orderable
 
 RT = TypeVar("RT", bound=Regressor)
+ID = TypeVar("ID")
+
+
 rmse = partial(mean_squared_error, squared=True)
 
 
-class WeightedRegressorEnsemble(RegressorEnsemble[RT], WeightedEnsemble[RT]):
+class WeightedRegressorEnsemble(RegressorEnsemble[ID, RT], WeightedEnsemble[ID, RT]):
     """TODO"""
 
     def __init__(
         self,
         *,
-        model_store: ModelStore[RT],
+        model_store: ModelStore[ID, RT],
         tags: Optional[Dict[str, Any]] = None,
         size: int = 10,
         metric: Callable[[np.ndarray, np.ndarray], Orderable] = rmse,
@@ -38,7 +41,7 @@ class WeightedRegressorEnsemble(RegressorEnsemble[RT], WeightedEnsemble[RT]):
         self.select = select
         self.random_state = random_state
 
-    def _fit(self, x: np.ndarray, y: np.ndarray) -> List[str]:
+    def _fit(self, x: np.ndarray, y: np.ndarray, pred_key: Optional[str] = None) -> List[ID]:
         """Fit the ensemble to the given targets
 
         Parameters
@@ -49,16 +52,16 @@ class WeightedRegressorEnsemble(RegressorEnsemble[RT], WeightedEnsemble[RT]):
         y : np.ndarray,
             The targets to fit to
 
+        pred_key: Optional[str] = None
+            The name of predictions to try and load instead of loading the full models
+
         Returns
         -------
-        List[str]
+        List[ID]
             The ids of the models selected
-
         """
-        model_predictions = {
-            name: np.asarray(model.load().predict(x)) for name, model in self.model_store.items()
-        }
         self.random_state_ = as_random_state(self.random_state)
+        model_predictions = dict(self._model_predictions(x, pred_key))
 
         weighted_ids, trajectory = weighted_ensemble_caruana(
             model_predictions=model_predictions,

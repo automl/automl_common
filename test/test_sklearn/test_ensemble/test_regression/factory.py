@@ -21,6 +21,7 @@ from test.data import DEFAULT_SEED, XYPack, xy
 from test.test_sklearn.test_models.mocks import MockRegressor
 
 RT = TypeVar("RT", bound=Regressor)
+ID = TypeVar("ID")
 rmse = partial(mean_squared_error, squared=False)
 
 
@@ -28,12 +29,12 @@ data = XYPack(*xy(kind="regression", xdims=(50, 3), ydims=(50,)))
 
 
 @fixture(scope="function")
-def make_sklearn_weighted_regressor_ensemble() -> Callable[..., WeightedRegressorEnsemble[RT]]:
+def make_sklearn_weighted_regressor_ensemble() -> Callable[..., WeightedRegressorEnsemble[ID, RT]]:
     """Make a WeightedRegressorEnsemble"""
 
     def _make(
         path: Optional[Path] = None,
-        model_store: Optional[ModelStore[RT]] = None,
+        model_store: Optional[ModelStore[ID, RT]] = None,
         size: int = 10,
         fitted: bool = False,
         x: np.ndarray = data.x,
@@ -41,23 +42,23 @@ def make_sklearn_weighted_regressor_ensemble() -> Callable[..., WeightedRegresso
         metric: Callable[[np.ndarray, np.ndarray], Orderable] = rmse,
         select: Literal["min", "max"] = "min",
         random_state: Optional[Union[int, np.random.RandomState]] = DEFAULT_SEED,
-        models: Union[int, Mapping[str, RT]] = 10,
+        models: Union[int, Mapping[ID, RT]] = 10,
         model_x: np.ndarray = data.x,
         model_y: np.ndarray = data.y,
         fit_models: bool = True,
         seed: Union[int, np.random.RandomState] = DEFAULT_SEED,
-    ) -> WeightedRegressorEnsemble[RT]:
+    ) -> WeightedRegressorEnsemble[ID, RT]:
         # Get model store
         if model_store is not None:
             store = model_store
         elif path is not None:
-            store = ModelStore[RT](dir=path)
+            store = ModelStore[ID, RT](dir=path)
         else:
             raise NotImplementedError()
 
         # Build models
         if isinstance(models, int):
-            model_dict: Dict[str, RT] = {
+            model_dict: Dict[ID, RT] = {
                 str(i): MockRegressor() for i in range(models)  # type: ignore
             }
         else:
@@ -70,7 +71,7 @@ def make_sklearn_weighted_regressor_ensemble() -> Callable[..., WeightedRegresso
 
             store[name].save(model)
 
-        ensemble = WeightedRegressorEnsemble[RT](
+        ensemble = WeightedRegressorEnsemble[ID, RT](
             model_store=store,
             size=size,
             random_state=seed,
@@ -87,35 +88,35 @@ def make_sklearn_weighted_regressor_ensemble() -> Callable[..., WeightedRegresso
 
 
 @fixture(scope="function")
-def make_sklearn_single_regressor_ensemble() -> Callable[..., SingleRegressorEnsemble[RT]]:
+def make_sklearn_single_regressor_ensemble() -> Callable[..., SingleRegressorEnsemble[ID, RT]]:
     """Make a SingleRegressorEnsemble"""
 
     def _make(
         path: Optional[Path] = None,
-        model_store: Optional[ModelStore[RT]] = None,
+        model_store: Optional[ModelStore[ID, RT]] = None,
         fitted: bool = False,
         x: np.ndarray = data.x,
         y: np.ndarray = data.y,
         metric: Callable[[np.ndarray, np.ndarray], Orderable] = rmse,
         select: Literal["min", "max"] = "min",
         random_state: Optional[Union[int, np.random.RandomState]] = DEFAULT_SEED,
-        models: Union[int, Mapping[str, RT]] = 10,
+        models: Union[int, Mapping[ID, RT]] = 10,
         model_x: np.ndarray = data.x,
         model_y: np.ndarray = data.y,
         fit_models: bool = True,
         seed: Union[int, np.random.RandomState] = DEFAULT_SEED,
-    ) -> SingleRegressorEnsemble[RT]:
+    ) -> SingleRegressorEnsemble[ID, RT]:
         # Get model store
         if model_store is not None:
             store = model_store
         elif path is not None:
-            store = ModelStore[RT](dir=path)
+            store = ModelStore[ID, RT](dir=path)
         else:
             raise NotImplementedError()
 
         # Build models
         if isinstance(models, int):
-            model_dict: Dict[str, RT] = {
+            model_dict: Dict[ID, RT] = {
                 str(i): MockRegressor() for i in range(models)  # type: ignore
             }
         else:
@@ -127,7 +128,7 @@ def make_sklearn_single_regressor_ensemble() -> Callable[..., SingleRegressorEns
                 model.fit(model_x, model_y)
             store[name].save(model)
 
-        ensemble = SingleRegressorEnsemble[RT](
+        ensemble = SingleRegressorEnsemble[ID, RT](
             model_store=store,
             random_state=seed,
             metric=metric,

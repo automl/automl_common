@@ -6,15 +6,16 @@ from pathlib import Path
 
 from automl_common.backend.stores.store import Store
 
-T = TypeVar("T")
+VT = TypeVar("VT")
+KT = TypeVar("KT")
 
 
-class PickleStore(Store[T]):
+class PickleStore(Store[KT, VT]):
     """A collection of picklable object"""
 
     pattern = r"(.*)\.pkl"
 
-    def path(self, key: str) -> Path:
+    def path(self, key: KT) -> Path:
         """The path to the pickled item
 
         Parameters
@@ -27,9 +28,9 @@ class PickleStore(Store[T]):
         Path
             The path to the item
         """
-        return self.dir / f"{key}.pkl"
+        return self.dir / f"{self.__key_to_str__(key)}.pkl"
 
-    def save(self, picklable: T, key: str) -> None:
+    def save(self, picklable: VT, key: KT) -> None:
         """Saves a picklable object to the key
 
         Parameters
@@ -44,7 +45,7 @@ class PickleStore(Store[T]):
         with path.open("wb") as f:
             pickle.dump(picklable, f, protocol=pickle.HIGHEST_PROTOCOL)
 
-    def load(self, key: str) -> T:
+    def load(self, key: KT) -> VT:
         """Load a pickled object
 
         Parameters
@@ -61,6 +62,6 @@ class PickleStore(Store[T]):
         with path.open("rb") as f:
             return pickle.load(f)
 
-    def __iter__(self) -> Iterator[str]:
+    def __iter__(self) -> Iterator[KT]:
         matches = iter(re.match(self.pattern, file.name) for file in self.dir.iterdir())
-        return iter(match.group(1) for match in matches if match is not None)
+        return iter(self.__name_to_key__(match.group(1)) for match in matches if match is not None)

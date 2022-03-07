@@ -9,11 +9,12 @@ from automl_common.model import Model
 from automl_common.util.types import EqualityMixin
 
 MT = TypeVar("MT", bound=Model)
+KT = TypeVar("KT")
 
 x: List[str] = []
 
 
-class Ensemble(ABC, Model, EqualityMixin, Mapping[str, MT]):
+class Ensemble(ABC, Model, EqualityMixin, Mapping[KT, MT]):
     """Manages functionality around using multiple models ensembled in some fashion"""
 
     @abstractmethod
@@ -33,13 +34,14 @@ class Ensemble(ABC, Model, EqualityMixin, Mapping[str, MT]):
         ...
 
     @abstractmethod
-    def __getitem__(self, model_id: str) -> MT:
+    def __getitem__(self, model_id: KT) -> MT:
         """Get a model with a given model_id
 
         Parameters
         ----------
-        model_id : str
+        model_id : KT
             The id of the model to get
+
         Returns
         -------
         MT
@@ -48,23 +50,23 @@ class Ensemble(ABC, Model, EqualityMixin, Mapping[str, MT]):
         ...
 
     @abstractmethod
-    def __iter__(self) -> Iterator[str]:
+    def __iter__(self) -> Iterator[KT]:
         """Iter over the model ids in the ensemble
 
         Returns
         -------
-        Iterator[str]
+        Iterator[KT]
             An iteratory over the model ids in this ensemble
         """
         ...
 
     @property
-    def ids(self) -> List[str]:
+    def ids(self) -> List[KT]:
         """Get ths ids of models in this ensemble
 
         Returns
         -------
-        List[str]
+        List[KT]
             The identifiers of the models in this ensemble
         """
         return list(iter(self))
@@ -73,4 +75,4 @@ class Ensemble(ABC, Model, EqualityMixin, Mapping[str, MT]):
         return len(list(iter(self)))  # Relying on self.ids causes recursion errors
 
     def __contains__(self, model_id: Any) -> bool:
-        return isinstance(model_id, str) and model_id in self.ids
+        return model_id in self.ids

@@ -20,18 +20,21 @@ from test.data import DEFAULT_SEED, XYPack, xy
 from test.test_sklearn.test_models.mocks import MockClassifier
 
 CT = TypeVar("CT", bound=Classifier)
+ID = TypeVar("ID")
 
 
 data = XYPack(*xy(kind="classification", xdims=(50, 3), ydims=(50,)))
 
 
 @fixture(scope="function")
-def make_sklearn_weighted_classifier_ensemble() -> Callable[..., WeightedClassifierEnsemble[CT]]:
+def make_sklearn_weighted_classifier_ensemble() -> Callable[
+    ..., WeightedClassifierEnsemble[ID, CT]
+]:
     """Make a WeightedClassifierEnsemble"""
 
     def _make(
         path: Optional[Path] = None,
-        model_store: Optional[ModelStore[CT]] = None,
+        model_store: Optional[ModelStore[ID, CT]] = None,
         size: int = 10,
         fitted: bool = False,
         voting: Literal["majority", "probability"] = "probability",
@@ -40,23 +43,23 @@ def make_sklearn_weighted_classifier_ensemble() -> Callable[..., WeightedClassif
         metric: Callable[[np.ndarray, np.ndarray], Orderable] = accuracy_score,
         select: Literal["min", "max"] = "max",
         random_state: Optional[Union[int, np.random.RandomState]] = DEFAULT_SEED,
-        models: Union[int, Mapping[str, CT]] = 10,
+        models: Union[int, Mapping[ID, CT]] = 10,
         model_x: np.ndarray = data.x,
         model_y: np.ndarray = data.y,
         fit_models: bool = True,
         seed: Union[int, np.random.RandomState] = DEFAULT_SEED,
-    ) -> WeightedClassifierEnsemble[CT]:
+    ) -> WeightedClassifierEnsemble[ID, CT]:
         # Get model store
         if model_store is not None:
             store = model_store
         elif path is not None:
-            store = ModelStore[CT](dir=path)
+            store = ModelStore[ID, CT](dir=path)
         else:
             raise NotImplementedError()
 
         # Build models
         if isinstance(models, int):
-            model_dict: Dict[str, CT] = {
+            model_dict: Dict[ID, CT] = {
                 str(i): MockClassifier() for i in range(models)  # type: ignore
             }
         else:
@@ -68,7 +71,7 @@ def make_sklearn_weighted_classifier_ensemble() -> Callable[..., WeightedClassif
                 model.fit(model_x, model_y)
             store[name].save(model)
 
-        ensemble = WeightedClassifierEnsemble[CT](
+        ensemble = WeightedClassifierEnsemble[ID, CT](
             model_store=store,
             size=size,
             random_state=seed,
@@ -86,35 +89,35 @@ def make_sklearn_weighted_classifier_ensemble() -> Callable[..., WeightedClassif
 
 
 @fixture(scope="function")
-def make_sklearn_single_classifier_ensemble() -> Callable[..., SingleClassifierEnsemble[CT]]:
+def make_sklearn_single_classifier_ensemble() -> Callable[..., SingleClassifierEnsemble[ID, CT]]:
     """Make a SingleClassifierEnsemble"""
 
     def _make(
         path: Optional[Path] = None,
-        model_store: Optional[ModelStore[CT]] = None,
+        model_store: Optional[ModelStore[ID, CT]] = None,
         fitted: bool = False,
         x: np.ndarray = data.x,
         y: np.ndarray = data.y,
         metric: Callable[[np.ndarray, np.ndarray], Orderable] = accuracy_score,
         select: Literal["min", "max"] = "max",
         random_state: Optional[Union[int, np.random.RandomState]] = DEFAULT_SEED,
-        models: Union[int, Mapping[str, CT]] = 10,
+        models: Union[int, Mapping[ID, CT]] = 10,
         model_x: np.ndarray = data.x,
         model_y: np.ndarray = data.y,
         fit_models: bool = True,
         seed: Union[int, np.random.RandomState] = DEFAULT_SEED,
-    ) -> SingleClassifierEnsemble[CT]:
+    ) -> SingleClassifierEnsemble[ID, CT]:
         # Get model store
         if model_store is not None:
             store = model_store
         elif path is not None:
-            store = ModelStore[CT](dir=path)
+            store = ModelStore[ID, CT](dir=path)
         else:
             raise NotImplementedError()
 
         # Build models
         if isinstance(models, int):
-            model_dict: Dict[str, CT] = {
+            model_dict: Dict[ID, CT] = {
                 str(i): MockClassifier() for i in range(models)  # type: ignore
             }
         else:
@@ -126,7 +129,7 @@ def make_sklearn_single_classifier_ensemble() -> Callable[..., SingleClassifierE
                 model.fit(model_x, model_y)
             store[name].save(model)
 
-        ensemble = SingleClassifierEnsemble[CT](
+        ensemble = SingleClassifierEnsemble[ID, CT](
             model_store=store,
             random_state=seed,
             metric=metric,

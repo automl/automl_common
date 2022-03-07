@@ -6,25 +6,11 @@ from automl_common.sklearn.ensemble.base import Ensemble
 from automl_common.sklearn.model import Predictor
 
 PT = TypeVar("PT", bound=Predictor)
+ID = TypeVar("ID")
 
 
-class SingleEnsemble(Ensemble[PT]):
-    """An ensemble that select the single best.
-
-    Parameters
-    ----------
-    metric : (np.ndarray, np.ndarray) -> Orderable
-        A metric to evaluate models with. Should return an Orderable result
-
-    select: "min" | "max"
-        How to order results of the metric
-
-    random_state : Optional[Union[int, np.random.RandomState]] = None
-        The random_state to use for breaking ties
-
-    model_store : Optional[ModelStore[PT]] = None
-        A store of models to use during fit
-    """
+class SingleEnsemble(Ensemble[ID, PT]):
+    """An ensemble that select the single best."""
 
     @property
     def model(self) -> PT:
@@ -43,7 +29,7 @@ class SingleEnsemble(Ensemble[PT]):
         return self.__getitem__(self.id)
 
     @property
-    def id(self) -> str:
+    def id(self) -> ID:
         """Get the id of the selected model
         Returns
         -------

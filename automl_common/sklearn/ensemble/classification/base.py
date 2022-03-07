@@ -12,14 +12,15 @@ from automl_common.sklearn.ensemble.base import Ensemble
 from automl_common.sklearn.model import Classifier
 
 CT = TypeVar("CT", bound=Classifier)
+ID = TypeVar("ID")
 
 
-class ClassifierEnsemble(Ensemble[CT], Classifier):
+class ClassifierEnsemble(Ensemble[ID, CT], Classifier):
     """An ensemble for Classifiers
 
     Parameters
     ----------
-    model_store : ModelStore[CT]
+    model_store : ModelStore[ID, CT]
         Where to fit models from
 
     classes: Optional[List[Any]] = None
@@ -37,7 +38,7 @@ class ClassifierEnsemble(Ensemble[CT], Classifier):
     def __init__(
         self,
         *,
-        model_store: ModelStore[CT],
+        model_store: ModelStore[ID, CT],
         tags: Optional[Dict[str, Any]] = None,
         classes: Optional[Union[np.ndarray, List]] = None,
     ):
@@ -53,7 +54,12 @@ class ClassifierEnsemble(Ensemble[CT], Classifier):
             "n_features_in_",
         ]
 
-    def fit(self, x: np.ndarray, y: np.ndarray) -> ClassifierEnsemble[CT]:
+    def fit(
+        self,
+        x: np.ndarray,
+        y: np.ndarray,
+        pred_key: Optional[str] = None,
+    ) -> ClassifierEnsemble[ID, CT]:
         """Fit a classifier Ensemble
 
         This method ensures that `classes_` attribute is set
@@ -65,6 +71,9 @@ class ClassifierEnsemble(Ensemble[CT], Classifier):
 
         y : np.ndarray
             The targets to fit to
+
+        pred_key: Optional[str] = None
+            The name of predictions to try and load instead of loading the full models
 
         Returns
         -------
@@ -178,7 +187,8 @@ class ClassifierEnsemble(Ensemble[CT], Classifier):
         self,
         x: np.ndarray,
         y: np.ndarray,
-    ) -> List[str]:
+        pred_key: Optional[str] = None,
+    ) -> List[ID]:
         """Fit the ensemble to the given targets
 
         Parameters

@@ -22,6 +22,7 @@ from test.test_model.mocks import MockModel
 
 MT = TypeVar("MT", bound=Model)
 ET = TypeVar("ET", bound=Ensemble)
+ID = TypeVar("ID")
 
 
 @case(tags=["mock"])
@@ -31,8 +32,8 @@ def case_mock(
     path: Path,
     n_models: int,
     model_type: Type[MT],
-    make_ensemble: Callable[..., MockEnsemble[MT]],
-) -> MockEnsemble[MT]:
+    make_ensemble: Callable[..., MockEnsemble[ID, MT]],
+) -> MockEnsemble[ID, MT]:
     """A MockEnsemble with identifiers"""
     return make_ensemble(models=n_models, model_type=model_type, path=path)
 
@@ -42,8 +43,8 @@ def case_mock(
 def case_single(
     path: Path,
     model_type: Type[MT],
-    make_single_ensemble: Callable[..., SingleEnsemble[MT]],
-) -> SingleEnsemble[MT]:
+    make_single_ensemble: Callable[..., SingleEnsemble[ID, MT]],
+) -> SingleEnsemble[ID, MT]:
     """A SingleEnsemble with identifier"""
     return make_single_ensemble(model_type=model_type, path=path)
 
@@ -55,8 +56,8 @@ def case_uniform(
     path: Path,
     n_models: int,
     model_type: Type[MT],
-    make_uniform_ensemble: Callable[..., UniformEnsemble[MT]],
-) -> UniformEnsemble[MT]:
+    make_uniform_ensemble: Callable[..., UniformEnsemble[ID, MT]],
+) -> UniformEnsemble[ID, MT]:
     """A UniformEnsemble with identifiers"""
     return make_uniform_ensemble(models=n_models, model_type=model_type, path=path)
 
@@ -76,8 +77,8 @@ def case_weighted(
     n_models: int,
     model_type: Type[MT],
     weights: Union[List[float], Mapping[str, float]],
-    make_weighted_ensemble: Callable[..., WeightedEnsemble[MT]],
-) -> WeightedEnsemble[MT]:
+    make_weighted_ensemble: Callable[..., WeightedEnsemble[ID, MT]],
+) -> WeightedEnsemble[ID, MT]:
     """A WeightedEnsemble with identifiers"""
     return make_weighted_ensemble(
         models=n_models,

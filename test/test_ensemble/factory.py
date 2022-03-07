@@ -22,19 +22,20 @@ from automl_common.model import Model
 from test.test_ensemble.mocks import MockEnsemble
 
 MT = TypeVar("MT", bound=Model)
+ID = TypeVar("ID")
 
 
 def setup_models(
-    models: Union[int, Iterable[str], Mapping[str, MT]],
+    models: Union[int, Iterable[ID], Mapping[ID, MT]],
     model_type: Optional[Type[MT]] = None,
-    model_store: Optional[ModelStore[MT]] = None,
+    model_store: Optional[ModelStore[ID, MT]] = None,
     path: Optional[Path] = None,
-) -> Tuple[ModelStore[MT], List[str]]:
+) -> Tuple[ModelStore[ID, MT], List[ID]]:
     """Create a model store with models in it
 
     Parameters
     ----------
-    models : Union[int, Iterable[str], Mapping[str, MT]]
+    models : Union[int, Iterable[ID], Mapping[ID, MT]]
         The models to put into the store. If not providing direct models,
         must provide the type.
 
@@ -49,7 +50,7 @@ def setup_models(
 
     Returns
     -------
-    ModelStore[MT], List[str]
+    ModelStore[MT], List[ID]
         The model store with models placed in it along with the list
         of model ids for the ensemble
     """
@@ -59,14 +60,14 @@ def setup_models(
 
     elif model_store is None:
         assert path is not None
-        store = ModelStore[MT](dir=path)
+        store = ModelStore[ID, MT](dir=path)
 
     else:
         raise NotImplementedError()
 
     if isinstance(models, int):
         assert model_type is not None
-        models = {str(i): model_type() for i in range(models)}
+        models = {str(i): model_type() for i in range(models)}  # type: ignore
 
     elif isinstance(models, Iterable):
         assert model_type is not None
@@ -89,13 +90,13 @@ def setup_models(
 
 
 @fixture(scope="function")
-def make_ensemble() -> Callable[..., MockEnsemble[MT]]:
+def make_ensemble() -> Callable[..., MockEnsemble[ID, MT]]:
     """Create mock ensemble objects"""
 
     def _make(
-        models: Union[int, Iterable[str], Mapping[str, MT]],
+        models: Union[int, Iterable[ID], Mapping[ID, MT]],
         model_type: Optional[Type[MT]] = None,
-        model_store: Optional[ModelStore[MT]] = None,
+        model_store: Optional[ModelStore[ID, MT]] = None,
         path: Optional[Path] = None,
     ) -> MockEnsemble:
         store, ids = setup_models(
@@ -105,13 +106,13 @@ def make_ensemble() -> Callable[..., MockEnsemble[MT]]:
             path=path,
         )
 
-        return MockEnsemble[MT](store, ids=ids)
+        return MockEnsemble[ID, MT](store, ids=ids)
 
     return _make
 
 
 @fixture(scope="function")
-def make_weighted_ensemble() -> Callable[..., WeightedEnsemble[MT]]:
+def make_weighted_ensemble() -> Callable[..., WeightedEnsemble[ID, MT]]:
     """Create weighted ensemble objects
 
     ensemble = make_weighted_ensemble(model_dir=path, models={"a": 0.2, ... })
@@ -119,12 +120,12 @@ def make_weighted_ensemble() -> Callable[..., WeightedEnsemble[MT]]:
     """
 
     def _make(
-        models: Union[int, Iterable[str], Mapping[str, MT]],
-        weights: Union[Iterable[float], Mapping[str, float], None] = None,
+        models: Union[int, Iterable[ID], Mapping[ID, MT]],
+        weights: Union[Iterable[float], Mapping[ID, float], None] = None,
         model_type: Optional[Type[MT]] = None,
-        model_store: Optional[ModelStore[MT]] = None,
+        model_store: Optional[ModelStore[ID, MT]] = None,
         path: Optional[Path] = None,
-    ) -> WeightedEnsemble[MT]:
+    ) -> WeightedEnsemble[ID, MT]:
         store, ids = setup_models(
             models=models,
             model_type=model_type,
@@ -145,13 +146,13 @@ def make_weighted_ensemble() -> Callable[..., WeightedEnsemble[MT]]:
         else:
             raise NotImplementedError()
 
-        return WeightedEnsemble[MT](store, weighted_ids=weighted_ids)
+        return WeightedEnsemble[ID, MT](store, weighted_ids=weighted_ids)
 
     return _make
 
 
 @fixture(scope="function")
-def make_uniform_ensemble() -> Callable[..., UniformEnsemble[MT]]:
+def make_uniform_ensemble() -> Callable[..., UniformEnsemble[ID, MT]]:
     """Create mock ensemble objects
 
     ensemble = make_uniform_ensemble(model_dir=path, models=["a", "b", "c"])
@@ -159,11 +160,11 @@ def make_uniform_ensemble() -> Callable[..., UniformEnsemble[MT]]:
     """
 
     def _make(
-        models: Union[int, Iterable[str], Mapping[str, MT]],
+        models: Union[int, Iterable[ID], Mapping[ID, MT]],
         model_type: Optional[Type[MT]] = None,
-        model_store: Optional[ModelStore[MT]] = None,
+        model_store: Optional[ModelStore[ID, MT]] = None,
         path: Optional[Path] = None,
-    ) -> UniformEnsemble[MT]:
+    ) -> UniformEnsemble[ID, MT]:
         store, ids = setup_models(
             models=models,
             model_type=model_type,
@@ -171,13 +172,13 @@ def make_uniform_ensemble() -> Callable[..., UniformEnsemble[MT]]:
             path=path,
         )
 
-        return UniformEnsemble[MT](store, ids=ids)
+        return UniformEnsemble[ID, MT](store, ids=ids)
 
     return _make
 
 
 @fixture(scope="function")
-def make_single_ensemble() -> Callable[..., SingleEnsemble[MT]]:
+def make_single_ensemble() -> Callable[..., SingleEnsemble[ID, MT]]:
     """Create mock ensemble objects
 
     ensemble = make_single_ensemble(model_dir=path, model_id="a")
@@ -185,21 +186,21 @@ def make_single_ensemble() -> Callable[..., SingleEnsemble[MT]]:
     """
 
     def _make(
-        model: Union[str, Tuple[str, MT], None] = None,
+        model: Union[ID, Tuple[ID, MT], None] = None,
         model_type: Optional[Type[MT]] = None,
-        model_store: Optional[ModelStore[MT]] = None,
+        model_store: Optional[ModelStore[ID, MT]] = None,
         path: Optional[Path] = None,
-    ) -> SingleEnsemble[MT]:
+    ) -> SingleEnsemble[ID, MT]:
 
-        models: Union[List[str], Dict[str, MT]]
+        models: Union[List[ID], Dict[ID, MT]]
         if model is None:
-            models = ["model_id"]
-
-        elif isinstance(model, str):
-            models = [model]
+            models = ["model_id"]  # type: ignore
 
         elif isinstance(model, tuple):
-            models = dict([model])
+            models = dict(model)
+
+        else:
+            models = [model]
 
         store, ids = setup_models(
             models=models,
@@ -207,6 +208,6 @@ def make_single_ensemble() -> Callable[..., SingleEnsemble[MT]]:
             model_store=model_store,
             path=path,
         )
-        return SingleEnsemble[MT](store, ids[0])
+        return SingleEnsemble[ID, MT](store, ids[0])
 
     return _make

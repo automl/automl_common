@@ -8,7 +8,7 @@ this should be handled by the individual models
 """
 from __future__ import annotations
 
-from typing import Any, Iterator, List, TypeVar
+from typing import Iterator, List, Optional, TypeVar
 from typing_extensions import Literal
 
 from itertools import product
@@ -34,26 +34,28 @@ from test.conftest import manual_tmp
 TMPDIR = manual_tmp / "sklearn_ensemble_classifiers"
 
 CT = TypeVar("CT", bound=Classifier)
+ID = TypeVar("ID")
 
 
-class MockSingleClassifierEnsemble(SingleClassifierEnsemble[CT]):
-    def fit(self, x: np.ndarray, y: np.ndarray) -> MockSingleClassifierEnsemble[CT]:
+class MockSingleClassifierEnsemble(SingleClassifierEnsemble[str, CT]):
+    def fit(
+        self,
+        x: np.ndarray,
+        y: np.ndarray,
+        pred_key: Optional[str] = None,
+    ) -> MockSingleClassifierEnsemble[CT]:
         """Mock fit which will ensure models are fitted to the same data"""
         models = {str(i): DummyClassifier(strategy="stratified", random_state=0) for i in range(5)}
         for name, model in models.items():
             model.fit(x, y)
             self.model_store[name].save(model)
 
-        return super().fit(x, y)
+        return super().fit(x, y, pred_key)
 
 
-class MockWeightedClassifierEnsemble(WeightedClassifierEnsemble[CT]):
+class MockWeightedClassifierEnsemble(WeightedClassifierEnsemble[str, CT]):
     def fit(
-        self,
-        x: np.ndarray,
-        y: np.ndarray,
-        *args: Any,
-        **kwargs: Any,
+        self, x: np.ndarray, y: np.ndarray, pred_key: Optional[str] = None
     ) -> MockWeightedClassifierEnsemble[CT]:
         """Mock fit which will ensure models are fitted to the same data"""
         models = {str(i): DummyClassifier(strategy="stratified", random_state=0) for i in range(5)}
@@ -61,7 +63,7 @@ class MockWeightedClassifierEnsemble(WeightedClassifierEnsemble[CT]):
             model.fit(x, y)
             self.model_store[name].save(model)
 
-        return super().fit(x, y, *args, **kwargs)
+        return super().fit(x, y, pred_key)
 
 
 def weighted_classifier_ensemble(path: Path) -> Iterator[MockWeightedClassifierEnsemble]:
@@ -73,7 +75,9 @@ def weighted_classifier_ensemble(path: Path) -> Iterator[MockWeightedClassifierE
         dir.mkdir(parents=True)
 
         yield MockWeightedClassifierEnsemble[CT](
-            model_store=ModelStore[CT](dir=dir), voting=voting, size=size
+            model_store=ModelStore(dir=dir),
+            voting=voting,
+            size=size,
         )
 
 
@@ -82,10 +86,10 @@ def single_classifier_ensemble(path: Path) -> Iterator[MockSingleClassifierEnsem
     dir = TMPDIR / name
     dir.mkdir(parents=True)
 
-    yield MockSingleClassifierEnsemble[CT](model_store=ModelStore[CT](dir=dir))
+    yield MockSingleClassifierEnsemble[CT](model_store=ModelStore(dir=dir))
 
 
-def ensembles_to_test() -> Iterator[ClassifierEnsemble[CT]]:
+def ensembles_to_test() -> Iterator[ClassifierEnsemble[ID, CT]]:
     for generator in [weighted_classifier_ensemble, single_classifier_ensemble]:
         yield from generator(TMPDIR)
 

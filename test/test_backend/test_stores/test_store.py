@@ -304,3 +304,18 @@ def test_save(store: Store) -> None:
     del store[key]
 
     store[other_key] = item
+
+
+@parametrize_with_cases("store", cases=cases, has_tag=["populated"])
+def test_iterpaths(store: StoreView) -> None:
+    """
+    Parameters
+    ----------
+    store : StoreView
+        A populated store to iter with
+
+    Expects
+    -------
+    * The paths in iterpaths should all exist
+    """
+    assert all(p.exists() for p in store.iterpaths())

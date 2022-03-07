@@ -15,7 +15,7 @@ import test.test_ensemble.cases as cases
 MT = TypeVar("MT", bound=Model)
 
 
-def test_empty_model_id(path: Path, make_model_store: Callable[..., ModelStore[MT]]) -> None:
+def test_empty_model_id(path: Path, make_model_store: Callable[..., ModelStore]) -> None:
     """
     Parameters
     ----------
@@ -32,7 +32,7 @@ def test_empty_model_id(path: Path, make_model_store: Callable[..., ModelStore[M
 
 
 @parametrize_with_cases("single_ensemble", cases=cases, filter=ft.has_tag("single"))
-def test_single_ensemble_model(single_ensemble: SingleEnsemble[MT]) -> None:
+def test_single_ensemble_model(single_ensemble: SingleEnsemble) -> None:
     """
     Parameters
     ----------

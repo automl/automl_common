@@ -8,23 +8,24 @@ from automl_common.ensemble.ensemble import Ensemble
 from automl_common.model import Model
 
 MT = TypeVar("MT", bound=Model)
+ID = TypeVar("ID")
 
 
-class WeightedEnsemble(Ensemble[MT]):
+class WeightedEnsemble(Ensemble[ID, MT]):
     """An ensemble that uses weights"""
 
     def __init__(
         self,
-        model_store: ModelStore[MT],
-        weighted_ids: Mapping[str, float],
+        model_store: ModelStore[ID, MT],
+        weighted_ids: Mapping[ID, float],
     ):
         """
         Parameters
         ----------
-        model_store: ModelStore[MT]
+        model_store: ModelStore[ID, MT]
             The backend object to use
 
-        weighted_ids: Mapping[str, float]
+        weighted_ids: Mapping[ID, float]
             A mapping from model ids to their weights
         """
         if len(weighted_ids) == 0:
@@ -38,7 +39,7 @@ class WeightedEnsemble(Ensemble[MT]):
         self._weighted_ids = weighted_ids
 
     @property
-    def weights(self) -> Mapping[str, float]:
+    def weights(self) -> Mapping[ID, float]:
         """The weights of this ensemble"""
         return self._weighted_ids
 
@@ -59,8 +60,8 @@ class WeightedEnsemble(Ensemble[MT]):
         predictions = iter(self[id].predict(x) for id in ids)
         return weighted_sum(predictions, weights=np.asarray(weights))
 
-    def __getitem__(self, model_id: str) -> MT:
+    def __getitem__(self, model_id: ID) -> MT:
         return self._model_store[model_id].load()
 
-    def __iter__(self) -> Iterator[str]:
+    def __iter__(self) -> Iterator[ID]:
         return iter(list(self._weighted_ids.keys()))

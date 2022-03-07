@@ -3,7 +3,7 @@ from pathlib import Path
 from automl_common.backend.stores.store import Store
 
 
-class MockDirStore(Store[str]):
+class MockDirStore(Store[str, str]):
     """A Mock store that uses directories"""
 
     def path(self, key: str) -> Path:

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import List, TypeVar
+from typing import List, Optional, TypeVar
 
 import numpy as np
 from sklearn.utils.validation import check_is_fitted
@@ -10,12 +10,18 @@ from automl_common.sklearn.ensemble.base import Ensemble
 from automl_common.sklearn.model import Regressor
 
 RT = TypeVar("RT", bound=Regressor)
+ID = TypeVar("ID")
 
 
-class RegressorEnsemble(Ensemble[RT], Regressor):
+class RegressorEnsemble(Ensemble[ID, RT], Regressor):
     """TODO"""
 
-    def fit(self, x: np.ndarray, y: np.ndarray) -> RegressorEnsemble[RT]:
+    def fit(
+        self,
+        x: np.ndarray,
+        y: np.ndarray,
+        pred_key: Optional[str] = None,
+    ) -> RegressorEnsemble[ID, RT]:
         """Fit a Regressor Ensemble
 
         Parameters
@@ -26,9 +32,12 @@ class RegressorEnsemble(Ensemble[RT], Regressor):
         y : np.ndarray
             The targets to fit to
 
+        pred_key: Optional[str] = None
+            The name of predictions to try and load instead of loading the full models
+
         Returns
         -------
-        ClassifierEnsemble[ClassifierT]
+        RegressorEnsemble[ID, Regressor]
             The ClassifierEnsemble
         """
         # Reset attributes
@@ -81,7 +90,8 @@ class RegressorEnsemble(Ensemble[RT], Regressor):
         self,
         x: np.ndarray,
         y: np.ndarray,
-    ) -> List[str]:
+        pred_key: Optional[str] = None,
+    ) -> List[ID]:
         """Fit the ensemble to the given targets
 
         Parameters
@@ -92,9 +102,12 @@ class RegressorEnsemble(Ensemble[RT], Regressor):
         y : np.ndarray,
             The targets to fit to
 
+        pred_key: Optional[str] = None
+            The name of predictions to try and load instead of loading the full models
+
         Returns
         -------
-        List[str]
+        List[ID]
             The list of models selected
         """
         ...

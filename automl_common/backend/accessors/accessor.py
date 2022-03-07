@@ -31,7 +31,6 @@ class Accessor(ABC, EqualityMixin, Generic[T]):
         dir: Path
             The directory to load and store from
         """
-        self.id = dir.name
         self.dir = dir
 
     @property

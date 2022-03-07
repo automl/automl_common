@@ -1,4 +1,4 @@
-from typing import Callable, List, Tuple, Union
+from typing import Callable, List, Tuple, TypeVar, Union
 
 from pathlib import Path
 
@@ -13,8 +13,10 @@ from automl_common.sklearn.ensemble.classification import (
 
 from test.test_sklearn.test_models.mocks import MockClassifier
 
-SCE = SingleClassifierEnsemble[MockClassifier]
-WCE = WeightedClassifierEnsemble[MockClassifier]
+ID = TypeVar("ID")
+
+SCE = SingleClassifierEnsemble[ID, MockClassifier]
+WCE = WeightedClassifierEnsemble[ID, MockClassifier]
 
 
 @case(tags=["single", "classifier"])

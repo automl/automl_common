@@ -1,4 +1,4 @@
-from typing import Callable, List, Tuple, Type, Union
+from typing import Callable, List, Tuple, Type, TypeVar, Union
 
 from pathlib import Path
 
@@ -20,6 +20,8 @@ import test.test_sklearn.test_ensemble.test_classification.cases as cases
 from test.test_sklearn.test_models.mocks import MockClassifier
 
 DataFactory = Callable[..., Tuple[np.ndarray, np.ndarray]]
+ID = TypeVar("ID")
+
 ENSEMBLE_CLASSES = [SingleClassifierEnsemble, WeightedClassifierEnsemble]
 
 
@@ -76,7 +78,7 @@ def test_with_custom_classes_sets_attributes_correctly(
     classes: Union[int, List],
     make_xy: Callable[..., Tuple[np.ndarray, np.ndarray]],
     make_classifier: Callable[..., MockClassifier],
-    make_model_store: Callable[..., ModelStore[MockClassifier]],
+    make_model_store: Callable[..., ModelStore[str, MockClassifier]],
 ) -> None:
     """
     Parameters
@@ -96,7 +98,7 @@ def test_with_custom_classes_sets_attributes_correctly(
     make_classifier: Callable[..., MockClassifier],
         Factory to make a classifier
 
-    make_model_store: Callable[..., ModelStore[MockClassifier]],
+    make_model_store: Callable[..., ModelStore[str, MockClassifier]],
         Factory to make a model store
 
     ensemble : ClassifierEnsemble
@@ -144,7 +146,7 @@ def test_with_custom_classes_raises_if_wrong_dims(
     path: Path,
     classes: List,
     make_xy: Callable[..., Tuple[np.ndarray, np.ndarray]],
-    make_model_store: Callable[..., ModelStore[MockClassifier]],
+    make_model_store: Callable[..., ModelStore[ID, MockClassifier]],
     ensemble_type: Type[ClassifierEnsemble],
 ) -> None:
     """

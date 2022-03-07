@@ -5,7 +5,7 @@ will patch the `fit` of the ensemble to also fit some models in the ensemble sto
 """
 from __future__ import annotations
 
-from typing import Any, Iterator, TypeVar
+from typing import Iterator, Optional, TypeVar
 
 from pathlib import Path
 
@@ -29,11 +29,15 @@ from test.conftest import manual_tmp
 TMPDIR = manual_tmp / "ensemble_sklearn_compatibility"
 
 RT = TypeVar("RT", bound=Regressor)
+ID = TypeVar("ID")
 
 
-class MockWeightedRegressorEnsemble(WeightedRegressorEnsemble[RT]):
+class MockWeightedRegressorEnsemble(WeightedRegressorEnsemble[str, RT]):
     def fit(
-        self, x: np.ndarray, y: np.ndarray, *args: Any, **kwargs: Any
+        self,
+        x: np.ndarray,
+        y: np.ndarray,
+        pred_key: Optional[str] = None,
     ) -> MockWeightedRegressorEnsemble[RT]:
         """Mock fit which will ensure models are fitted to the same data"""
         models = {str(i): DummyRegressor() for i in range(5)}
@@ -44,8 +48,13 @@ class MockWeightedRegressorEnsemble(WeightedRegressorEnsemble[RT]):
         return super().fit(x, y)  # type: ignore
 
 
-class MockSingleRegressorEnsemble(SingleRegressorEnsemble[RT]):
-    def fit(self, x: np.ndarray, y: np.ndarray) -> MockSingleRegressorEnsemble[RT]:
+class MockSingleRegressorEnsemble(SingleRegressorEnsemble[str, RT]):
+    def fit(
+        self,
+        x: np.ndarray,
+        y: np.ndarray,
+        pred_key: Optional[str] = None,
+    ) -> MockSingleRegressorEnsemble[RT]:
         """Mock fit which will ensure models are fitted to the same data"""
         models = {str(i): DummyRegressor() for i in range(5)}
         for name, model in models.items():
@@ -59,7 +68,7 @@ def weighted_regressor_ensemble(path: Path) -> Iterator[MockWeightedRegressorEns
     dir = TMPDIR / "weighted_regressor_ensemble"
     dir.mkdir(parents=True)
 
-    yield MockWeightedRegressorEnsemble[RT](model_store=ModelStore[RT](dir=dir))
+    yield MockWeightedRegressorEnsemble[RT](model_store=ModelStore(dir=dir))
 
 
 def single_regressor_ensemble(path: Path) -> Iterator[MockSingleRegressorEnsemble]:
@@ -67,10 +76,10 @@ def single_regressor_ensemble(path: Path) -> Iterator[MockSingleRegressorEnsembl
     dir = TMPDIR / name
     dir.mkdir(parents=True)
 
-    yield MockSingleRegressorEnsemble[RT](model_store=ModelStore[RT](dir=dir))
+    yield MockSingleRegressorEnsemble[RT](model_store=ModelStore(dir=dir))
 
 
-def ensembles_to_test() -> Iterator[RegressorEnsemble[RT]]:
+def ensembles_to_test() -> Iterator[RegressorEnsemble[ID, RT]]:
     for generator in [single_regressor_ensemble, weighted_regressor_ensemble]:
         yield from generator(TMPDIR)
 

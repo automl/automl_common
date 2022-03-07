@@ -1,4 +1,4 @@
-from typing import Callable, Iterable, Optional, Tuple, Union
+from typing import Callable, Iterable, Optional, Tuple, TypeVar, Union
 from typing_extensions import Literal  # TOOD: remove python 3.8
 
 import numpy as np
@@ -6,19 +6,21 @@ import numpy as np
 from automl_common.util import as_random_state
 from automl_common.util.types import Orderable
 
+ID = TypeVar("ID")
+
 
 def single_best(
-    model_predictions: Iterable[Tuple[str, np.ndarray]],
+    model_predictions: Iterable[Tuple[ID, np.ndarray]],
     targets: np.ndarray,
     metric: Callable[[np.ndarray, np.ndarray], Orderable],
     select: Literal["min", "max"],
     random_state: Optional[Union[int, np.random.RandomState]] = None,
-) -> str:
+) -> ID:
     """Get an Ensemble consisting of the single best model
 
     Parameters
     ----------
-    model_predictions: Iterable[Tuple[str, np.ndarray]]
+    model_predictions: Iterable[Tuple[ID, np.ndarray]]
         A interable of model ids and predictions
 
     targets: np.ndarray
@@ -38,7 +40,7 @@ def single_best(
 
     Returns
     -------
-    str
+    ID
         The id of the chosen model
     """
     scores = {id: metric(prediction, targets) for id, prediction in model_predictions}

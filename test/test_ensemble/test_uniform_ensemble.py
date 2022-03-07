@@ -17,7 +17,7 @@ MT = TypeVar("MT", bound=Model)
 
 def test_empty_ids(
     path: Path,
-    make_model_store: Callable[..., ModelStore[MT]],
+    make_model_store: Callable[..., ModelStore],
 ) -> None:
     """
     Parameters

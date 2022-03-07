@@ -23,6 +23,7 @@ from test.test_model.mocks import MockModel
 
 MT = TypeVar("MT", bound=Model)
 ET = TypeVar("ET", bound=Ensemble)
+ID = TypeVar("ID")
 
 
 def _predictions() -> Mapping[str, np.ndarray]:
@@ -89,7 +90,7 @@ def case_populated_ensemble_accessor_with_predictions(
     models: Union[int, Tuple[str]],
     model_type: Type[MT],
     make_ensemble_accessor: Callable[..., EnsembleAccessor[ET]],
-    make_ensemble: Callable[..., Ensemble[MT]],
+    make_ensemble: Callable[..., Ensemble[ID, MT]],
 ) -> EnsembleAccessor[ET]:
     """An EnsembleAccessor with an ensemble and with predictions"""
     ensemble_dir, model_dir = _dirs(path)
@@ -119,7 +120,7 @@ def case_populated_ensemble_accessor(
     models: Union[int, Tuple[str]],
     model_type: Type[MT],
     make_ensemble_accessor: Callable[..., EnsembleAccessor[ET]],
-    make_ensemble: Callable[..., Ensemble[MT]],
+    make_ensemble: Callable[..., Ensemble[ID, MT]],
 ) -> EnsembleAccessor[ET]:
     """An EnsembleAccessor with an ensemble and no predictions"""
     ensemble_dir, model_dir = _dirs(path)

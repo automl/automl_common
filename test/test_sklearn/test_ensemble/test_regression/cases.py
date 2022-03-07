@@ -1,4 +1,4 @@
-from typing import Callable, Tuple
+from typing import Callable, Tuple, TypeVar
 
 from pathlib import Path
 
@@ -13,8 +13,10 @@ from automl_common.sklearn.ensemble.regression import (
 
 from test.test_sklearn.test_models.mocks import MockRegressor
 
-SRE = SingleRegressorEnsemble[MockRegressor]
-WRE = WeightedRegressorEnsemble[MockRegressor]
+ID = TypeVar("ID")
+
+SRE = SingleRegressorEnsemble[ID, MockRegressor]
+WRE = WeightedRegressorEnsemble[ID, MockRegressor]
 
 
 @case(tags=["single", "regressor"])
