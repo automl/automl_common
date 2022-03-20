@@ -246,7 +246,7 @@ class Backend(object):
 
         if os.path.exists(filepath):
             raise ValueError(
-                "{filepath} already exist. Different seeds should be provided for different jobs."
+                f"{filepath} already exist. Different seeds should be provided for different jobs."
             )
 
         with tempfile.NamedTemporaryFile("w", dir=os.path.dirname(filepath), delete=False) as fh:
