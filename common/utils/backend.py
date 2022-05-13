@@ -10,6 +10,8 @@ import warnings
 from typing import Dict, List, Optional, Tuple, TypeVar, Union, cast
 
 import numpy as np
+import pandas as pd
+import scipy.sparse
 
 from sklearn.pipeline import Pipeline
 
@@ -267,21 +269,30 @@ class Backend(object):
     def get_smac_output_directory_for_run(self, seed: int) -> str:
         return os.path.join(self.temporary_directory, "smac3-output", "run_%d" % seed)
 
-    def _get_targets_ensemble_filename(self) -> str:
-        return os.path.join(self.internals_directory, "true_targets_ensemble.npy")
+    def _get_targets_ensemble_filename(self, end="npy") -> str:
+        return os.path.join(self.internals_directory, f"true_targets_ensemble.{end}")
 
-    def _get_input_ensemble_filename(self) -> str:
-        return os.path.join(self.internals_directory, "true_input_ensemble.npy")
+    def _get_input_ensemble_filename(self, end="npy") -> str:
+        return os.path.join(self.internals_directory, f"true_input_ensemble.{end}")
 
-    def save_additional_data(self, data: np.ndarray, what: str, overwrite: bool = False) -> str:
+    def save_additional_data(self, data: Union[np.ndarray, pd.DataFrame,
+                                               scipy.sparse.spmatrix],
+                             what: str, overwrite: bool = False) -> str:
         self._make_internals_directory()
-        if not isinstance(data, np.ndarray):
-            raise ValueError("Targets must be of type np.ndarray, but is %s" % type(data))
+        if isinstance(data, np.ndarray):
+            end = "npy"
+        elif isinstance(data, scipy.sparse.spmatrix):
+            end = "npz"
+        elif isinstance(data, pd.DataFrame):
+            end = "pd"
+        else:
+            raise ValueError("Targets must be of type np.ndarray or pd.Dataframe,"
+                             " but is %s" % type(data))
 
         if what == "targets_ensemble":
-            filepath = self._get_targets_ensemble_filename()
+            filepath = self._get_targets_ensemble_filename(end=end)
         elif what == "input_ensemble":
-            filepath = self._get_input_ensemble_filename()
+            filepath = self._get_input_ensemble_filename(end=end)
         else:
             raise ValueError(f"Unknown data type {what}")
 
@@ -289,18 +300,43 @@ class Backend(object):
         if not overwrite and os.path.isfile(filepath):
             return filepath
 
-        with tempfile.NamedTemporaryFile("wb", dir=os.path.dirname(filepath), delete=False) as fh_w:
-            np.save(fh_w, data.astype(np.float32))
-            tempname = fh_w.name
-
+        tempname = self._save_array(data)
         os.rename(tempname, filepath)
 
         return filepath
 
     @staticmethod
+    def _save_array(data: Union[np.ndarray, pd.DataFrame, scipy.sparse.spmatrix],
+                    filepath: str):
+        if isinstance(data, np.ndarray):
+            with tempfile.NamedTemporaryFile("wb",
+                                             dir=os.path.dirname(filepath),
+                                             delete=False) as fh_w:
+                np.save(fh_w, data.astype(np.float32))
+        elif isinstance(data, scipy.sparse.spmatrix):
+            with tempfile.NamedTemporaryFile("wb",
+                                             dir=os.path.dirname(filepath),
+                                             delete=False) as fh_w:
+                scipy.sparse.save_npz(fh_w, data)
+        elif isinstance(data, pd.DataFrame):
+            with tempfile.NamedTemporaryFile("wb",
+                                             dir=os.path.dirname(filepath),
+                                             delete=False) as fh_w:
+                data.to_pickle(fh_w)
+        return fh_w.name
+
+    @staticmethod
     def _load_array(filepath: str) -> np.array:
-        with open(filepath, "rb") as fh:
-            targets = np.load(fh, allow_pickle=True)
+        end = filepath.split(".")[-1]
+        if end == "npy":
+            targets = np.load(filepath, allow_pickle=True)
+        elif end == "npz":
+            targets = scipy.sparse.load_npz(filepath)
+        elif end == "pd":
+            targets = pd.read_pickle(filepath)
+        else:
+            raise ValueError("Unknown file type")
+
         return targets
 
     def load_targets_ensemble(self) -> np.ndarray:
