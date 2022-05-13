@@ -270,41 +270,44 @@ class Backend(object):
     def _get_targets_ensemble_filename(self) -> str:
         return os.path.join(self.internals_directory, "true_targets_ensemble.npy")
 
-    def save_targets_ensemble(self, targets: np.ndarray) -> str:
+    def _get_input_ensemble_filename(self) -> str:
+        return os.path.join(self.internals_directory, "true_input_ensemble.npy")
+
+    def save_additional_data(self, data: np.ndarray, what: str, overwrite: bool = False) -> str:
         self._make_internals_directory()
-        if not isinstance(targets, np.ndarray):
-            raise ValueError("Targets must be of type np.ndarray, but is %s" % type(targets))
+        if not isinstance(data, np.ndarray):
+            raise ValueError("Targets must be of type np.ndarray, but is %s" % type(data))
 
-        filepath = self._get_targets_ensemble_filename()
+        if what == "targets_ensemble":
+            filepath = self._get_targets_ensemble_filename()
+        elif what == "input_ensemble":
+            filepath = self._get_input_ensemble_filename()
+        else:
+            raise ValueError(f"Unknown data type {what}")
 
-        # Try to open the file without locking it, this will reduce the
-        # number of times where we erroneously keep a lock on the ensemble
-        # targets file although the process already was killed
-        try:
-            existing_targets = np.load(filepath, allow_pickle=True)
-            if existing_targets.shape[0] > targets.shape[0] or (
-                existing_targets.shape == targets.shape and np.allclose(existing_targets, targets)
-            ):
-
-                return filepath
-        except Exception:
-            pass
+        # Only store data if it does not exist yet
+        if not overwrite and os.path.isfile(filepath):
+            return filepath
 
         with tempfile.NamedTemporaryFile("wb", dir=os.path.dirname(filepath), delete=False) as fh_w:
-            np.save(fh_w, targets.astype(np.float32))
+            np.save(fh_w, data.astype(np.float32))
             tempname = fh_w.name
 
         os.rename(tempname, filepath)
 
         return filepath
 
-    def load_targets_ensemble(self) -> np.ndarray:
-        filepath = self._get_targets_ensemble_filename()
-
+    @staticmethod
+    def _load_array(filepath: str) -> np.array:
         with open(filepath, "rb") as fh:
             targets = np.load(fh, allow_pickle=True)
-
         return targets
+
+    def load_targets_ensemble(self) -> np.ndarray:
+        return self._load_array(filepath=self._get_targets_ensemble_filename())
+
+    def load_input_ensemble(self) -> np.ndarray:
+        return self._load_array(filepath=self._get_input_ensemble_filename())
 
     def _get_datamanager_pickle_filename(self) -> str:
         return os.path.join(self.internals_directory, "datamanager.pkl")
