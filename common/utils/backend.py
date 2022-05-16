@@ -286,8 +286,8 @@ class Backend(object):
         elif isinstance(data, pd.DataFrame):
             end = "pd"
         else:
-            raise ValueError("Targets must be of type np.ndarray or pd.Dataframe,"
-                             " but is %s" % type(data))
+            raise ValueError("Targets must be of type np.ndarray, pd.Dataframe or"
+                             " scipy.sparse.spmatrix but is %s" % type(data))
 
         if what == "targets_ensemble":
             filepath = self._get_targets_ensemble_filename(end=end)
@@ -300,7 +300,7 @@ class Backend(object):
         if not overwrite and os.path.isfile(filepath):
             return filepath
 
-        tempname = self._save_array(data)
+        tempname = self._save_array(data=data, filepath=filepath)
         os.rename(tempname, filepath)
 
         return filepath
@@ -335,7 +335,7 @@ class Backend(object):
         elif end == "pd":
             targets = pd.read_pickle(filepath)
         else:
-            raise ValueError("Unknown file type")
+            raise ValueError(f"Unknown file type {end} in {filepath}")
 
         return targets
 
