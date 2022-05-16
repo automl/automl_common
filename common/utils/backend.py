@@ -10,7 +10,9 @@ import warnings
 from typing import Dict, List, Optional, Tuple, TypeVar, Union, cast
 
 import numpy as np
+
 import pandas as pd
+
 import scipy.sparse
 
 from sklearn.pipeline import Pipeline
@@ -269,15 +271,18 @@ class Backend(object):
     def get_smac_output_directory_for_run(self, seed: int) -> str:
         return os.path.join(self.temporary_directory, "smac3-output", "run_%d" % seed)
 
-    def _get_targets_ensemble_filename(self, end="npy") -> str:
+    def _get_targets_ensemble_filename(self, end: str = "npy") -> str:
         return os.path.join(self.internals_directory, f"true_targets_ensemble.{end}")
 
-    def _get_input_ensemble_filename(self, end="npy") -> str:
+    def _get_input_ensemble_filename(self, end: str = "npy") -> str:
         return os.path.join(self.internals_directory, f"true_input_ensemble.{end}")
 
-    def save_additional_data(self, data: Union[np.ndarray, pd.DataFrame,
-                                               scipy.sparse.spmatrix],
-                             what: str, overwrite: bool = False) -> str:
+    def save_additional_data(
+        self,
+        data: Union[np.ndarray, pd.DataFrame, scipy.sparse.spmatrix],
+        what: str,
+        overwrite: bool = False,
+    ) -> str:
         self._make_internals_directory()
         if isinstance(data, np.ndarray):
             end = "npy"
@@ -286,8 +291,10 @@ class Backend(object):
         elif isinstance(data, pd.DataFrame):
             end = "pd"
         else:
-            raise ValueError("Targets must be of type np.ndarray, pd.Dataframe or"
-                             " scipy.sparse.spmatrix but is %s" % type(data))
+            raise ValueError(
+                "Targets must be of type np.ndarray, pd.Dataframe or"
+                " scipy.sparse.spmatrix but is %s" % type(data)
+            )
 
         if what == "targets_ensemble":
             filepath = self._get_targets_ensemble_filename(end=end)
@@ -306,22 +313,23 @@ class Backend(object):
         return filepath
 
     @staticmethod
-    def _save_array(data: Union[np.ndarray, pd.DataFrame, scipy.sparse.spmatrix],
-                    filepath: str):
+    def _save_array(
+        data: Union[np.ndarray, pd.DataFrame, scipy.sparse.spmatrix], filepath: str
+    ) -> str:
         if isinstance(data, np.ndarray):
-            with tempfile.NamedTemporaryFile("wb",
-                                             dir=os.path.dirname(filepath),
-                                             delete=False) as fh_w:
+            with tempfile.NamedTemporaryFile(
+                "wb", dir=os.path.dirname(filepath), delete=False
+            ) as fh_w:
                 np.save(fh_w, data.astype(np.float32))
         elif isinstance(data, scipy.sparse.spmatrix):
-            with tempfile.NamedTemporaryFile("wb",
-                                             dir=os.path.dirname(filepath),
-                                             delete=False) as fh_w:
+            with tempfile.NamedTemporaryFile(
+                "wb", dir=os.path.dirname(filepath), delete=False
+            ) as fh_w:
                 scipy.sparse.save_npz(fh_w, data)
         elif isinstance(data, pd.DataFrame):
-            with tempfile.NamedTemporaryFile("wb",
-                                             dir=os.path.dirname(filepath),
-                                             delete=False) as fh_w:
+            with tempfile.NamedTemporaryFile(
+                "wb", dir=os.path.dirname(filepath), delete=False
+            ) as fh_w:
                 data.to_pickle(fh_w)
         return fh_w.name
 
