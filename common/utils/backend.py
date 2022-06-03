@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import glob
 import os
 import pickle
@@ -8,6 +10,7 @@ import time
 import uuid
 import warnings
 from typing import Dict, List, Optional, Tuple, TypeVar, Union, cast
+from pathlib import Path
 
 import numpy as np
 
@@ -271,11 +274,35 @@ class Backend(object):
     def get_smac_output_directory_for_run(self, seed: int) -> str:
         return os.path.join(self.temporary_directory, "smac3-output", "run_%d" % seed)
 
-    def _get_targets_ensemble_filename(self, end: str = "npy") -> str:
-        return os.path.join(self.internals_directory, f"true_targets_ensemble.{end}")
+    def _get_targets_ensemble_filename(self, end: str | None = None) -> str:
+        dir = Path(self.internals_directory)
+        stem = "true_targets_ensemble"
+        existing = [p for p in dir.iterdir() if stem in p.name]
 
-    def _get_input_ensemble_filename(self, end: str = "npy") -> str:
-        return os.path.join(self.internals_directory, f"true_input_ensemble.{end}")
+        # Sanity check to make sure we have one or None
+        assert len(existing) in [0, 1]
+
+        if not any(existing):
+            end = "npy"
+        else:
+            end = existing[0].name.split('.')[-1]
+
+        return os.path.join(self.internals_directory, f"{stem}.{end}")
+
+    def _get_input_ensemble_filename(self, end: str | None = None) -> str:
+        dir = Path(self.internals_directory)
+        stem = "true_input_ensemble"
+        existing = [p for p in dir.iterdir() if stem in p.name]
+
+        # Sanity check to make sure we have one or None
+        assert len(existing) in [0, 1]
+
+        if not any(existing):
+            end = "npy"
+        else:
+            end = existing[0].name.split('.')[-1]
+
+        return os.path.join(self.internals_directory, f"{stem}.{end}")
 
     def save_additional_data(
         self,
